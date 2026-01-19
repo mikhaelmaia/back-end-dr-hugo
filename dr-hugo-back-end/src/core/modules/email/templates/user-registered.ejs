@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <style>
+    html, body {
+        margin: 0;
+        padding: 0;
+    }
+    .email-body {
+        margin: 0 auto;
+        padding: 20px;
+        max-width: 600px;
+        min-height: 720px;
+        background-color: #EDEAEA;
+    }
+    .container {
+        width: 100%;
+        min-height: 720px;
+        background-color: white;
+        border-radius: 8px;
+    }
+    .email-text {
+        padding: 16px;
+    }
+    h3 {
+        width: 100%;
+        margin: 0;
+        padding: 16px 0;
+        text-align: center;
+        font-family: 'Roboto', 'Arial', 'sans-serif';
+        font-size: 24px;
+        font-weight: 600;
+        color: #fff;
+        background-color: #03045E;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+    }
+    p {
+        display: block;
+        margin-bottom: 16px;
+        color: #000;
+        font-family: 'Roboto', 'Arial', 'sans-serif';
+        font-size: 14px;
+        font-weight: 500;
+    }
+    em {
+        display: block;
+        margin: 20px auto;
+        padding: 16px;
+        font-family: 'Roboto', 'Arial', 'sans-serif';
+        font-size: 20px;
+        font-weight: 600;
+        font-style: normal;
+        letter-spacing: 1px;
+        color: #03045E;
+        text-align: center;
+        background-color: #EDEAEA;
+        border-radius: 4px;
+    }
+    .info-box {
+        margin: 24px 0;
+        padding: 20px;
+        background-color: #FFF3CD;
+        border: 2px solid #FFECB5;
+        border-left: 6px solid #FFC107;
+        border-radius: 8px;
+    }
+    .info-box h4 {
+        margin: 0 0 12px 0;
+        color: #856404;
+        font-family: 'Roboto', 'Arial', 'sans-serif';
+        font-size: 16px;
+        font-weight: 600;
+    }
+    .info-box p {
+        margin: 8px 0;
+        color: #856404;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+    .info-box .highlight {
+        background-color: #FFE69C;
+        padding: 2px 4px;
+        border-radius: 3px;
+        font-weight: 600;
+    }
+    .kiwify-info {
+        margin: 24px 0;
+        padding: 20px;
+        background-color: #E7F3FF;
+        border: 1px solid #B3D9FF;
+        border-left: 6px solid #0066CC;
+        border-radius: 8px;
+    }
+    .kiwify-info h4 {
+        margin: 0 0 12px 0;
+        color: #0066CC;
+        font-family: 'Roboto', 'Arial', 'sans-serif';
+        font-size: 16px;
+        font-weight: 600;
+    }
+    .kiwify-info p {
+        margin: 8px 0;
+        color: #0066CC;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+    .kiwify-info ul {
+        margin: 12px 0;
+        padding-left: 20px;
+        color: #0066CC;
+    }
+    .kiwify-info li {
+        margin: 6px 0;
+        font-size: 14px;
+        line-height: 1.4;
+    }
+    .kiwify-info strong {
+        color: #004499;
+    }
+    .kiwify-info .italic-text {
+        font-style: italic;
+        margin: 16px 0;
+        font-weight: 500;
+    }
+    .login-button-container {
+        text-align: center;
+        margin: 32px 0 24px 0;
+    }
+    .login-button {
+        display: inline-block;
+        padding: 16px 32px;
+        background-color: #03045E;
+        color: #ffffff !important;
+        text-decoration: none;
+        font-family: 'Roboto', 'Arial', 'sans-serif';
+        font-size: 16px;
+        font-weight: 600;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+    .login-button:hover {
+        background-color: #0505A3;
+    }
+    .login-button:visited {
+        color: #ffffff !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-body">
+    <div class="container">
+        <h3>Cadastro Realizado com Sucesso</h3>
+        <div class="email-text">
+          <p>Olá, <%= name %></p>
+          <p>Parabéns! Seu cadastro em nossa plataforma de cursos foi realizado com sucesso.</p>
+          <p>Data do cadastro:</p>
+          <em><%= estimatedRegisteredAt %></em>
+          <% if (suggestPasswordReset === 'true') { %>
+          <div class="info-box">
+            <h4>🔑 Ação Necessária - Definir Senha</h4>
+            <p>Como sua conta foi criada automaticamente através da compra no Kiwify, você precisa definir uma senha para acessar a plataforma.</p>
+            <p><strong>Para definir sua senha:</strong></p>
+            <p>1. Acesse a página de login da plataforma</p>
+            <p>2. Clique em <span class="highlight">"Esqueceu sua senha?"</span></p>
+            <p>3. Insira seu e-mail (<%= email %>)</p>
+            <p>4. Siga as instruções que serão enviadas por e-mail</p>
+          </div>
+          <% } else { %>
+          <div class="kiwify-info">
+            <h4>🎯 Descubra Nossa Plataforma de Cursos</h4>
+            <p>Bem-vindo à nossa plataforma educacional! Aqui você encontra <strong>Conteúdos Exclusivos</strong> disponíveis na aba <strong>Home</strong>.</p>
+            
+            <p>• A compra será processada com segurança pela plataforma <strong>Kiwify</strong>;</p>
+            <p>• Após a aquisição, o acesso ao curso é liberado automaticamente na plataforma;</p>
+            <p>• O curso adquirido constará na Home na seção <strong>Conteúdos Exclusivos</strong>.</p>
+            
+            <p><strong>Ferramentas exclusivas para alunos:</strong></p>
+            <p>• <strong>Destrava Procuradorias:</strong> encontre a procuradoria ideal para você;</p>
+            <p>• <strong>Calendário:</strong> Controle e organize seus estudos;</p>
+            <p>• <strong>Desempenho:</strong> Acompanhe, semana a semana, o desempenho registrado no calendário;</p>
+            <p>• <strong>Simulados:</strong> Cadastre seus exames anteriores e acompanhe sua evolução;</p>
+            
+            <p class="italic-text">Todas as ferramentas desenvolvidas posteriormente serão disponibilizadas aos alunos ativos na plataforma.</p>
+            
+            <p>Explore nossos cursos disponíveis e potencialize seus estudos com nossas ferramentas!</p>
+          </div>
+          <% } %>
+          
+          <div class="login-button-container">
+            <a href="<%= loginPageUrl %>" class="login-button">
+              Acessar Plataforma
+            </a>
+          </div>
+          
+          <p>Estamos felizes em tê-lo conosco. Aproveite os cursos disponíveis e bons estudos!</p> 
+          <p>Atenciosamente, Equipe João Marcelo</p>
+        </div>
+    </div>
+  </div>
+</body>
+</html>
