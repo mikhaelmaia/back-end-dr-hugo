@@ -1,22 +1,9 @@
 import { UserRole } from '../consts/enums';
 
-export class ApplicationResponse<T> {
-  success: boolean;
+export interface ApplicationResponse<T> {
   data: T;
-
-  public static success<T>(data?: T): ApplicationResponse<T> {
-    const response = new ApplicationResponse<T>();
-    response.success = true;
-    response.data = data;
-    return response;
-  }
-
-  public static failure<T>(): ApplicationResponse<T> {
-    const response = new ApplicationResponse<T>();
-    response.success = false;
-    response.data = null;
-    return response;
-  }
+  statusCode: number;
+  message: string;
 }
 
 export type SortOrder = 'ASC' | 'DESC';

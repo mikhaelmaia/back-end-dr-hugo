@@ -7,6 +7,7 @@ import { IsUniqueConstraint } from './core/vo/validators/is-unique.validator';
 import { ExistsInValidator } from './core/vo/validators/exists-in.validator';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { TimeoutInterceptor } from './core/config/interceptors/timeout.interceptor';
+import { TransformInterceptor } from './core/config/interceptors/transform.interceptor';
 import { AuthGuard } from './core/config/security/auth.guard';
 import { ConfigModule } from '@nestjs/config';
 import configuration from './core/config/environment/configuration';
@@ -36,6 +37,10 @@ import { CoreModule } from './core/modules/core.module';
     {
       provide: APP_INTERCEPTOR,
       useClass: TimeoutInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TransformInterceptor,
     },
   ],
 })

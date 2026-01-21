@@ -14,7 +14,6 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { multerSingleFileConfig } from '../../config/media/multer.config';
 import { ApiTags } from '@nestjs/swagger';
 import { IsUUIDParam } from '../../vo/decorators/is-uuid-param.decorator';
-import { ApplicationResponse } from 'src/core/vo/types/types';
 
 @ApiTags('Media Controller')
 @Controller('media')
@@ -25,18 +24,16 @@ export class MediaController {
   @UseInterceptors(FileInterceptor('file', multerSingleFileConfig))
   public async create(
     @UploadedFile() file: Express.Multer.File,
-  ): Promise<ApplicationResponse<MediaDto>> {
-    return ApplicationResponse.success(
-      await this.mediaService.createMedia(file),
-    );
+  ): Promise<MediaDto> {
+    return await this.mediaService.createMedia(file);
   }
 
   @Public()
   @Get(':id')
   public async findById(
     @IsUUIDParam('id') id: string,
-  ): Promise<ApplicationResponse<MediaDto>> {
-    return ApplicationResponse.success(await this.mediaService.findById(id));
+  ): Promise<MediaDto> {
+    return await this.mediaService.findById(id);
   }
 
   @Put(':id')
@@ -44,17 +41,14 @@ export class MediaController {
   public async update(
     @IsUUIDParam('id') id: string,
     @UploadedFile() file: Express.Multer.File,
-  ): Promise<ApplicationResponse<MediaDto>> {
-    return ApplicationResponse.success(
-      await this.mediaService.update(id, file),
-    );
+  ): Promise<MediaDto> {
+    return await this.mediaService.update(id, file);
   }
 
   @Delete(':id')
   public async deleteById(
     @IsUUIDParam('id') id: string,
-  ): Promise<ApplicationResponse<null>> {
+  ): Promise<void> {
     await this.mediaService.deleteById(id);
-    return ApplicationResponse.success();
   }
 }

@@ -6,7 +6,6 @@ import { Roles } from '../../vo/decorators/roles.decorator';
 import { IsUUIDParam } from '../../vo/decorators/is-uuid-param.decorator';
 import { BaseController } from '../../base/base.controller';
 import { Audit } from './entities/audit.entity';
-import { ApplicationResponse } from 'src/core/vo/types/types';
 
 @Controller('audit')
 export class AuditController extends BaseController<
@@ -26,14 +25,12 @@ export class AuditController extends BaseController<
     @Query('entityName') entityName?: string,
     @Query('entityId') entityId?: string,
     @Query('authorId') authorId?: string,
-  ): Promise<ApplicationResponse<AuditDto[]>> {
-    return ApplicationResponse.success(
-      await this.service.findAllWithFilters(
-        eventType,
-        entityName,
-        entityId,
-        authorId,
-      ),
+  ): Promise<AuditDto[]> {
+    return await this.service.findAllWithFilters(
+      eventType,
+      entityName,
+      entityId,
+      authorId,
     );
   }
 
@@ -42,9 +39,7 @@ export class AuditController extends BaseController<
   @HttpCode(HttpStatus.OK)
   public async findByIdWithRelations(
     @IsUUIDParam('id') id: string,
-  ): Promise<ApplicationResponse<AuditDto>> {
-    return ApplicationResponse.success(
-      await this.service.findByIdWithRelations(id),
-    );
+  ): Promise<AuditDto> {
+    return await this.service.findByIdWithRelations(id);
   }
 }
