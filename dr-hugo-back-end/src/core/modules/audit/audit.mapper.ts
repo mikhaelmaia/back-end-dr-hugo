@@ -20,7 +20,7 @@ export class AuditMapper extends BaseMapper<Audit, AuditDto> {
     dto.fingerprint = entity.fingerprint
       ? ({
           id: entity.fingerprint.id,
-          fingerprintHash: entity.fingerprint.fingerprintHash,
+          fingerprintHash: entity.fingerprint.fingerprint,
           ip: entity.fingerprint.ip,
           userAgent: entity.fingerprint.userAgent,
           sessionId: entity.fingerprint.sessionId,

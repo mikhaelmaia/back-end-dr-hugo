@@ -10,9 +10,7 @@ export class Fingerprint extends BaseEntity {
     type: 'varchar',
     length: 64,
     unique: true,
-    transformer: CryptoTransformerFactory.createEncrypted(
-      CryptoBridge.get()
-    )
+    transformer: CryptoTransformerFactory.createEncrypted(CryptoBridge.get()),
   })
   public fingerprint: string;
 
