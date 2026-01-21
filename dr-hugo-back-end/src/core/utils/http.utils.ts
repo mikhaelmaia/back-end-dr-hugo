@@ -62,5 +62,5 @@ export const getDescriptionFromStatusCode = (statusCode: number): string => {
     510: 'Not Extended',
     511: 'Network Authentication Required',
   };
-    return statusDescriptions[statusCode] || 'Unknown Status Code';
+  return statusDescriptions[statusCode] || 'Unknown Status Code';
 };

@@ -1,67 +1,128 @@
 import {
   IsNotEmpty,
   IsString,
-  IsArray,
-  IsDateString,
   IsOptional,
-  ValidateNested,
-  ArrayNotEmpty,
+  IsEmail,
+  Length,
+  MaxLength,
+  MinLength,
+  ValidateIf,
 } from 'class-validator';
-import { Type, Expose } from 'class-transformer';
+import { Expose, Exclude } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { BaseEntityDto } from 'src/core/base/base.entity.dto';
 import { Patient } from '../entities/patient.entity';
-import { UserDto } from 'src/modules/users/dtos/user.dto';
 import {
   provideIsNotEmptyValidationMessage,
-  provideIsDateStringValidationMessage,
+  provideIsEmailValidationMessage,
+  provideIsNotEmptyStringValidationMessage,
+  provideIsStringValidationMessage,
+  provideIsValidTaxIdValidationMessage,
+  provideLengthValidationMessage,
+  provideMaxLengthValidationMessage,
+  provideMinLengthValidationMessage,
 } from 'src/core/vo/consts/validation-messages';
 import { IsNotBlacklisted } from 'src/core/vo/validators/is-not-blacklisted.validator';
+import { UserRole } from 'src/core/vo/consts/enums';
+import { ExistsIn } from 'src/core/vo/validators/exists-in.validator';
+import { IsNotEmptyString } from 'src/core/vo/validators/is-not-empty-string.validator';
+import { IsUnique } from 'src/core/vo/validators/is-unique.validator';
+import { IsValidTaxId } from 'src/core/vo/validators/is-valid-tax-id.validator';
+import { User } from 'src/modules/users/entities/user.entity';
 
 export class PatientDto extends BaseEntityDto<Patient> {
   @IsNotEmpty({
-    message: provideIsNotEmptyValidationMessage('Dados do Usuário'),
+    message: provideIsNotEmptyValidationMessage('Nome do Usuário'),
   })
-  @ValidateNested()
-  @Type(() => UserDto)
-  @Expose()
-  @ApiProperty({ description: 'Dados do usuário' })
-  public user: UserDto;
-
-  @IsNotEmpty({
-    message: provideIsNotEmptyValidationMessage('Data de Nascimento'),
+  @IsString({ message: provideIsStringValidationMessage('Nome do Usuário') })
+  @IsNotEmptyString({
+    message: provideIsNotEmptyStringValidationMessage('Nome do Usuário'),
   })
-  @IsDateString(
-    {},
-    {
-      message: provideIsDateStringValidationMessage('Data de Nascimento'),
-    },
-  )
-  @Expose()
-  @ApiProperty({ description: 'Data de nascimento do paciente' })
-  public birthDate: string;
-
-  @IsNotEmpty({
-    message: provideIsNotEmptyValidationMessage('Termos Aceitos'),
-  })
-  @IsArray({
-    message: 'Termos aceitos deve ser um array',
-  })
-  @ArrayNotEmpty({
-    message: 'Pelo menos um termo deve ser aceito',
-  })
-  @IsString({ each: true, message: 'Cada termo deve ser uma string' })
   @IsNotBlacklisted()
+  @MaxLength(100, { message: provideMaxLengthValidationMessage })
   @Expose()
-  @ApiProperty({
-    description: 'Lista de termos aceitos pelo paciente',
-    type: [String],
-    example: ['termo-uso-2024', 'politica-privacidade-2024'],
-  })
-  public acceptedTerms: string[];
+  @ApiProperty({ description: 'Nome do usuário', maxLength: 100 })
+  public name: string;
 
-  @IsOptional()
+  @IsNotEmpty({
+    message: provideIsNotEmptyValidationMessage('E-mail do Usuário'),
+  })
+  @IsString({ message: provideIsStringValidationMessage('E-mail do Usuário') })
+  @IsEmail(
+    {},
+    { message: provideIsEmailValidationMessage('E-mail do Usuário') },
+  )
+  @IsNotBlacklisted()
+  @MaxLength(50, { message: provideMaxLengthValidationMessage })
+  @IsUnique('dh_user', 'email', {
+    message: 'Já existe usuário com este e-mail cadastrado',
+  })
+  @ApiProperty({ description: 'E-mail do usuário', maxLength: 50 })
+  public email: string;
+
+  @ValidateIf((o: User) => !o.id)
+  @IsNotEmpty({
+    message: provideIsNotEmptyValidationMessage('Senha do Usuário'),
+  })
+  @IsString({ message: provideIsStringValidationMessage('Senha do Usuário') })
+  @IsNotEmptyString({
+    message: provideIsNotEmptyStringValidationMessage('Senha do Usuário'),
+  })
+  @MinLength(6, {
+    message: provideMinLengthValidationMessage('Senha do Usuário', 6),
+  })
+  @Exclude({ toPlainOnly: true })
+  @ApiProperty({ description: 'Senha do usuário' })
+  public password: string;
+
+  @IsString({
+    message: provideIsStringValidationMessage('CPF/CNPJ do Usuário'),
+  })
+  @IsNotEmpty({
+    message: provideIsNotEmptyValidationMessage('CPF/CNPJ do Usuário'),
+  })
+  @Length(11, 14, { message: provideLengthValidationMessage })
+  @IsNotEmptyString({
+    message: provideIsNotEmptyStringValidationMessage('CPF/CNPJ do Usuário'),
+  })
+  @IsValidTaxId({
+    message: provideIsValidTaxIdValidationMessage('CPF/CNPJ do Usuário'),
+  })
+  @IsUnique('dh_user', 'taxId', {
+    message: 'Já existe usuário com este CPF/CNPJ cadastrado',
+  })
+  @ApiProperty({
+    description: 'CPF/CNPJ do usuário',
+    minLength: 11,
+    maxLength: 14,
+  })
+  public taxId: string;
+
+  @IsString({
+    message: provideIsStringValidationMessage('Telefone/Celular do Usuário'),
+  })
+  @IsNotEmpty({
+    message: provideIsNotEmptyValidationMessage('Telefone/Celular do Usuário'),
+  })
+  @Length(10, 15, { message: provideLengthValidationMessage })
+  @ApiProperty({
+    description: 'Telefone/Celular do usuário',
+    minLength: 10,
+    maxLength: 15,
+  })
+  public phone: string;
+
+  @ApiProperty({
+    description: 'Perfil de acesso do usuário',
+    required: false,
+    minLength: 10,
+    maxLength: 15,
+    enum: UserRole,
+  })
+  public role: UserRole;
+
   @Expose()
-  @ApiProperty({ description: 'ID da foto de perfil', required: false })
-  public profilePictureId?: string;
+  @IsOptional()
+  @ExistsIn('dh_media', 'id', { message: 'Arquivo de mídia não encontrado' })
+  public profilePictureId: string;
 }

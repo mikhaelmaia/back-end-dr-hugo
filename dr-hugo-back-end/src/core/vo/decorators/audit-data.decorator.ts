@@ -1,7 +1,7 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { AuditDataPayload } from 'src/core/modules/audit/types/audit.types';
-import { UserDto } from 'src/modules/users/dtos/user.dto';
 import { HttpHeaders } from '../consts/enums';
+import { ClientFingerprintDto } from 'src/core/modules/audit/fingerprint/dtos/client-fingerprint.dto';
 
 export const AuditData = createParamDecorator(
   (ctx: ExecutionContext): AuditDataPayload => {
@@ -18,8 +18,10 @@ export const AuditData = createParamDecorator(
 
     const userAgent = request.headers[HttpHeaders.UserAgent] ?? '';
     const sessionId = request.headers[HttpHeaders.SessionId] ?? '';
-    const fingerprint = request.headers[HttpHeaders.ClientFingerprint] ?? '';
-    const author = request.currentUser as UserDto;
+    const fingerprint =
+      request.headers[HttpHeaders.ClientFingerprint] ??
+      new ClientFingerprintDto();
+    const author = request.currentUser;
 
     return {
       ip,

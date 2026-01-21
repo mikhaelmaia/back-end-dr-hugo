@@ -30,9 +30,7 @@ export class MediaController {
 
   @Public()
   @Get(':id')
-  public async findById(
-    @IsUUIDParam('id') id: string,
-  ): Promise<MediaDto> {
+  public async findById(@IsUUIDParam('id') id: string): Promise<MediaDto> {
     return await this.mediaService.findById(id);
   }
 
@@ -46,9 +44,7 @@ export class MediaController {
   }
 
   @Delete(':id')
-  public async deleteById(
-    @IsUUIDParam('id') id: string,
-  ): Promise<void> {
+  public async deleteById(@IsUUIDParam('id') id: string): Promise<void> {
     await this.mediaService.deleteById(id);
   }
 }

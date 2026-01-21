@@ -1,6 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
-import { provideIsNotEmptyValidationMessage, provideIsStringValidationMessage, provideIsEmailValidationMessage } from 'src/core/vo/consts/validation-messages';
+import {
+  provideIsNotEmptyValidationMessage,
+  provideIsStringValidationMessage,
+  provideIsEmailValidationMessage,
+} from 'src/core/vo/consts/validation-messages';
 
 export class PasswordResetDto {
   @IsNotEmpty({

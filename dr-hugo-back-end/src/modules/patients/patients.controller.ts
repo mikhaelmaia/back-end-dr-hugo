@@ -16,6 +16,8 @@ import { PatientDto } from './dtos/patient.dto';
 import { PatientsService } from './patients.service';
 import { IsUUIDParam } from 'src/core/vo/decorators/is-uuid-param.decorator';
 import { CreateAuditDto } from 'src/core/modules/audit/dtos/create-audit.dto';
+import { Auditable } from 'src/core/vo/decorators/auditable.decorator';
+import { AuditEventType } from 'src/core/vo/consts/enums';
 
 @ApiTags('Módulo de Pacientes')
 @Controller('patients')
@@ -34,6 +36,14 @@ export class PatientsController extends BaseController<
   @ApiResponse({ status: 201, description: 'Paciente criado com sucesso' })
   @ApiResponse({ status: 400, description: 'Dados inválidos' })
   @ApiResponse({ status: 409, description: 'Paciente já existe' })
+  @Auditable({
+    eventType: AuditEventType.CREATE,
+    entityName: 'Patient',
+    dataExtractor: ({ body, result }) => ({
+      patientData: body,
+      createdPatient: result,
+    }),
+  })
   public async create(@Body() dto: PatientDto): Promise<PatientDto> {
     return this.service.create(dto);
   }
@@ -75,11 +85,21 @@ export class PatientsController extends BaseController<
   @ApiResponse({ status: 200, description: 'Paciente atualizado com sucesso' })
   @ApiResponse({ status: 404, description: 'Paciente não encontrado' })
   @ApiResponse({ status: 409, description: 'Email já em uso' })
+  @Auditable({
+    eventType: AuditEventType.UPDATE,
+    entityName: 'Patient',
+    entityIdExtractor: ({ params }) => params?.id,
+    dataExtractor: ({ body, result, params }) => ({
+      patientId: params?.id,
+      changes: body,
+      updatedPatient: result,
+    }),
+  })
   public async update(
     @IsUUIDParam('id') id: string,
-    @Body() dto: UpdatePatientDto,
+    @Body() dto: PatientDto,
   ): Promise<PatientDto> {
-    return this.service.update(id, dto as PatientDto);
+    return this.service.update(id, dto);
   }
 
   @Delete(':id')
@@ -87,6 +107,16 @@ export class PatientsController extends BaseController<
   @ApiOperation({ summary: 'Excluir paciente' })
   @ApiResponse({ status: 204, description: 'Paciente excluído com sucesso' })
   @ApiResponse({ status: 404, description: 'Paciente não encontrado' })
+  @Auditable({
+    eventType: AuditEventType.DELETE,
+    entityName: 'Patient',
+    entityIdExtractor: ({ params }) => params?.id,
+    auditOnSuccessOnly: false,
+    dataExtractor: ({ params, body }) => ({
+      deletedPatientId: params?.id,
+      auditMetadata: body,
+    }),
+  })
   public async remove(
     @IsUUIDParam('id') id: string,
     @Body() auditData: CreateAuditDto,

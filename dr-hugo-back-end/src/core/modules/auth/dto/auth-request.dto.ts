@@ -1,6 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
-import { provideIsNotEmptyValidationMessage, provideIsStringValidationMessage } from 'src/core/vo/consts/validation-messages';
+import {
+  provideIsNotEmptyValidationMessage,
+  provideIsStringValidationMessage,
+} from 'src/core/vo/consts/validation-messages';
 
 export class AuthRequest {
   @IsNotEmpty({

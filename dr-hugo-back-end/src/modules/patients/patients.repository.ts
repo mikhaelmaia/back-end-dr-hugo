@@ -17,25 +17,7 @@ export class PatientsRepository extends BaseRepository<Patient> {
 
   public async findByUserId(userId: string): Promise<Patient | null> {
     return this.createBaseQuery()
-      .leftJoinAndSelect(`${this.alias}.user`, 'user')
-      .leftJoinAndSelect(`${this.alias}.profilePicture`, 'profilePicture')
       .where(`${this.alias}.user_id = :userId`, { userId })
-      .getOne();
-  }
-
-  public async findByUserEmail(email: string): Promise<Patient | null> {
-    return this.createBaseQuery()
-      .leftJoinAndSelect(`${this.alias}.user`, 'user')
-      .leftJoinAndSelect(`${this.alias}.profilePicture`, 'profilePicture')
-      .where('user.email = :email', { email })
-      .getOne();
-  }
-
-  public async findWithRelations(id: string): Promise<Patient | null> {
-    return this.createBaseQuery()
-      .leftJoinAndSelect(`${this.alias}.user`, 'user')
-      .leftJoinAndSelect(`${this.alias}.profilePicture`, 'profilePicture')
-      .where(`${this.alias}.id = :id`, { id })
       .getOne();
   }
 }

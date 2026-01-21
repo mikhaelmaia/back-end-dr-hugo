@@ -2,11 +2,12 @@ export enum UserRole {
   ADMIN = 'ADMIN',
   PACIENT = 'PACIENT',
   DOCTOR = 'DOCTOR',
-  COMPANY = 'COMPANY',
+  INSTITUTION = 'INSTITUTION',
 }
 
 export enum TokenType {
   PASSWORD_RESET = 'PASSWORD_RESET',
+  EMAIL_CONFIRMATION = 'EMAIL_CONFIRMATION',
 }
 
 export enum MediaType {

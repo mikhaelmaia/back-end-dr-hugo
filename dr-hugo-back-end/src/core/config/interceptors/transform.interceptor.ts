@@ -10,9 +10,10 @@ import { getDescriptionFromStatusCode } from 'src/core/utils/http.utils';
 import { ApplicationResponse } from 'src/core/vo/types/types';
 
 @Injectable()
-export class TransformInterceptor<T>
-  implements NestInterceptor<T, ApplicationResponse<T>>
-{
+export class TransformInterceptor<T> implements NestInterceptor<
+  T,
+  ApplicationResponse<T>
+> {
   public intercept(
     context: ExecutionContext,
     next: CallHandler,

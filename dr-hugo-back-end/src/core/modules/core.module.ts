@@ -8,7 +8,23 @@ import { MediaModule } from './media/media.module';
 import { TokenModule } from './token/token.module';
 
 @Module({
-  imports: [AuditModule, AuthModule, CacheModule, CryptoModule, EmailModule, MediaModule, TokenModule],
-  exports: [AuditModule, AuthModule, CacheModule, CryptoModule, EmailModule, MediaModule, TokenModule],
+  imports: [
+    AuditModule,
+    AuthModule,
+    CacheModule,
+    CryptoModule,
+    EmailModule,
+    MediaModule,
+    TokenModule,
+  ],
+  exports: [
+    AuditModule,
+    AuthModule,
+    CacheModule,
+    CryptoModule,
+    EmailModule,
+    MediaModule,
+    TokenModule,
+  ],
 })
 export class CoreModule {}
