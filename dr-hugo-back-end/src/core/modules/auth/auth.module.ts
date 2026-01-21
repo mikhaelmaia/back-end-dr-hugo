@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
-import { UserModule } from '../user/user.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { TokenModule } from '../token/token.module';
 import { JwtProviderService } from './aggregates/jwt-provider.service';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { provideJwtModuleOptions } from '../../core/config/security/jwt.options';
 import { EmailModule } from '../email/email.module';
+import { provideJwtModuleOptions } from 'src/core/config/security/jwt.options';
+import { UserModule } from 'src/modules/users/user.module';
 
 @Module({
   imports: [

@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { BaseService } from 'src/core/base/base.service';
 import { User } from './entities/user.entity';
 import { UserDto } from './dtos/user.dto';
 import { UserRepository } from './user.repository';
 import { UserMapper } from './user.mapper';
-import { compare, encrypt, isNotPresent } from 'src/core/utils/functions';
+import { acceptFalseThrows, compare, encrypt, isNotPresent, isPresent } from 'src/core/utils/functions';
 import { EmailHelper } from 'src/core/modules/email/email.helper';
 import { Optional } from 'src/core/utils/optional';
 
@@ -15,6 +15,9 @@ export class UserService extends BaseService<
   UserRepository,
   UserMapper
 > {
+
+  protected override readonly ENTITY_NOT_FOUND: string = 'Usuário não encontrado';
+
   public constructor(
     userRepository: UserRepository, 
     userMapper: UserMapper,
@@ -31,6 +34,19 @@ export class UserService extends BaseService<
     )
     .map((user: User) => this.mapper.toDto(user))
     .orElse(null);
+  }
+
+  public async updateUserPassword(
+    email: string,
+    password: string,
+  ): Promise<void> {
+    const user: User = await this.repository.findByEmail(email);
+    acceptFalseThrows(
+      isPresent(user),
+      () => new NotFoundException(this.ENTITY_NOT_FOUND),
+    );
+    user.updatePassword(await encrypt(password));
+    await this.repository.save(user);
   }
 
   protected override async beforeCreate(entity: User): Promise<void> {

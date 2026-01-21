@@ -14,7 +14,7 @@ export abstract class BaseService<
   TRepository extends BaseRepository<TEntity>,
   TMapper extends BaseMapper<TEntity, TDto>,
 > {
-  protected readonly ENTITY_NOT_FOUND = 'Entity not found';
+  protected readonly ENTITY_NOT_FOUND: string = 'Entity not found';
 
   protected constructor(
     protected readonly repository: TRepository,

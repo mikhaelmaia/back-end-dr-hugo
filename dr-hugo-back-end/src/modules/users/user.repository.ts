@@ -15,6 +15,12 @@ export class UserRepository extends BaseRepository<User> {
     super(userRepository);
   }
 
+  public findByEmail(email: string): Promise<User | null> {
+    return this.createBaseQuery()
+      .where(`${this.alias}.email = :email`, { email })
+      .getOne();
+  }
+
   public findByEmailOrTaxId(
     emailOrTaxId: string,
   ): Promise<User | null> {

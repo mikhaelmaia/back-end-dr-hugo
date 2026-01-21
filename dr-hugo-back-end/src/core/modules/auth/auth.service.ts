@@ -27,8 +27,8 @@ export class AuthService {
   ) {}
 
   public async login(authRequest: AuthRequest): Promise<AuthResponse> {
-    const { email, password } = authRequest;
-    const user: UserDto = await this.userService.findByEmail(email);
+    const { login, password } = authRequest;
+    const user: UserDto = await this.userService.findByEmailOrTaxId(login);
     const matches: boolean = await compare(password, user.password);
     acceptFalseThrows(
       matches,
@@ -50,10 +50,10 @@ export class AuthService {
     );
   }
 
-  public async startPasswordRecovery(email: string): Promise<void> {
-    const user: UserDto = await this.userService.findByEmail(email);
+  public async startPasswordRecovery(login: string): Promise<void> {
+    const user: UserDto = await this.userService.findByEmailOrTaxId(login);
     const token = await this.tokenService.generateToken(
-      email,
+      login,
       TokenType.PASSWORD_RESET,
     );
     await this.emailhelper.sendPasswordResetRequestEmail(
