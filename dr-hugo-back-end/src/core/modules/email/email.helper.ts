@@ -45,7 +45,6 @@ export class EmailHelper {
   public async sendUserRegisteredEmail(
     name: string,
     email: string,
-    suggestPasswordReset: boolean = false,
   ): Promise<void> {
     await this.emailService.sendEmail(
       EmailSend.builder()
@@ -57,7 +56,6 @@ export class EmailHelper {
           'estimatedRegisteredAt',
           getCurrentLocalDateTimeFormatted(),
         )
-        .addParameter('suggestPasswordReset', suggestPasswordReset.toString())
         .addParameter(
           'loginPageUrl',
           `${this.configService.get('web.baseUrl')}/${this.configService.get('web.loginPath')}`,

@@ -88,7 +88,7 @@ export abstract class BaseRepository<TEntity extends BaseEntity> {
   protected createBaseQuery(): SelectQueryBuilder<TEntity> {
     return this.repository
       .createQueryBuilder(this.alias)
-      .where(`${this.alias}.deletedAt IS NULL`);
+      .andWhere(`${this.alias}.deletedAt IS NULL`);
   }
 
   protected applyFilters(
