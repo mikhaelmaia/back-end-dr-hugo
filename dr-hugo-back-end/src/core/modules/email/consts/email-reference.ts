@@ -8,6 +8,10 @@ export class EmailReference {
     'Usuário Cadastrado',
     'user-registered',
   );
+  public static readonly EMAIL_CONFIRMATION = new EmailReference(
+    'Confirmação de E-mail',
+    'email-confirmation',
+  );
   public static readonly PASSWORD_RESET_REQUEST = new EmailReference(
     'Solicitação de Redefinição de Senha',
     'password-reset-request',

@@ -2,6 +2,9 @@
 <html>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&display=swap" rel="stylesheet">
   <style>
     html, body {
         margin: 0;
@@ -12,7 +15,7 @@
         padding: 20px;
         max-width: 600px;
         min-height: 720px;
-        background-color: #EDEAEA;
+        background-color: #F3F4F6;
     }
     .container {
         width: 100%;
@@ -28,98 +31,87 @@
         margin: 0;
         padding: 16px 0;
         text-align: center;
-        font-family: 'Roboto', 'Arial', 'sans-serif';
+        font-family: 'League Spartan', 'Helvetica Neue', Arial, sans-serif;
         font-size: 24px;
         font-weight: 600;
         color: #fff;
-        background-color: #03045E;
+        background-color: #00B0BB;
         border-top-left-radius: 8px;
         border-top-right-radius: 8px;
     }
     p {
         display: block;
         margin-bottom: 16px;
-        color: #000;
-        font-family: 'Roboto', 'Arial', 'sans-serif';
+        color: #111827;
+        font-family: 'League Spartan', 'Helvetica Neue', Arial, sans-serif;
         font-size: 14px;
-        font-weight: 500;
+        font-weight: 400;
+        line-height: 1.5;
     }
     em {
         display: block;
         margin: 20px auto;
         padding: 16px;
-        font-family: 'Roboto', 'Arial', 'sans-serif';
+        font-family: 'League Spartan', 'Helvetica Neue', Arial, sans-serif;
         font-size: 20px;
         font-weight: 600;
         font-style: normal;
         letter-spacing: 1px;
-        color: #03045E;
+        color: #00B0BB;
         text-align: center;
-        background-color: #EDEAEA;
-        border-radius: 4px;
+        background-color: #F3F4F6;
+        border-radius: 8px;
+        border: 2px solid #E5E7EB;
     }
     .info-box {
         margin: 24px 0;
         padding: 20px;
-        background-color: #FFF3CD;
-        border: 2px solid #FFECB5;
-        border-left: 6px solid #FFC107;
+        background-color: #FBBF24;
+        border: 2px solid #F59E0B;
+        border-left: 6px solid #D97706;
         border-radius: 8px;
     }
     .info-box h4 {
         margin: 0 0 12px 0;
-        color: #856404;
-        font-family: 'Roboto', 'Arial', 'sans-serif';
+        color: #FFFFFF;
+        font-family: 'League Spartan', 'Helvetica Neue', Arial, sans-serif;
         font-size: 16px;
         font-weight: 600;
     }
     .info-box p {
         margin: 8px 0;
-        color: #856404;
+        color: #FFFFFF;
         font-size: 14px;
         line-height: 1.5;
     }
     .info-box .highlight {
-        background-color: #FFE69C;
+        background-color: #D97706;
         padding: 2px 4px;
         border-radius: 3px;
         font-weight: 600;
     }
-    .kiwify-info {
+    .platform-info {
         margin: 24px 0;
         padding: 20px;
-        background-color: #E7F3FF;
-        border: 1px solid #B3D9FF;
-        border-left: 6px solid #0066CC;
+        background-color: #60A5FA;
+        border: 1px solid #3B82F6;
+        border-left: 6px solid #2563EB;
         border-radius: 8px;
     }
-    .kiwify-info h4 {
+    .platform-info h4 {
         margin: 0 0 12px 0;
-        color: #0066CC;
-        font-family: 'Roboto', 'Arial', 'sans-serif';
+        color: #FFFFFF;
+        font-family: 'League Spartan', 'Helvetica Neue', Arial, sans-serif;
         font-size: 16px;
         font-weight: 600;
     }
-    .kiwify-info p {
+    .platform-info p {
         margin: 8px 0;
-        color: #0066CC;
+        color: #FFFFFF;
         font-size: 14px;
         line-height: 1.5;
     }
-    .kiwify-info ul {
-        margin: 12px 0;
-        padding-left: 20px;
-        color: #0066CC;
-    }
-    .kiwify-info li {
-        margin: 6px 0;
-        font-size: 14px;
-        line-height: 1.4;
-    }
-    .kiwify-info strong {
-        color: #004499;
-    }
-    .kiwify-info .italic-text {
+    .platform-info .italic-text {
         font-style: italic;
         margin: 16px 0;
         font-weight: 500;
@@ -131,10 +123,10 @@
     .login-button {
         display: inline-block;
         padding: 16px 32px;
-        background-color: #03045E;
+        background-color: #00B0BB;
         color: #ffffff !important;
         text-decoration: none;
-        font-family: 'Roboto', 'Arial', 'sans-serif';
+        font-family: 'League Spartan', 'Helvetica Neue', Arial, sans-serif;
         font-size: 16px;
         font-weight: 600;
         border-radius: 8px;
@@ -143,7 +135,7 @@
         transition: background-color 0.3s ease;
     }
     .login-button:hover {
-        background-color: #0505A3;
+        background-color: #00828bff;
     }
     .login-button:visited {
         color: #ffffff !important;
@@ -153,51 +145,60 @@
 <body>
   <div class="email-body">
     <div class="container">
-        <h3>Cadastro Realizado com Sucesso</h3>
+        <h3>Bem-vindo ao Arquivo Médico</h3>
         <div class="email-text">
           <p>Olá, <%= name %></p>
-          <p>Parabéns! Seu cadastro em nossa plataforma de cursos foi realizado com sucesso.</p>
+          <p>Bem-vindo ao Arquivo Médico! Sua conta foi criada com sucesso em nossa plataforma de gestão de informações médicas.</p>
           <p>Data do cadastro:</p>
           <em><%= estimatedRegisteredAt %></em>
-          <% if (suggestPasswordReset === 'true') { %>
+          
           <div class="info-box">
-            <h4>🔑 Ação Necessária - Definir Senha</h4>
-            <p>Como sua conta foi criada automaticamente através da compra no Kiwify, você precisa definir uma senha para acessar a plataforma.</p>
-            <p><strong>Para definir sua senha:</strong></p>
-            <p>1. Acesse a página de login da plataforma</p>
-            <p>2. Clique em <span class="highlight">"Esqueceu sua senha?"</span></p>
-            <p>3. Insira seu e-mail (<%= email %>)</p>
-            <p>4. Siga as instruções que serão enviadas por e-mail</p>
+            <h4>📧 Confirmação de E-mail Necessária</h4>
+            <p>Para garantir a segurança de sua conta, é necessário confirmar seu endereço de e-mail antes de acessar a plataforma.</p>
+            <p><strong>Um e-mail de confirmação foi enviado para:</strong></p>
+            <p><span class="highlight"><%= email %></span></p>
+            <p>Verifique sua caixa de entrada e clique no link de confirmação para ativar sua conta.</p>
           </div>
-          <% } else { %>
-          <div class="kiwify-info">
-            <h4>🎯 Descubra Nossa Plataforma de Cursos</h4>
-            <p>Bem-vindo à nossa plataforma educacional! Aqui você encontra <strong>Conteúdos Exclusivos</strong> disponíveis na aba <strong>Home</strong>.</p>
+          
+          <div class="platform-info">
+            <% if (userRole === 'PACIENT') { %>
+            <h4>🏥 Sobre o Arquivo Médico - Pacientes</h4>
+            <p>Como <strong>paciente</strong>, você terá controle total sobre suas informações médicas:</p>
+            <p>• <strong>Armazene</strong> com segurança fichas médicas e exames;</p>
+            <p>• <strong>Controle quem acessa</strong> suas informações médicas;</p>
+            <p>• <strong>Compartilhe dados</strong> com médicos de sua confiança;</p>
+            <% } else if (userRole === 'DOCTOR') { %>
+            <h4>🏥 Sobre o Arquivo Médico - Médicos</h4>
+            <p>Como <strong>médico</strong>, você poderá acessar informações de pacientes com segurança:</p>
+            <p>• <strong>Acesse dados</strong> de pacientes que autorizaram;</p>
+            <p>• <strong>Visualize exames e histórico</strong> médico completo;</p>
+            <p>• <strong>Mantenha o sigilo</strong> e privacidade dos dados;</p>
+            <% } else if (userRole === 'INSTITUTION') { %>
+            <h4>🏥 Sobre o Arquivo Médico - Instituições</h4>
+            <p>Como <strong>instituição</strong>, você terá acesso a ferramentas avançadas:</p>
+            <p>• <strong>Gerencie pacientes</strong> da instituição;</p>
+            <p>• <strong>Organize prontuários</strong> de forma segura;</p>
+            <p>• <strong>Controle acessos</strong> por departamento;</p>
+            <% } else { %>
+            <h4>🏥 Sobre o Arquivo Médico</h4>
+            <p>Nossa plataforma oferece <strong>gestão segura</strong> de informações médicas para <strong>pacientes, médicos e instituições</strong>.</p>
+            <p>• <strong>Armazenamento seguro</strong> de fichas médicas e exames;</p>
+            <p>• <strong>Controle de permissões:</strong> Você decide quem acessa suas informações;</p>
+            <% } %>
             
-            <p>• A compra será processada com segurança pela plataforma <strong>Kiwify</strong>;</p>
-            <p>• Após a aquisição, o acesso ao curso é liberado automaticamente na plataforma;</p>
-            <p>• O curso adquirido constará na Home na seção <strong>Conteúdos Exclusivos</strong>.</p>
+            <p class="italic-text">Todas as informações são protegidas e acessadas apenas com sua autorização.</p>
             
-            <p><strong>Ferramentas exclusivas para alunos:</strong></p>
-            <p>• <strong>Destrava Procuradorias:</strong> encontre a procuradoria ideal para você;</p>
-            <p>• <strong>Calendário:</strong> Controle e organize seus estudos;</p>
-            <p>• <strong>Desempenho:</strong> Acompanhe, semana a semana, o desempenho registrado no calendário;</p>
-            <p>• <strong>Simulados:</strong> Cadastre seus exames anteriores e acompanhe sua evolução;</p>
-            
-            <p class="italic-text">Todas as ferramentas desenvolvidas posteriormente serão disponibilizadas aos alunos ativos na plataforma.</p>
-            
-            <p>Explore nossos cursos disponíveis e potencialize seus estudos com nossas ferramentas!</p>
+            <p>Tenha o controle total sobre seus dados médicos em um ambiente seguro e confiável!</p>
           </div>
-          <% } %>
           
           <div class="login-button-container">
             <a href="<%= loginPageUrl %>" class="login-button">
-              Acessar Plataforma
+              Acessar Arquivo Médico
             </a>
           </div>
           
-          <p>Estamos felizes em tê-lo conosco. Aproveite os cursos disponíveis e bons estudos!</p> 
-          <p>Atenciosamente, Equipe João Marcelo</p>
+          <p>Estamos felizes em tê-lo conosco. Confirme seu e-mail para começar a usar a plataforma!</p> 
+          <p>Atenciosamente, Equipe Arquivo Médico</p>
         </div>
     </div>
   </div>
