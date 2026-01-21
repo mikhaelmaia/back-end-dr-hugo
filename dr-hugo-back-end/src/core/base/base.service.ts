@@ -60,14 +60,10 @@ export abstract class BaseService<
       () => new NotFoundException(this.ENTITY_NOT_FOUND),
     );
 
-    const entityToUpdate = {
-      ...entityFound,
-      ...this.mapper.toEntity(updateDto),
-      id,
-    };
+    const entityToUpdate = this.mapToUpdateEntity(updateDto, entityFound);
 
     await this.beforeUpdate(entityToUpdate, entityFound);
-    const updatedEntity = await this.repository.save(entityToUpdate as TEntity);
+    const updatedEntity = await this.repository.save(entityToUpdate);
     await this.postUpdate(updatedEntity);
     return this.mapper.toDto(updatedEntity);
   }
@@ -77,9 +73,9 @@ export abstract class BaseService<
     Optional.ofNullable(entity).orElseThrow(
       () => new NotFoundException(this.ENTITY_NOT_FOUND),
     );
-    await this.beforeSoftDelete(entity!);
+    await this.beforeSoftDelete(entity);
     const deleted = await this.repository.softDelete(id);
-    await this.postSoftDelete(entity!);
+    await this.postSoftDelete(entity);
     return deleted;
   }
 
@@ -88,9 +84,9 @@ export abstract class BaseService<
     Optional.ofNullable(entity).orElseThrow(
       () => new NotFoundException(this.ENTITY_NOT_FOUND),
     );
-    await this.beforeDelete(entity!);
+    await this.beforeDelete(entity);
     const deleted = await this.repository.delete(id);
-    await this.postDelete(entity!);
+    await this.postDelete(entity);
     return deleted;
   }
 
@@ -123,6 +119,16 @@ export abstract class BaseService<
 
   protected postUpdate(entity: TEntity): Promise<void> {
     return Promise.resolve();
+  }
+
+  protected mapToUpdateEntity(
+    entityReceived: Partial<TDto>,
+    entityFound: TEntity,
+  ): TEntity {
+    return {
+      ...entityFound,
+      ...this.mapper.toEntity(entityReceived),
+    };
   }
 
   protected beforeDelete(entity: TEntity): Promise<void> {

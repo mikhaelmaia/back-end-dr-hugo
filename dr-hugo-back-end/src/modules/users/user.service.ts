@@ -4,7 +4,13 @@ import { User } from './entities/user.entity';
 import { UserDto } from './dtos/user.dto';
 import { UserRepository } from './user.repository';
 import { UserMapper } from './user.mapper';
-import { acceptFalseThrows, compare, encrypt, isNotPresent, isPresent } from 'src/core/utils/functions';
+import {
+  acceptFalseThrows,
+  compare,
+  encrypt,
+  isNotPresent,
+  isPresent,
+} from 'src/core/utils/functions';
 import { EmailHelper } from 'src/core/modules/email/email.helper';
 import { Optional } from 'src/core/utils/optional';
 
@@ -15,13 +21,13 @@ export class UserService extends BaseService<
   UserRepository,
   UserMapper
 > {
-
-  protected override readonly ENTITY_NOT_FOUND: string = 'Usuário não encontrado';
+  protected override readonly ENTITY_NOT_FOUND: string =
+    'Usuário não encontrado';
 
   public constructor(
-    userRepository: UserRepository, 
+    userRepository: UserRepository,
     userMapper: UserMapper,
-    private readonly emailHelper: EmailHelper
+    private readonly emailHelper: EmailHelper,
   ) {
     super(userRepository, userMapper);
   }
@@ -30,10 +36,10 @@ export class UserService extends BaseService<
     emailOrTaxId: string,
   ): Promise<UserDto | null> {
     return Optional.ofNullable(
-      await this.repository.findByEmailOrTaxId(emailOrTaxId)
+      await this.repository.findByEmailOrTaxId(emailOrTaxId),
     )
-    .map((user: User) => this.mapper.toDto(user))
-    .orElse(null);
+      .map((user: User) => this.mapper.toDto(user))
+      .orElse(null);
   }
 
   public async updateUserPassword(
@@ -54,14 +60,20 @@ export class UserService extends BaseService<
   }
 
   protected override async postCreate(entity: User): Promise<void> {
-    await this.emailHelper.sendUserRegisteredEmail(
-      entity.name,
-      entity.email
-    );
+    await this.emailHelper.sendUserRegisteredEmail(entity.name, entity.email);
   }
 
   protected override async beforeUpdate(entity: User): Promise<void> {
     await this.handleUserPassword(entity);
+  }
+
+  protected override mapToUpdateEntity(
+    entityReceived: Partial<UserDto>,
+    entityFound: User,
+  ): User {
+    entityFound.email = entityReceived.email || entityFound.email;
+    entityFound.phone = entityReceived.phone || entityFound.phone;
+    return entityFound;
   }
 
   private async handleUserPassword(user: User): Promise<void> {
