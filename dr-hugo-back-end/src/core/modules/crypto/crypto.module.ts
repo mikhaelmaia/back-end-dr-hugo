@@ -1,17 +1,15 @@
-import { Module } from '@nestjs/common';
+import { Module, OnModuleInit } from '@nestjs/common';
 import { CryptoService } from './crypto.service';
-import { EncryptedTransformer } from 'src/core/vo/transformers/encrypted.transformer';
+import { CryptoBridge } from './crypto.bridge';
 
 @Module({
-  providers: [
-    CryptoService,
-    {
-      provide: EncryptedTransformer,
-      useFactory: (cryptoService: CryptoService) =>
-        new EncryptedTransformer(cryptoService),
-      inject: [CryptoService],
-    },
-  ],
-  exports: [CryptoService, EncryptedTransformer],
+  providers: [CryptoService],
+  exports: [CryptoService],
 })
-export class CryptoModule {}
+export class CryptoModule implements OnModuleInit {
+  constructor(private readonly cryptoService: CryptoService) {}
+
+  onModuleInit() {
+    CryptoBridge.register(this.cryptoService);
+  }
+}
