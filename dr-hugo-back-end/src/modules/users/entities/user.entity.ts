@@ -3,7 +3,7 @@ import { UserRole } from '../../../core/vo/consts/enums';
 import { BaseEntity } from 'src/core/base/base.entity';
 import { Media } from 'src/core/modules/media/entities/media.entity';
 
-@Entity({ name: 'dh_user' })
+@Entity({ name: 'dv_user' })
 export class User extends BaseEntity {
   @Column({ name: 'name', length: 100, nullable: false })
   public name: string;
@@ -17,18 +17,24 @@ export class User extends BaseEntity {
   @Column({ name: 'taxId', length: 14, nullable: false })
   public taxId: string;
 
-  @Column({ name: 'phone', length: 15, nullable: false })
+  @Column({ name: 'phone', length: 15, nullable: false, unique: true })
   public phone: string;
+
+  @Column({ name: 'country_code', length: 3, nullable: false })
+  public countryCode: string;
+
+  @Column({ name: 'country_idd', length: 5, nullable: false })
+  public countryIdd: string;
 
   @Column({
     name: 'role',
     type: 'enum',
     enum: UserRole,
-    default: UserRole.PACIENT,
+    default: UserRole.PATIENT,
     nullable: false,
     update: false,
   })
-  public role: UserRole = UserRole.PACIENT;
+  public role: UserRole = UserRole.PATIENT;
 
   @Column({ name: 'accepted_terms', type: 'jsonb', nullable: false })
   public acceptedTerms: string[];

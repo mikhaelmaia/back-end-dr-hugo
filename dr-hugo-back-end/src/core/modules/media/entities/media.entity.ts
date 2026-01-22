@@ -2,7 +2,7 @@ import { BaseEntity } from '../../../base/base.entity';
 import { Column, Entity } from 'typeorm';
 import { MediaType } from '../../../vo/consts/enums';
 
-@Entity({ name: 'dh_media' })
+@Entity({ name: 'dv_media' })
 export class Media extends BaseEntity {
   @Column({ name: 'filename', length: 255, nullable: false })
   public filename: string;

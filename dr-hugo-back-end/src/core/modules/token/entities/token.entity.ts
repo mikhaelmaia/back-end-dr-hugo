@@ -2,7 +2,7 @@ import { Column, Entity } from 'typeorm';
 import { BaseEntity } from 'src/core/base/base.entity';
 import { TokenType } from 'src/core/vo/consts/enums';
 
-@Entity({ name: 'dh_token' })
+@Entity({ name: 'dv_token' })
 export class Token extends BaseEntity {
   @Column({
     type: 'varchar',

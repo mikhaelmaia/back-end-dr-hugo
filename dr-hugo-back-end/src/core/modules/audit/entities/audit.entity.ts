@@ -4,7 +4,7 @@ import { AuditEventType } from '../../../vo/consts/enums';
 import { Fingerprint } from '../fingerprint/entities/fingerprint.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 
-@Entity({ name: 'dh_audit' })
+@Entity({ name: 'dv_audit' })
 export class Audit extends BaseEntity {
   @Column({
     name: 'event_type',
