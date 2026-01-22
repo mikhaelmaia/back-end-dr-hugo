@@ -25,7 +25,7 @@ export abstract class BaseController<
     return this.service.findById(id);
   }
 
-  protected async update(id: string, updateDto: Partial<TDto>): Promise<void> {
+  protected async update(id: string, updateDto: TDto): Promise<void> {
     this.service.update(id, updateDto);
   }
 
@@ -33,7 +33,7 @@ export abstract class BaseController<
     await this.service.softDelete(id);
   }
 
-  protected async hardDelete(id: string): Promise<void> {
+  protected async delete(id: string): Promise<void> {
     await this.service.delete(id);
   }
 
