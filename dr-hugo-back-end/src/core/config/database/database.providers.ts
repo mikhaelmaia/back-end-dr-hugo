@@ -14,9 +14,9 @@ export const provideDataSource = async (
     database: configService.get<string>('database.database'),
     entities: [join(__dirname, '../../../', '**/*.entity{.ts,.js}')],
     synchronize: false,
-    ssl: {
+    ssl: process.env.NODE_ENV === 'production' ? {
       rejectUnauthorized: false,
-    },
+    } : false,
     logging: process.env.NODE_ENV === 'development' ? ['error'] : false,
   };
 
