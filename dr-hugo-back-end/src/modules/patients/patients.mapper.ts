@@ -53,7 +53,7 @@ export class PatientsMapper extends BaseMapper<Patient, PatientDto> {
     userDto.email = dto.email;
     userDto.taxId = dto.taxId;
     userDto.password = dto.password;
-    userDto.role = UserRole.PACIENT;
+    userDto.role = UserRole.PATIENT;
     userDto.profilePictureId = dto.profilePictureId;
     userDto.acceptedTerms = dto.acceptedTerms;
     return userDto;

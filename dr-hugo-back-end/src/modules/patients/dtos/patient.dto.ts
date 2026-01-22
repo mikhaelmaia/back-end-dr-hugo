@@ -62,7 +62,7 @@ export class PatientDto extends BaseEntityDto<Patient> {
   )
   @IsNotBlacklisted()
   @MaxLength(50, { message: provideMaxLengthValidationMessage })
-  @IsUnique('dh_user', 'email', {
+  @IsUnique('dv_user', 'email', {
     message: 'Já existe usuário com este e-mail cadastrado',
   })
   @ApiProperty({ description: 'E-mail do usuário', maxLength: 50 })
@@ -94,7 +94,7 @@ export class PatientDto extends BaseEntityDto<Patient> {
   @IsValidTaxId({
     message: provideIsValidTaxIdValidationMessage('CPF/CNPJ do Usuário'),
   })
-  @IsUnique('dh_user', 'taxId', {
+  @IsUnique('dv_user', 'taxId', {
     message: 'Já existe usuário com este CPF/CNPJ cadastrado',
   })
   @ApiProperty({
@@ -111,7 +111,7 @@ export class PatientDto extends BaseEntityDto<Patient> {
     message: provideIsNotEmptyValidationMessage('Telefone/Celular do Usuário'),
   })
   @Length(10, 15, { message: provideLengthValidationMessage })
-  @IsUnique('dh_user', 'phone', {
+  @IsUnique('dv_user', 'phone', {
     message: 'Já existe usuário com este telefone/celular cadastrado',
   })
   @ApiProperty({
@@ -132,7 +132,7 @@ export class PatientDto extends BaseEntityDto<Patient> {
 
   @Expose()
   @IsOptional()
-  @ExistsIn('dh_media', 'id', { message: 'Arquivo de mídia não encontrado' })
+  @ExistsIn('dv_media', 'id', { message: 'Arquivo de mídia não encontrado' })
   public profilePictureId: string;
 
   @IsNotEmpty({

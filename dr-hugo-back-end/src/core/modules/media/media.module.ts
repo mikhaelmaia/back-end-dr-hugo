@@ -6,11 +6,12 @@ import { MediaMapper } from './media.mapper';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Media } from './entities/media.entity';
 import { ScheduleModule } from '@nestjs/schedule';
+import { MinioModule } from './minio/minio.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Media]), ScheduleModule.forRoot()],
+  imports: [TypeOrmModule.forFeature([Media]), ScheduleModule.forRoot(), MinioModule],
   controllers: [MediaController],
   providers: [MediaService, MediaRepository, MediaMapper],
-  exports: [MediaService],
+  exports: [MediaService, MinioModule],
 })
 export class MediaModule {}

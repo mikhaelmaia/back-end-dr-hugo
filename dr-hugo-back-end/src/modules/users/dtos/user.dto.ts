@@ -57,7 +57,7 @@ export class UserDto extends BaseEntityDto<User> {
   )
   @IsNotBlacklisted()
   @MaxLength(50, { message: provideMaxLengthValidationMessage })
-  @IsUnique('dh_user', 'email', {
+  @IsUnique('dv_user', 'email', {
     message: 'Já existe usuário com este e-mail cadastrado',
   })
   @ApiProperty({ description: 'E-mail do usuário', maxLength: 50 })
@@ -91,7 +91,7 @@ export class UserDto extends BaseEntityDto<User> {
   @IsValidTaxId({
     message: provideIsValidTaxIdValidationMessage('CPF/CNPJ do Usuário'),
   })
-  @IsUnique('dh_user', 'taxId', {
+  @IsUnique('dv_user', 'taxId', {
     message: 'Já existe usuário com este CPF/CNPJ cadastrado',
   })
   @ApiProperty({
@@ -140,6 +140,6 @@ export class UserDto extends BaseEntityDto<User> {
 
   @Expose()
   @IsOptional()
-  @ExistsIn('dh_media', 'id', { message: 'Arquivo de mídia não encontrado' })
+  @ExistsIn('dv_media', 'id', { message: 'Arquivo de mídia não encontrado' })
   public profilePictureId: string;
 }

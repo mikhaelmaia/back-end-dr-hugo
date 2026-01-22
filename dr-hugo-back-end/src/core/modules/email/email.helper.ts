@@ -54,7 +54,7 @@ export class EmailHelper {
         .reference(EmailReference.USER_REGISTERED)
         .addParameter('name', name)
         .addParameter('email', email)
-        .addParameter('userRole', userRole || UserRole.PACIENT)
+        .addParameter('userRole', userRole || UserRole.PATIENT)
         .addParameter(
           'estimatedRegisteredAt',
           getCurrentLocalDateTimeFormatted(),
