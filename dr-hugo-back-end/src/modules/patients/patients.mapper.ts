@@ -2,22 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { BaseMapper } from 'src/core/base/base.mapper';
 import { Patient } from './entities/patient.entity';
 import { PatientDto } from './dtos/patient.dto';
-import { UserMapper } from '../users/user.mapper';
+import { UserDto } from '../users/dtos/user.dto';
+import { UserRole } from 'src/core/vo/consts/enums';
+import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class PatientsMapper extends BaseMapper<Patient, PatientDto> {
-  public constructor(private readonly userMapper: UserMapper) {
-    super();
-  }
 
   public toDto(entity: Patient): PatientDto {
     const dto = new PatientDto();
     dto.id = entity.id;
-    dto.user = this.userMapper.toDto(entity.user);
-    dto.birthDate = entity.birthDate?.toISOString().split('T')[0];
-    dto.emergencyPhone = entity.emergencyPhone;
-    dto.acceptedTerms = entity.acceptedTerms;
-    dto.profilePictureId = entity.profilePicture?.id;
+    dto.birthDate = entity.birthDate;
     dto.createdAt = entity.createdAt;
     dto.updatedAt = entity.updatedAt;
     return dto;
@@ -26,22 +21,41 @@ export class PatientsMapper extends BaseMapper<Patient, PatientDto> {
   public toEntity(dto: Partial<PatientDto>): Patient {
     const entity = new Patient();
     entity.id = dto.id;
-
-    if (dto.user) {
-      entity.user = this.userMapper.toEntity(dto.user);
-    }
-
-    if (dto.birthDate) {
-      entity.birthDate = new Date(dto.birthDate);
-    }
-
-    entity.emergencyPhone = dto.emergencyPhone;
-    entity.acceptedTerms = dto.acceptedTerms;
-
+    entity.birthDate = dto.birthDate;
     return entity;
+  }
+
+  public toDtoWithUser(patient: Patient, user: UserDto | User): PatientDto {
+    const dto = this.toDto(patient);
+    dto.userId = user.id;
+    dto.name = user.name;
+    dto.email = user.email;
+    dto.taxId = user.taxId;
+    dto.profilePictureId = user instanceof User ? user.profilePicture?.id : user.profilePictureId;
+    dto.acceptedTerms = user.acceptedTerms;
+    return dto;
+  }
+
+  public toEntityAndUser(dto: Partial<PatientDto>): [Patient, UserDto] {
+    const patientEntity = this.toEntity(dto);
+    const userDto = this.mapPatientDtoToUserDto(dto as PatientDto);
+    return [patientEntity, userDto];
   }
 
   public toDtos(entities: Patient[]): PatientDto[] {
     return entities.map((entity) => this.toDto(entity));
+  }
+
+  private mapPatientDtoToUserDto(dto: PatientDto): UserDto {
+    const userDto = new UserDto();
+    userDto.id = dto.userId;
+    userDto.name = dto.name;
+    userDto.email = dto.email;
+    userDto.taxId = dto.taxId;
+    userDto.password = dto.password;
+    userDto.role = UserRole.PACIENT;
+    userDto.profilePictureId = dto.profilePictureId;
+    userDto.acceptedTerms = dto.acceptedTerms;
+    return userDto;
   }
 }

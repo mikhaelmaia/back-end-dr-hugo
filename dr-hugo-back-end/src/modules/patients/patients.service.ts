@@ -1,6 +1,5 @@
 import {
   Injectable,
-  ConflictException,
   NotFoundException,
 } from '@nestjs/common';
 import { BaseService } from 'src/core/base/base.service';
@@ -9,9 +8,7 @@ import { PatientDto } from './dtos/patient.dto';
 import { PatientsRepository } from './patients.repository';
 import { PatientsMapper } from './patients.mapper';
 import { UserService } from '../users/user.service';
-import { UserMapper } from '../users/user.mapper';
-import { AuditService } from 'src/core/modules/audit/audit.service';
-import { AuditEventType } from 'src/core/vo/consts/enums';
+import { Optional } from 'src/core/utils/optional';
 
 @Injectable()
 export class PatientsService extends BaseService<
@@ -20,127 +17,70 @@ export class PatientsService extends BaseService<
   PatientsRepository,
   PatientsMapper
 > {
+  protected override ENTITY_NOT_FOUND: string = 'Paciente não encontrado';
+
   public constructor(
     patientsRepository: PatientsRepository,
     patientsMapper: PatientsMapper,
     private readonly userService: UserService,
-    private readonly userMapper: UserMapper,
-    private readonly auditService: AuditService,
   ) {
     super(patientsRepository, patientsMapper);
   }
 
-  public async create(dto: PatientDto): Promise<PatientDto> {
-    const existingPatient = await this.repository.findByUserEmail(
-      dto.user.email,
-    );
-    if (existingPatient) {
-      throw new ConflictException(
-        'Já existe paciente cadastrado com este e-mail',
-      );
-    }
+  public override async create(dto: PatientDto): Promise<PatientDto> {
+    const [ pacient, user ] = this.mapper.toEntityAndUser(dto);
 
-    // Criar o usuário através do serviço de usuários
-    const userDto = await this.userService.create(dto.user);
+    const savedUser = await this.userService.create(user);
 
-    // Criar o paciente
-    const patient = new Patient();
-    patient.user = this.userMapper.toEntity(userDto);
-    patient.birthDate = new Date(dto.birthDate);
-    patient.emergencyPhone = dto.emergencyPhone;
-    patient.acceptedTerms = dto.acceptedTerms;
+    pacient.user = {
+      id: savedUser.id,
+    } as any;
+    
+    const savedPatient = await this.repository.save(pacient);
 
-    const savedPatient = await this.repository.save(patient);
-
-    // Registrar auditoria
-    await this.auditService.createAuditWithFingerprint({
-      eventType: AuditEventType.CREATE,
-      entityName: 'Patient',
-      entityId: savedPatient.id,
-      data: this.mapper.toDto(savedPatient),
-      ...dto.auditData,
-    });
-
-    return this.mapper.toDto(savedPatient);
+    return this.mapper.toDtoWithUser(savedPatient, savedUser);
   }
 
   public async findByUserId(userId: string): Promise<PatientDto | null> {
-    const patient = await this.repository.findByUserId(userId);
-    return patient ? this.mapper.toDto(patient) : null;
+    return Optional.ofNullable(
+      await this.repository.findByUserId(userId)
+    ).map(
+      (patient) => this.mapper.toDtoWithUser(patient, patient.user)
+    ).orElseThrow(() => new NotFoundException(this.ENTITY_NOT_FOUND));
   }
 
-  public async findByUserEmail(email: string): Promise<PatientDto | null> {
-    const patient = await this.repository.findByUserEmail(email);
-    return patient ? this.mapper.toDto(patient) : null;
+  public override async findById(id: string): Promise<PatientDto> {
+    return Optional.ofNullable(
+      await this.repository.findById(id)
+    ).map(
+      (patient) => this.mapper.toDtoWithUser(patient, patient.user)
+    ).orElseThrow(() => new NotFoundException(this.ENTITY_NOT_FOUND));
   }
 
-  public async findById(id: string): Promise<PatientDto> {
-    const patient = await this.repository.findWithRelations(id);
-    if (!patient) {
-      throw new NotFoundException('Paciente não encontrado');
-    }
-    return this.mapper.toDto(patient);
-  }
+  public override async update(id: string, dto: PatientDto): Promise<PatientDto> {
+    const existingPatient = await this.repository.findById(id);
 
-  public async update(id: string, dto: PatientDto): Promise<PatientDto> {
-    const existingPatient = await this.repository.findWithRelations(id);
     if (!existingPatient) {
-      throw new NotFoundException('Paciente não encontrado');
+      throw new NotFoundException(this.ENTITY_NOT_FOUND);
     }
 
-    // Verificar se o email foi alterado e se já existe outro paciente com este email
-    if (dto.user.email !== existingPatient.user.email) {
-      const patientWithEmail = await this.repository.findByUserEmail(
-        dto.user.email,
-      );
-      if (patientWithEmail && patientWithEmail.id !== id) {
-        throw new ConflictException(
-          'Já existe paciente cadastrado com este e-mail',
-        );
-      }
-    }
+    const [ updatedPatientEntity, updatedUserEntity ] = this.mapper.toEntityAndUser(dto);
 
-    // Atualizar dados do usuário
-    const updatedUser = await this.userService.update(
-      existingPatient.user.id,
-      dto.user,
-    );
+    const userId = existingPatient.user.id;
 
-    // Atualizar dados do paciente
-    existingPatient.birthDate = new Date(dto.birthDate);
-    existingPatient.emergencyPhone = dto.emergencyPhone;
-    existingPatient.acceptedTerms = dto.acceptedTerms;
+    const updatedUser = await this.userService.update(userId, updatedUserEntity);
 
-    const savedPatient = await this.repository.save(existingPatient);
+    updatedPatientEntity.id = id;
+    updatedPatientEntity.user = {
+      id: userId,
+    } as any;
 
-    // Registrar auditoria
-    await this.auditService.createAuditWithFingerprint({
-      eventType: AuditEventType.UPDATE,
-      entityName: 'Patient',
-      entityId: savedPatient.id,
-      data: this.mapper.toDto(savedPatient),
-      ...dto.auditData,
-    });
+    const savedPatient = await this.repository.save(updatedPatientEntity);
 
-    return this.mapper.toDto(savedPatient);
+    return this.mapper.toDtoWithUser(savedPatient, updatedUser);
   }
 
-  public async remove(id: string, auditData: any): Promise<void> {
-    const patient = await this.repository.existsById(id);
-    if (!(await this.repository.existsById(id))) {
-      throw new NotFoundException('Paciente não encontrado');
-    }
-
-    // Soft delete do paciente
-    await this.repository.softDelete(id);
-
-    // Registrar auditoria
-    await this.auditService.createAuditWithFingerprint({
-      eventType: AuditEventType.DELETE,
-      entityName: 'Patient',
-      entityId: id,
-      data: patientData,
-      ...auditData,
-    });
+  public override async postSoftDelete(entity: Patient): Promise<void> {
+    await this.userService.softDelete(entity.user.id);
   }
 }

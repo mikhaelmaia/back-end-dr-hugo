@@ -5,10 +5,11 @@ import {
   IsEmail,
   Length,
   MaxLength,
-  MinLength,
   ValidateIf,
+  IsArray,
+  IsDate,
 } from 'class-validator';
-import { Expose, Exclude } from 'class-transformer';
+import { Expose, Exclude, Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { BaseEntityDto } from 'src/core/base/base.entity.dto';
 import { Patient } from '../entities/patient.entity';
@@ -20,9 +21,11 @@ import {
   provideIsValidTaxIdValidationMessage,
   provideLengthValidationMessage,
   provideMaxLengthValidationMessage,
-  provideMinLengthValidationMessage,
 } from 'src/core/vo/consts/validation-messages';
 import { IsNotBlacklisted } from 'src/core/vo/validators/is-not-blacklisted.validator';
+import { IsOnlyLetters } from 'src/core/vo/validators/is-only-letters.validator';
+import { IsStrongPassword } from 'src/core/vo/validators/is-strong-password.validator';
+import { ContainsRequiredTerms } from 'src/core/vo/validators/contains-required-terms.validator';
 import { UserRole } from 'src/core/vo/consts/enums';
 import { ExistsIn } from 'src/core/vo/validators/exists-in.validator';
 import { IsNotEmptyString } from 'src/core/vo/validators/is-not-empty-string.validator';
@@ -31,12 +34,17 @@ import { IsValidTaxId } from 'src/core/vo/validators/is-valid-tax-id.validator';
 import { User } from 'src/modules/users/entities/user.entity';
 
 export class PatientDto extends BaseEntityDto<Patient> {
+  public userId: string;
+
   @IsNotEmpty({
     message: provideIsNotEmptyValidationMessage('Nome do Usuário'),
   })
   @IsString({ message: provideIsStringValidationMessage('Nome do Usuário') })
   @IsNotEmptyString({
     message: provideIsNotEmptyStringValidationMessage('Nome do Usuário'),
+  })
+  @IsOnlyLetters({
+    message: 'Nome do usuário deve conter apenas letras, espaços e caracteres básicos de pontuação',
   })
   @IsNotBlacklisted()
   @MaxLength(100, { message: provideMaxLengthValidationMessage })
@@ -68,9 +76,7 @@ export class PatientDto extends BaseEntityDto<Patient> {
   @IsNotEmptyString({
     message: provideIsNotEmptyStringValidationMessage('Senha do Usuário'),
   })
-  @MinLength(6, {
-    message: provideMinLengthValidationMessage('Senha do Usuário', 6),
-  })
+  @IsStrongPassword()
   @Exclude({ toPlainOnly: true })
   @ApiProperty({ description: 'Senha do usuário' })
   public password: string;
@@ -105,6 +111,9 @@ export class PatientDto extends BaseEntityDto<Patient> {
     message: provideIsNotEmptyValidationMessage('Telefone/Celular do Usuário'),
   })
   @Length(10, 15, { message: provideLengthValidationMessage })
+  @IsUnique('dh_user', 'phone', {
+    message: 'Já existe usuário com este telefone/celular cadastrado',
+  })
   @ApiProperty({
     description: 'Telefone/Celular do usuário',
     minLength: 10,
@@ -125,4 +134,26 @@ export class PatientDto extends BaseEntityDto<Patient> {
   @IsOptional()
   @ExistsIn('dh_media', 'id', { message: 'Arquivo de mídia não encontrado' })
   public profilePictureId: string;
+
+  @IsNotEmpty({
+    message: provideIsNotEmptyValidationMessage('Data de Nascimento'),
+  })
+  @IsDate({ message: 'Data de nascimento deve ser uma data válida' })
+  @Type(() => Date)
+  @ApiProperty({ description: 'Data de nascimento do paciente', type: 'string', format: 'date' })
+  public birthDate: Date;
+
+  @IsNotEmpty({
+    message: provideIsNotEmptyValidationMessage('Termos Aceitos'),
+  })
+  @IsArray({ message: 'Termos aceitos deve ser um array' })
+  @ContainsRequiredTerms(['privacy_policy', 'terms_of_service'], {
+    message: 'Os termos obrigatórios devem ser aceitos: política de privacidade e termos de serviço',
+  })
+  @ApiProperty({
+    description: 'Lista de termos aceitos pelo paciente',
+    type: [String],
+    example: ['privacy_policy', 'terms_of_service'],
+  })
+  public acceptedTerms: string[];
 }
