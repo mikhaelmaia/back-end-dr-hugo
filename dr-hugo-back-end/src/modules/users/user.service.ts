@@ -56,6 +56,7 @@ export class UserService extends BaseService<
   }
 
   protected override async beforeCreate(entity: User): Promise<void> {
+    entity.inactivate();
     await this.handleUserPassword(entity);
   }
 

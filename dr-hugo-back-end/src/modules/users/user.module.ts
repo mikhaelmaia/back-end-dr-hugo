@@ -11,6 +11,6 @@ import { EmailModule } from 'src/core/modules/email/email.module';
   imports: [TypeOrmModule.forFeature([User]), EmailModule],
   controllers: [UserController],
   providers: [UserService, UserMapper, UserRepository],
-  exports: [UserService, UserMapper, UserRepository],
+  exports: [UserService],
 })
 export class UserModule {}

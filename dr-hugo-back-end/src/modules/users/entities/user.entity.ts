@@ -1,6 +1,7 @@
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
 import { UserRole } from '../../../core/vo/consts/enums';
 import { BaseEntity } from 'src/core/base/base.entity';
+import { Media } from 'src/core/modules/media/entities/media.entity';
 
 @Entity({ name: 'dh_user' })
 export class User extends BaseEntity {
@@ -28,6 +29,21 @@ export class User extends BaseEntity {
     update: false,
   })
   public role: UserRole = UserRole.PACIENT;
+
+  @Column({ name: 'accepted_terms', type: 'jsonb', nullable: false })
+  public acceptedTerms: string[];
+
+  @OneToOne(() => Media, { nullable: true })
+  @JoinColumn({ name: 'profile_picture_id', referencedColumnName: 'id' })
+  public profilePicture: Media;
+
+  public inactivate(): void {
+    this.isActive = false;
+  }
+
+  public activate(): void {
+    this.isActive = true;
+  }
 
   public updatePassword(password: string): void {
     this.password = password;

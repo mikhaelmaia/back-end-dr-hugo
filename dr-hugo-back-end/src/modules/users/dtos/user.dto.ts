@@ -3,6 +3,7 @@ import {
   provideMinLengthValidationMessage,
 } from './../../../core/vo/consts/validation-messages';
 import {
+  IsArray,
   IsEmail,
   IsNotEmpty,
   IsOptional,
@@ -30,6 +31,7 @@ import { ExistsIn } from '../../../core/vo/validators/exists-in.validator';
 import { IsNotEmptyString } from '../../../core/vo/validators/is-not-empty-string.validator';
 import { IsValidTaxId } from '../../../core/vo/validators/is-valid-tax-id.validator';
 import { IsUnique } from 'src/core/vo/validators/is-unique.validator';
+import { ContainsRequiredTerms } from 'src/core/vo/validators/contains-required-terms.validator';
 
 export class UserDto extends BaseEntityDto<User> {
   @IsNotEmpty({
@@ -121,6 +123,20 @@ export class UserDto extends BaseEntityDto<User> {
     enum: UserRole,
   })
   public role: UserRole;
+
+  @IsNotEmpty({
+    message: provideIsNotEmptyValidationMessage('Termos Aceitos'),
+  })
+  @IsArray({ message: 'Termos aceitos deve ser um array' })
+  @ContainsRequiredTerms(['privacy_policy', 'terms_of_service'], {
+    message: 'Os termos obrigatórios devem ser aceitos: política de privacidade e termos de serviço',
+  })
+  @ApiProperty({
+    description: 'Lista de termos aceitos pelo paciente',
+    type: [String],
+    example: ['privacy_policy', 'terms_of_service'],
+  })
+  public acceptedTerms: string[];
 
   @Expose()
   @IsOptional()
