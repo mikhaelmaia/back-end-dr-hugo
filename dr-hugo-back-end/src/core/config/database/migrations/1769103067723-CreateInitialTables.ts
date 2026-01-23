@@ -82,10 +82,32 @@ export class CreateInitialTables1769103067723 implements MigrationInterface {
                 "hash" character varying(50) NOT NULL,
                 "type" "token_type_enum" NOT NULL,
                 "identification" character varying(255) NOT NULL,
+                "renewal_time" TIMESTAMP NOT NULL,
+                "expiration_time" TIMESTAMP NOT NULL,
                 CONSTRAINT "PK_dv_token" PRIMARY KEY ("id"),
                 CONSTRAINT "UQ_dv_token_token" UNIQUE ("token"),
                 CONSTRAINT "UQ_dv_token_hash" UNIQUE ("hash")
             )
+        `);
+
+        await queryRunner.query(`
+            CREATE INDEX "IDX_dv_token_renewal_time" ON "dv_token" ("renewal_time")
+        `);
+
+        await queryRunner.query(`
+            CREATE INDEX "IDX_dv_token_expiration_time" ON "dv_token" ("expiration_time")
+        `);
+
+        await queryRunner.query(`
+            CREATE INDEX "IDX_dv_token_identification_type_times" ON "dv_token" ("identification", "type", "renewal_time", "expiration_time")
+        `);
+
+        await queryRunner.query(`
+            COMMENT ON COLUMN "dv_token"."renewal_time" IS 'Data e hora em que o token pode ser renovado'
+        `);
+
+        await queryRunner.query(`
+            COMMENT ON COLUMN "dv_token"."expiration_time" IS 'Data e hora em que o token expira definitivamente'
         `);
 
         await queryRunner.query(`
@@ -148,6 +170,10 @@ export class CreateInitialTables1769103067723 implements MigrationInterface {
         await queryRunner.query(`ALTER TABLE "dv_audit" DROP CONSTRAINT "FK_dv_audit_author"`);
         await queryRunner.query(`ALTER TABLE "dv_patient" DROP CONSTRAINT "FK_dv_patient_user"`);
         await queryRunner.query(`ALTER TABLE "dv_user" DROP CONSTRAINT "FK_dv_user_profile_picture"`);
+
+        await queryRunner.query(`DROP INDEX "IDX_dv_token_identification_type_times"`);
+        await queryRunner.query(`DROP INDEX "IDX_dv_token_expiration_time"`);
+        await queryRunner.query(`DROP INDEX "IDX_dv_token_renewal_time"`);
 
         await queryRunner.query(`DROP TABLE "dv_audit"`);
         await queryRunner.query(`DROP TABLE "dv_audit_fingerprint"`);

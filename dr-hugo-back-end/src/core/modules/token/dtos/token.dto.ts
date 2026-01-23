@@ -46,4 +46,20 @@ export class TokenDto extends BaseEntityDto<Token> {
     required: false 
   })
   public identification: string;
+
+  @ApiProperty({ 
+    description: 'Data e hora em que o token pode ser renovado',
+    example: '2024-01-15T10:30:00.000Z',
+    type: Date,
+    required: false 
+  })
+  public renewalTime: Date;
+
+  @ApiProperty({ 
+    description: 'Data e hora em que o token expira definitivamente',
+    example: '2024-01-15T10:45:00.000Z',
+    type: Date,
+    required: false 
+  })
+  public expirationTime: Date;
 }

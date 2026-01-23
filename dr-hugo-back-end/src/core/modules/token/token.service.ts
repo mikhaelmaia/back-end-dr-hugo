@@ -10,6 +10,7 @@ import { generateHash, generateSixDigitCode } from 'src/core/utils/utils';
 import { TokenType } from 'src/core/vo/consts/enums';
 import { Optional } from 'src/core/utils/optional';
 import { TokenValidationDto } from './dtos/token-validation.dto';
+import { TokenConstants } from 'src/core/vo/consts/token.constants';
 
 @Injectable()
 export class TokenService extends BaseService<
@@ -18,13 +19,6 @@ export class TokenService extends BaseService<
   TokenRepository,
   TokenMapper
 > {
-  private readonly DEFAULT_TOKEN_LENGTH: number = 24;
-
-  private readonly INVALID_TOKEN: string = 'Token inválido';
-
-  private readonly TOKEN_WITH_IDENTIFIER_ALREADY_CREATED_WAIT_THREE_MINUTES: string =
-    'Token com identificador já criado, aguarde 3 minutos';
-
   public constructor(
     tokenRepository: TokenRepository,
     tokenMapper: TokenMapper,
@@ -36,67 +30,95 @@ export class TokenService extends BaseService<
     identification: string,
     type: TokenType,
   ): Promise<TokenDto> {
-    const token = new Token();
     acceptTrueThrows(
       await this.repository.existsByIdentificationAndType(identification, type),
       () =>
         new BadRequestException(
-          this.TOKEN_WITH_IDENTIFIER_ALREADY_CREATED_WAIT_THREE_MINUTES,
+          TokenConstants.ERROR_MESSAGES.TOKEN_WITH_IDENTIFIER_ALREADY_CREATED(type),
         ),
     );
-    await until(
-      async () => await this.repository.existsByTokenAndType(token.token, type),
-      () => (token.token = generateSixDigitCode()),
-    );
-    await until(
-      async () => await this.repository.existsByHashAndType(token.hash, type),
-      () => (token.hash = generateHash(this.DEFAULT_TOKEN_LENGTH)),
-    );
-    token.type = type;
-    token.identification = identification;
-    return this.mapper.toDto(await this.repository.save(token));
+    
+    return this.createAndSaveToken(identification, type);
   }
 
   public async validateToken(
-    tokenOrHash: string,
+    tokenCode: string,
     tokenIdentification: string,
     type: TokenType,
   ): Promise<TokenValidationDto> {
     const token: Token =
-      await this.repository.findByTokenOrHashAndIdentificationAndType(
-        tokenOrHash,
+      await this.repository.findByTokenAndIdentificationAndType(
+        tokenCode,
         tokenIdentification,
         type,
       );
     return Optional.ofNullable(token)
       .map((token) => this.mapper.toValidationDto(token))
       .orElseThrow(
-        () => new BadRequestException({ message: this.INVALID_TOKEN }),
+        () => new BadRequestException({ message: TokenConstants.ERROR_MESSAGES.INVALID_TOKEN() }),
       );
   }
 
   public async concludeToken(
-    tokenOrHash: string,
+    hash: string,
     tokenIdentification: string,
     type: TokenType,
   ): Promise<void> {
     const token: Token = Optional.ofNullable(
-      await this.repository.findByTokenOrHashAndIdentificationAndType(
-        tokenOrHash,
+      await this.repository.findByHashAndIdentificationAndType(
+        hash,
         tokenIdentification,
         type,
       ),
     ).orElseThrow(
-      () => new BadRequestException({ message: this.INVALID_TOKEN }),
+      () => new BadRequestException({ message: TokenConstants.ERROR_MESSAGES.INVALID_TOKEN() }),
     );
     await this.repository.delete(token.id);
   }
 
+  public async renewToken(
+    tokenIdentification: string,
+    type: TokenType,
+  ): Promise<TokenDto> {
+    const existingToken: Token = Optional.ofNullable(
+      await this.repository.findRenewableTokenByIdentificationAndType(
+        tokenIdentification,
+        type,
+      ),
+    ).orElseThrow(
+      () => new BadRequestException(TokenConstants.ERROR_MESSAGES.TOKEN_RENEWAL_TIME_NOT_REACHED(type))
+    );
+
+    await this.repository.delete(existingToken.id);
+
+    return this.createAndSaveToken(tokenIdentification, type);
+  }
+
+  private async createAndSaveToken(
+    identification: string,
+    type: TokenType,
+  ): Promise<TokenDto> {
+    const newToken = new Token();
+    await until(
+      async () => await this.repository.existsByTokenAndType(newToken.token, type),
+      () => (newToken.token = generateSixDigitCode()),
+    );
+    await until(
+      async () => await this.repository.existsByHashAndType(newToken.hash, type),
+      () => (newToken.hash = generateHash(TokenConstants.DEFAULT_TOKEN_LENGTH)),
+    );
+    
+    const now = new Date();
+    newToken.type = type;
+    newToken.identification = identification;
+    newToken.renewalTime = new Date(now.getTime() + TokenConstants.getRenewalTimeMinutes(type) * 60 * 1000);
+    newToken.expirationTime = new Date(now.getTime() + TokenConstants.getExpirationTimeMinutes(type) * 60 * 1000);
+    
+    return this.mapper.toDto(await this.repository.save(newToken));
+  }
+
   @Cron(CronExpression.EVERY_MINUTE)
   public async deleteExpiredTokens(): Promise<void> {
-    const now = new Date();
-    await this.repository.deleteExpiredTokens(
-      new Date(now.getTime() - 3 * 60 * 1000),
-    );
+    await this.repository.deleteExpiredTokens();
   }
 }

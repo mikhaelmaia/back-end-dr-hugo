@@ -16,16 +16,33 @@ export class TokenRepository extends BaseRepository<Token> {
     super(tokenRepository);
   }
 
-  public findByTokenOrHashAndIdentificationAndType(
-    tokenOrHash: string,
+  public findByTokenAndIdentificationAndType(
+    token: string,
     identification: string,
     type: TokenType,
   ): Promise<Token> {
     return this.createBaseQuery()
       .where(
-        'token.token = :tokenOrHash OR token.hash = :tokenOrHash AND token.identification = :identification AND token.type = :type',
+        'token.token = :token AND token.identification = :identification AND token.type = :type',
         {
-          tokenOrHash: tokenOrHash,
+          token: token,
+          identification: identification,
+          type: type,
+        },
+      )
+      .getOne();
+  }
+
+  public async findByHashAndIdentificationAndType(
+    hash: string,
+    identification: string,
+    type: TokenType,
+  ): Promise<Token> {
+    return this.createBaseQuery()
+      .where(
+        'token.hash = :hash AND token.identification = :identification AND token.type = :type',
+        {
+          hash: hash,
           identification: identification,
           type: type,
         },
@@ -37,13 +54,52 @@ export class TokenRepository extends BaseRepository<Token> {
     identification: string,
     type: TokenType,
   ): Promise<boolean> {
+    const now = new Date();
     return this.createBaseQuery()
-      .where('token.identification = :identification AND token.type = :type', {
-        identification: identification,
-        type: type,
-      })
+      .where(
+        'token.identification = :identification AND token.type = :type AND token.expirationTime > :now',
+        {
+          identification: identification,
+          type: type,
+          now: now,
+        },
+      )
       .getCount()
       .then((count) => count > 0);
+  }
+
+  public findActiveTokenByIdentificationAndType(
+    identification: string,
+    type: TokenType,
+  ): Promise<Token> {
+    const now = new Date();
+    return this.createBaseQuery()
+      .where(
+        'token.identification = :identification AND token.type = :type AND token.expirationTime > :now',
+        {
+          identification: identification,
+          type: type,
+          now: now,
+        },
+      )
+      .getOne();
+  }
+
+  public findRenewableTokenByIdentificationAndType(
+    identification: string,
+    type: TokenType,
+  ): Promise<Token> {
+    const now = new Date();
+    return this.createBaseQuery()
+      .where(
+        'token.identification = :identification AND token.type = :type AND token.renewalTime <= :now AND token.expirationTime > :now',
+        {
+          identification: identification,
+          type: type,
+          now: now,
+        },
+      )
+      .getOne();
   }
 
   public existsByTokenAndType(
@@ -78,11 +134,12 @@ export class TokenRepository extends BaseRepository<Token> {
       .getOne();
   }
 
-  public async deleteExpiredTokens(expiredDate: Date): Promise<void> {
+  public async deleteExpiredTokens(): Promise<void> {
+    const now = new Date();
     await this.createBaseQuery()
       .delete()
       .from(Token)
-      .where('created_at < :expiredDate', { expiredDate })
+      .where('expirationTime <= :now', { now })
       .execute();
   }
 }

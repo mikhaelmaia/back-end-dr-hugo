@@ -27,4 +27,20 @@ export class Token extends BaseEntity {
 
   @Column({ type: 'varchar', length: 255, nullable: false, update: false })
   public identification: string;
+
+  @Column({
+    type: 'timestamp',
+    nullable: false,
+    update: false,
+    comment: 'Data e hora em que o token pode ser renovado'
+  })
+  public renewalTime: Date;
+
+  @Column({
+    type: 'timestamp',
+    nullable: false,
+    update: false,
+    comment: 'Data e hora em que o token expira definitivamente'
+  })
+  public expirationTime: Date;
 }
