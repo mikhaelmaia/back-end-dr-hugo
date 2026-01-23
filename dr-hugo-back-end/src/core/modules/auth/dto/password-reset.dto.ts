@@ -14,10 +14,11 @@ export class PasswordResetDto {
     message: provideIsStringValidationMessage('Identificação do Token'),
   })
   @ApiProperty({
-    description: 'Identificação do Token',
-    required: false,
+    description: 'Identificação única do token de recuperação enviado por email',
+    example: 'abc123def456',
     minLength: 4,
     maxLength: 32,
+    type: String
   })
   public tokenIdentification: string;
 
@@ -28,7 +29,12 @@ export class PasswordResetDto {
     {},
     { message: provideIsEmailValidationMessage('E-mail do usuário') },
   )
-  @ApiProperty({ description: 'E-mail do usuário', required: false })
+  @ApiProperty({ 
+    description: 'Endereço de email do usuário para confirmação',
+    example: 'joao.silva@email.com',
+    format: 'email',
+    type: String
+  })
   public email: string;
 
   @IsNotEmpty({
@@ -37,6 +43,12 @@ export class PasswordResetDto {
   @IsString({
     message: provideIsStringValidationMessage('Nova senha do usuário'),
   })
-  @ApiProperty({ description: 'Nova senha do usuário', required: false })
+  @ApiProperty({ 
+    description: 'Nova senha que será definida para o usuário',
+    example: 'novasenhasegura456',
+    minLength: 6,
+    type: String,
+    writeOnly: true
+  })
   public password: string;
 }
