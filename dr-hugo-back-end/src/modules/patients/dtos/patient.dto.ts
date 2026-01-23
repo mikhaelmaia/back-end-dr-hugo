@@ -26,7 +26,7 @@ import { IsNotBlacklisted } from 'src/core/vo/validators/is-not-blacklisted.vali
 import { IsOnlyLetters } from 'src/core/vo/validators/is-only-letters.validator';
 import { IsStrongPassword } from 'src/core/vo/validators/is-strong-password.validator';
 import { ContainsRequiredTerms } from 'src/core/vo/validators/contains-required-terms.validator';
-import { UserRole } from 'src/core/vo/consts/enums';
+import { TermsType, UserRole } from 'src/core/vo/consts/enums';
 import { ExistsIn } from 'src/core/vo/validators/exists-in.validator';
 import { IsNotEmptyString } from 'src/core/vo/validators/is-not-empty-string.validator';
 import { IsUnique } from 'src/core/vo/validators/is-unique.validator';
@@ -175,13 +175,13 @@ export class PatientDto extends BaseEntityDto<Patient> {
     message: provideIsNotEmptyValidationMessage('Termos Aceitos'),
   })
   @IsArray({ message: 'Termos aceitos deve ser um array' })
-  @ContainsRequiredTerms(['privacy_policy', 'terms_of_service'], {
+  @ContainsRequiredTerms([TermsType.PRIVACY_POLICY, TermsType.TERMS_OF_SERVICE], {
     message: 'Os termos obrigatórios devem ser aceitos: política de privacidade e termos de serviço',
   })
   @ApiProperty({
     description: 'Lista de termos aceitos pelo paciente',
     type: [String],
-    example: ['privacy_policy', 'terms_of_service'],
+    example: [TermsType.PRIVACY_POLICY, TermsType.TERMS_OF_SERVICE],
   })
   public acceptedTerms: string[];
 }

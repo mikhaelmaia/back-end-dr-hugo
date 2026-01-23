@@ -38,3 +38,8 @@ export enum HttpHeaders {
   ClientFingerprint = 'x-client-fingerprint',
   UserAgent = 'user-agent',
 }
+
+export enum TermsType {
+  PRIVACY_POLICY = 'privacy_policy',
+  TERMS_OF_SERVICE = 'terms_of_service',
+}
