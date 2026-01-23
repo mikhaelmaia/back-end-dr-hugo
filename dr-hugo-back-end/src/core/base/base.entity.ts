@@ -21,4 +21,8 @@ export abstract class BaseEntity {
 
   @DeleteDateColumn({ name: 'deleted_at', nullable: true })
   public deletedAt: Date | null;
+
+  public clearId(): void {
+    this.id = undefined;
+  }
 }
