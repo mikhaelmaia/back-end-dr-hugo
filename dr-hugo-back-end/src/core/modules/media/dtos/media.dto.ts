@@ -5,26 +5,51 @@ import { Media } from '../entities/media.entity';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class MediaDto extends BaseEntityDto<Media> {
-  @ApiProperty({ description: 'Nome do arquivo', maxLength: 255 })
+  @ApiProperty({ 
+    description: 'Nome original do arquivo enviado pelo usuário',
+    example: 'documento_importante.pdf',
+    maxLength: 255,
+    type: String
+  })
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)
   public filename: string;
 
-  @ApiProperty({ description: 'Tipo do arquivo', enum: MediaType })
+  @ApiProperty({ 
+    description: 'Tipo/extensão do arquivo baseado no conteúdo detectado',
+    example: 'PDF',
+    enum: MediaType,
+    enumName: 'MediaType'
+  })
   public type: MediaType;
 
-  @ApiProperty({ description: 'Tamanho do arquivo' })
+  @ApiProperty({ 
+    description: 'Tamanho do arquivo em bytes',
+    example: 1048576,
+    minimum: 1,
+    type: Number
+  })
   @IsInt()
   public size: number;
 
-  @ApiProperty({ description: 'Bucket do MinIO' })
+  @ApiProperty({ 
+    description: 'Nome do bucket no sistema de armazenamento MinIO onde o arquivo está localizado',
+    example: 'doutor-viu-media',
+    maxLength: 100,
+    type: String
+  })
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
   public bucket: string;
 
-  @ApiProperty({ description: 'Nome do objeto no MinIO' })
+  @ApiProperty({ 
+    description: 'Identificador único do objeto no bucket MinIO (UUID com extensão)',
+    example: '550e8400-e29b-41d4-a716-446655440000.pdf',
+    maxLength: 500,
+    type: String
+  })
   @IsString()
   @IsNotEmpty()
   @MaxLength(500)
