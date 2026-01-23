@@ -34,6 +34,12 @@ import { IsValidTaxId } from 'src/core/vo/validators/is-valid-tax-id.validator';
 import { User } from 'src/modules/users/entities/user.entity';
 
 export class PatientDto extends BaseEntityDto<Patient> {
+  @ApiProperty({
+    description: 'Identificador único do usuário associado ao paciente (UUID)',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+    format: 'uuid',
+    type: String
+  })
   public userId: string;
 
   @IsNotEmpty({
@@ -49,7 +55,12 @@ export class PatientDto extends BaseEntityDto<Patient> {
   @IsNotBlacklisted()
   @MaxLength(100, { message: provideMaxLengthValidationMessage })
   @Expose()
-  @ApiProperty({ description: 'Nome do usuário', maxLength: 100 })
+  @ApiProperty({ 
+    description: 'Nome completo do paciente (apenas letras, espaços e pontuação básica)',
+    example: 'Maria Silva Santos',
+    maxLength: 100,
+    type: String
+  })
   public name: string;
 
   @IsNotEmpty({
@@ -65,7 +76,13 @@ export class PatientDto extends BaseEntityDto<Patient> {
   @IsUnique('dv_user', 'email', {
     message: 'Já existe usuário com este e-mail cadastrado',
   })
-  @ApiProperty({ description: 'E-mail do usuário', maxLength: 50 })
+  @ApiProperty({ 
+    description: 'Endereço de e-mail do paciente (deve ser único no sistema)',
+    example: 'maria.silva@email.com',
+    maxLength: 50,
+    format: 'email',
+    type: String
+  })
   public email: string;
 
   @ValidateIf((o: User) => !o.id)
@@ -78,7 +95,13 @@ export class PatientDto extends BaseEntityDto<Patient> {
   })
   @IsStrongPassword()
   @Exclude({ toPlainOnly: true })
-  @ApiProperty({ description: 'Senha do usuário' })
+  @ApiProperty({ 
+    description: 'Senha de acesso do paciente (deve ser forte: minúscula, maiúscula, número e caractere especial)',
+    example: 'MinhaSenh@123',
+    minLength: 8,
+    type: String,
+    writeOnly: true
+  })
   public password: string;
 
   @IsString({
@@ -98,9 +121,11 @@ export class PatientDto extends BaseEntityDto<Patient> {
     message: 'Já existe usuário com este CPF/CNPJ cadastrado',
   })
   @ApiProperty({
-    description: 'CPF/CNPJ do usuário',
+    description: 'CPF ou CNPJ do paciente (apenas números, deve ser único)',
+    example: '12345678901',
     minLength: 11,
     maxLength: 14,
+    type: String
   })
   public taxId: string;
 
@@ -115,9 +140,11 @@ export class PatientDto extends BaseEntityDto<Patient> {
     message: 'Já existe usuário com este telefone/celular cadastrado',
   })
   @ApiProperty({
-    description: 'Telefone/Celular do usuário',
+    description: 'Número de telefone ou celular do paciente (apenas números, deve ser único)',
+    example: '11987654321',
     minLength: 10,
     maxLength: 15,
+    type: String
   })
   public phone: string;
 
@@ -129,9 +156,11 @@ export class PatientDto extends BaseEntityDto<Patient> {
   })
   @Length(1, 3, { message: provideLengthValidationMessage })
   @ApiProperty({
-    description: 'Código do país',
+    description: 'Código do país do paciente (ISO 3166-1 alfa-2 ou alfa-3)',
+    example: 'BR',
     minLength: 1,
     maxLength: 3,
+    type: String
   })
   public countryCode: string;
 
@@ -143,21 +172,30 @@ export class PatientDto extends BaseEntityDto<Patient> {
   })
   @Length(1, 5, { message: provideLengthValidationMessage })
   @ApiProperty({
-    description: 'Código IDD do país',
+    description: 'Código de discagem direta internacional (IDD) do país',
+    example: '+55',
     minLength: 1,
     maxLength: 5,
+    type: String
   })
   public countryIdd: string;
 
   @ApiProperty({
-    description: 'Perfil de acesso do usuário',
-    required: false,
-    minLength: 10,
-    maxLength: 15,
+    description: 'Perfil de acesso do paciente no sistema (sempre PATIENT para pacientes)',
+    example: 'PATIENT',
     enum: UserRole,
+    enumName: 'UserRole',
+    required: false
   })
   public role: UserRole;
 
+  @ApiProperty({
+    description: 'ID da mídia que contém a foto de perfil do paciente',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+    format: 'uuid',
+    required: false,
+    type: String
+  })
   @Expose()
   @IsOptional()
   @ExistsIn('dv_media', 'id', { message: 'Arquivo de mídia não encontrado' })
@@ -168,7 +206,12 @@ export class PatientDto extends BaseEntityDto<Patient> {
   })
   @IsDate({ message: 'Data de nascimento deve ser uma data válida' })
   @Type(() => Date)
-  @ApiProperty({ description: 'Data de nascimento do paciente', type: 'string', format: 'date' })
+  @ApiProperty({ 
+    description: 'Data de nascimento do paciente',
+    example: '1990-05-15',
+    type: String, 
+    format: 'date'
+  })
   public birthDate: Date;
 
   @IsNotEmpty({
@@ -179,9 +222,13 @@ export class PatientDto extends BaseEntityDto<Patient> {
     message: 'Os termos obrigatórios devem ser aceitos: política de privacidade e termos de serviço',
   })
   @ApiProperty({
-    description: 'Lista de termos aceitos pelo paciente',
+    description: 'Lista dos tipos de termos aceitos pelo paciente (obrigatórios: privacy_policy, terms_of_service)',
     type: [String],
-    example: [TermsType.PRIVACY_POLICY, TermsType.TERMS_OF_SERVICE],
+    example: ['privacy_policy', 'terms_of_service'],
+    items: {
+      type: 'string',
+      enum: ['privacy_policy', 'terms_of_service']
+    }
   })
   public acceptedTerms: string[];
 }
