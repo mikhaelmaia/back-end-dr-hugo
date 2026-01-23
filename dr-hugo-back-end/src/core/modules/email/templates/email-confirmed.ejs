@@ -35,7 +35,7 @@
         font-size: 24px;
         font-weight: 600;
         color: #fff;
-        background-color: #00B0BB;
+        background-color: #16A34A;
         border-top-left-radius: 8px;
         border-top-right-radius: 8px;
     }
@@ -48,47 +48,26 @@
         font-weight: 400;
         line-height: 1.5;
     }
-    em {
-        display: block;
-        margin: 20px auto;
-        padding: 16px;
-        font-family: 'League Spartan', 'Helvetica Neue', Arial, sans-serif;
-        font-size: 20px;
-        font-weight: 600;
-        font-style: normal;
-        letter-spacing: 1px;
-        color: #00B0BB;
-        text-align: center;
-        background-color: #F3F4F6;
-        border-radius: 8px;
-        border: 2px solid #E5E7EB;
-    }
-    .info-box {
+    .success-box {
         margin: 24px 0;
         padding: 20px;
-        background-color: #FBBF24;
-        border: 2px solid #F59E0B;
-        border-left: 6px solid #D97706;
+        background-color: #16A34A;
+        border: 2px solid #15803D;
+        border-left: 6px solid #166534;
         border-radius: 8px;
     }
-    .info-box h4 {
+    .success-box h4 {
         margin: 0 0 12px 0;
         color: #FFFFFF;
         font-family: 'League Spartan', 'Helvetica Neue', Arial, sans-serif;
         font-size: 16px;
         font-weight: 600;
     }
-    .info-box p {
+    .success-box p {
         margin: 8px 0;
         color: #FFFFFF;
         font-size: 14px;
         line-height: 1.5;
-    }
-    .info-box .highlight {
-        background-color: #D97706;
-        padding: 2px 4px;
-        border-radius: 3px;
-        font-weight: 600;
     }
     .platform-info {
         margin: 24px 0;
@@ -145,29 +124,60 @@
 <body>
   <div class="email-body">
     <div class="container">
-        <h3>Bem-vindo ao Doutor Viu</h3>
+        <h3>🎉 E-mail Confirmado com Sucesso!</h3>
         <div class="email-text">
           <p>Olá, <%= name %></p>
-          <p>Bem-vindo ao Doutor Viu! Sua conta foi criada com sucesso em nossa plataforma de gestão de informações médicas.</p>
-          <p>Data do cadastro:</p>
-          <em><%= estimatedRegisteredAt %></em>
+          <p>Parabéns! Seu e-mail foi confirmado com sucesso e sua conta no Doutor Viu está agora totalmente ativa.</p>
           
-          <div class="info-box">
-            <h4>📧 Confirmação de E-mail Necessária</h4>
-            <p>Para garantir a segurança de sua conta, é necessário confirmar seu endereço de e-mail antes de acessar a plataforma.</p>
-            <p><strong>Utilize o código abaixo para confirmar sua conta:</strong></p>
+          <div class="success-box">
+            <h4>✅ Conta Ativada</h4>
+            <p>Sua conta foi ativada com sucesso em:</p>
+            <p><strong><%= estimatedConfirmedAt %></strong></p>
+            <p>Agora você pode acessar todos os recursos da plataforma!</p>
           </div>
           
-          <em><%= token %></em>
+          <div class="platform-info">
+            <% if (userRole === 'PATIENT') { %>
+            <h4>🏥 Seus Recursos - Pacientes</h4>
+            <p>Como <strong>paciente</strong>, você agora tem controle total sobre suas informações médicas:</p>
+            <p>• <strong>Armazene</strong> com segurança fichas médicas e exames;</p>
+            <p>• <strong>Controle quem acessa</strong> suas informações médicas;</p>
+            <p>• <strong>Compartilhe dados</strong> com médicos de sua confiança;</p>
+            <p>• <strong>Histórico completo</strong> sempre disponível;</p>
+            <% } else if (userRole === 'DOCTOR') { %>
+            <h4>🏥 Seus Recursos - Médicos</h4>
+            <p>Como <strong>médico</strong>, você agora pode acessar informações de pacientes com segurança:</p>
+            <p>• <strong>Acesse dados</strong> de pacientes que autorizaram;</p>
+            <p>• <strong>Visualize exames e histórico</strong> médico completo;</p>
+            <p>• <strong>Mantenha o sigilo</strong> e privacidade dos dados;</p>
+            <p>• <strong>Interface intuitiva</strong> para consultas rápidas;</p>
+            <% } else if (userRole === 'INSTITUTION') { %>
+            <h4>🏥 Seus Recursos - Instituições</h4>
+            <p>Como <strong>instituição</strong>, você agora tem acesso a ferramentas avançadas:</p>
+            <p>• <strong>Gerencie pacientes</strong> da instituição;</p>
+            <p>• <strong>Organize prontuários</strong> de forma segura;</p>
+            <p>• <strong>Controle acessos</strong> por departamento;</p>
+            <p>• <strong>Relatórios</strong> e análises detalhadas;</p>
+            <% } else { %>
+            <h4>🏥 Seus Recursos no Doutor Viu</h4>
+            <p>Nossa plataforma oferece <strong>gestão segura</strong> de informações médicas:</p>
+            <p>• <strong>Armazenamento seguro</strong> de fichas médicas e exames;</p>
+            <p>• <strong>Controle de permissões:</strong> Você decide quem acessa suas informações;</p>
+            <p>• <strong>Privacidade garantida</strong> em todas as operações;</p>
+            <% } %>
+            
+            <p class="italic-text">Todas as informações são protegidas com criptografia de ponta e acessadas apenas com sua autorização expressa.</p>
+            
+            <p><strong>Tenha o controle total sobre seus dados médicos em um ambiente seguro e confiável!</strong></p>
+          </div>
           
           <div class="login-button-container">
-            <a href="<%= confirmationUrl %>" class="login-button">
-              Confirmar E-mail
+            <a href="<%= loginPageUrl %>" class="login-button">
+              🚀 Acessar Doutor Viu
             </a>
           </div>
           
-          <p>Após a confirmação, você poderá acessar todos os recursos da plataforma!</p>
-          <p>Estamos felizes em tê-lo conosco.</p> 
+          <p>Estamos muito felizes em tê-lo como parte da nossa comunidade. Bem-vindo ao Doutor Viu!</p>
           <p>Atenciosamente, Equipe Doutor Viu</p>
         </div>
     </div>

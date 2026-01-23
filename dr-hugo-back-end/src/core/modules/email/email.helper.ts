@@ -46,7 +46,8 @@ export class EmailHelper {
   public async sendUserRegisteredEmail(
     name: string,
     email: string,
-    userRole?: UserRole,
+    userRole: UserRole,
+    token: string,
   ): Promise<void> {
     await this.emailService.sendEmail(
       EmailSend.builder()
@@ -54,14 +55,15 @@ export class EmailHelper {
         .reference(EmailReference.USER_REGISTERED)
         .addParameter('name', name)
         .addParameter('email', email)
-        .addParameter('userRole', userRole || UserRole.PATIENT)
+        .addParameter('userRole', userRole)
+        .addParameter('token', token)
         .addParameter(
           'estimatedRegisteredAt',
           getCurrentLocalDateTimeFormatted(),
         )
         .addParameter(
-          'loginPageUrl',
-          `${this.configService.get('web.baseUrl')}${this.configService.get('web.loginPath')}`,
+          'confirmationUrl',
+          `${this.configService.get('web.baseUrl')}${this.configService.get('web.emailConfirmationPath')}?token=${token}`,
         )
         .build(),
     );
@@ -81,7 +83,31 @@ export class EmailHelper {
         .addParameter('token', token)
         .addParameter(
           'confirmationUrl',
-          `${this.configService.get('web.baseUrl')}${this.configService.get('web.emailConfirmationPath')}`,
+          `${this.configService.get('web.baseUrl')}${this.configService.get('web.emailConfirmationPath')}?token=${token}`,
+        )
+        .build(),
+    );
+  }
+
+  public async sendEmailConfirmedEmail(
+    name: string,
+    email: string,
+    userRole: UserRole,
+  ): Promise<void> {
+    await this.emailService.sendEmail(
+      EmailSend.builder()
+        .to(email)
+        .reference(EmailReference.EMAIL_CONFIRMED)
+        .addParameter('name', name)
+        .addParameter('email', email)
+        .addParameter('userRole', userRole)
+        .addParameter(
+          'estimatedConfirmedAt',
+          getCurrentLocalDateTimeFormatted(),
+        )
+        .addParameter(
+          'loginPageUrl',
+          `${this.configService.get('web.baseUrl')}${this.configService.get('web.loginPath')}`,
         )
         .build(),
     );
