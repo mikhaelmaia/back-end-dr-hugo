@@ -9,6 +9,7 @@ import { acceptTrueThrows, until } from 'src/core/utils/functions';
 import { generateHash, generateSixDigitCode } from 'src/core/utils/utils';
 import { TokenType } from 'src/core/vo/consts/enums';
 import { Optional } from 'src/core/utils/optional';
+import { TokenValidationDto } from './dtos/token-validation.dto';
 
 @Injectable()
 export class TokenService extends BaseService<
@@ -60,7 +61,7 @@ export class TokenService extends BaseService<
     tokenOrHash: string,
     tokenIdentification: string,
     type: TokenType,
-  ): Promise<TokenDto> {
+  ): Promise<TokenValidationDto> {
     const token: Token =
       await this.repository.findByTokenOrHashAndIdentificationAndType(
         tokenOrHash,
@@ -68,7 +69,7 @@ export class TokenService extends BaseService<
         type,
       );
     return Optional.ofNullable(token)
-      .map((token) => this.mapper.toDto(token))
+      .map((token) => this.mapper.toValidationDto(token))
       .orElseThrow(
         () => new BadRequestException({ message: this.INVALID_TOKEN }),
       );

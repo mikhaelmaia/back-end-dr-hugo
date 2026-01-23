@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { BaseMapper } from 'src/core/base/base.mapper';
 import { Token } from './entities/token.entity';
 import { TokenDto } from './dtos/token.dto';
+import { TokenValidationDto } from './dtos/token-validation.dto';
 
 @Injectable()
 export class TokenMapper extends BaseMapper<Token, TokenDto> {
@@ -26,5 +27,11 @@ export class TokenMapper extends BaseMapper<Token, TokenDto> {
     token.createdAt = dto.createdAt;
     token.updatedAt = dto.updatedAt;
     return token;
+  }
+
+  toValidationDto(entity: Token): TokenValidationDto {
+    const tokenDto = new TokenValidationDto();
+    tokenDto.hash = entity.hash;
+    return tokenDto;
   }
 }

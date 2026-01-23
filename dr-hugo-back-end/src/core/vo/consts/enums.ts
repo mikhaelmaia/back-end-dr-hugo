@@ -5,8 +5,16 @@ export enum UserRole {
   INSTITUTION = 'INSTITUTION',
 }
 
+/**
+ * Tipos de tokens disponíveis no sistema
+ * 
+ * @swagger
+ * @enum {string}
+ */
 export enum TokenType {
+  /** Token para redefinição de senha do usuário */
   PASSWORD_RESET = 'PASSWORD_RESET',
+  /** Token para confirmação de endereço de e-mail */
   EMAIL_CONFIRMATION = 'EMAIL_CONFIRMATION',
 }
 
