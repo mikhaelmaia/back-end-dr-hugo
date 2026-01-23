@@ -27,7 +27,6 @@ export class PatientsMapper extends BaseMapper<Patient, PatientDto> {
 
   public toDtoWithUser(patient: Patient, user: UserDto | User): PatientDto {
     const dto = this.toDto(patient);
-    dto.userId = user.id;
     dto.name = user.name;
     dto.email = user.email;
     dto.taxId = user.taxId;
@@ -51,7 +50,6 @@ export class PatientsMapper extends BaseMapper<Patient, PatientDto> {
 
   private mapPatientDtoToUserDto(dto: PatientDto): UserDto {
     const userDto = new UserDto();
-    userDto.id = dto.userId;
     userDto.name = dto.name;
     userDto.email = dto.email;
     userDto.taxId = dto.taxId;

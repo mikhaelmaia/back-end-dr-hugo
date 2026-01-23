@@ -23,6 +23,10 @@ import { PatientsService } from './patients.service';
 import { IsUUIDParam } from 'src/core/vo/decorators/is-uuid-param.decorator';
 import { PatientsPaths } from 'src/core/vo/consts/paths';
 import { ExceptionResponse } from 'src/core/config/exceptions/exception-response';
+import { CurrentUser } from 'src/core/vo/decorators/current-user.decorator';
+import { Public } from 'src/core/vo/decorators/public.decorator';
+import { Roles } from 'src/core/vo/decorators/roles.decorator';
+import { UserRole } from 'src/core/vo/consts/enums';
 
 @ApiTags('Gerenciamento de Pacientes')
 @ApiBearerAuth()
@@ -55,12 +59,7 @@ export class PatientsController extends BaseController<
     type: ExceptionResponse
   })
   @ApiResponse({ 
-    status: 401, 
-    description: 'Token de acesso inválido ou ausente',
-    type: ExceptionResponse
-  })
-  @ApiResponse({ 
-    status: 409, 
+    status: 409,
     description: 'Paciente já existe (email ou CPF/CNPJ duplicado)',
     type: ExceptionResponse
   })
@@ -74,6 +73,7 @@ export class PatientsController extends BaseController<
     description: 'Erro interno do servidor',
     type: ExceptionResponse
   })
+  @Public()
   @Post()
   @HttpCode(HttpStatus.CREATED)
   public async create(@Body() dto: PatientDto): Promise<PatientDto> {
@@ -190,6 +190,10 @@ export class PatientsController extends BaseController<
     description: 'Token de acesso inválido ou ausente',
     type: ExceptionResponse
   })
+  @ApiResponse({
+    status: 403,
+    description: 'Usuário não autorizado a atualizar este paciente',
+  })
   @ApiResponse({ 
     status: 404, 
     description: 'Paciente não encontrado para atualização',
@@ -210,13 +214,15 @@ export class PatientsController extends BaseController<
     description: 'Erro interno do servidor',
     type: ExceptionResponse
   })
+  @Roles(UserRole.PATIENT)
   @Put(PatientsPaths.UPDATE)
   @HttpCode(HttpStatus.OK)
-  public async update(
+  public async updatePatient(
     @IsUUIDParam('id') id: string,
     @Body() dto: PatientDto,
+    @CurrentUser('id') currentUserId: string
   ): Promise<void> {
-    await this.service.update(id, dto);
+    await this.service.updatePatient(id, dto, currentUserId);
   }
 
   @ApiOperation({ 
@@ -242,6 +248,10 @@ export class PatientsController extends BaseController<
     description: 'Token de acesso inválido ou ausente',
     type: ExceptionResponse
   })
+  @ApiResponse({
+    status: 403,
+    description: 'Usuário não autorizado a excluir este paciente',
+  })
   @ApiResponse({ 
     status: 404, 
     description: 'Paciente não encontrado para exclusão',
@@ -252,6 +262,7 @@ export class PatientsController extends BaseController<
     description: 'Erro interno do servidor',
     type: ExceptionResponse
   })
+  @Roles(UserRole.ADMIN)
   @Delete(PatientsPaths.DELETE)
   @HttpCode(HttpStatus.NO_CONTENT)
   public async delete(

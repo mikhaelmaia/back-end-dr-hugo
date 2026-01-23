@@ -34,14 +34,6 @@ import { IsValidTaxId } from 'src/core/vo/validators/is-valid-tax-id.validator';
 import { User } from 'src/modules/users/entities/user.entity';
 
 export class PatientDto extends BaseEntityDto<Patient> {
-  @ApiProperty({
-    description: 'Identificador único do usuário associado ao paciente (UUID)',
-    example: '550e8400-e29b-41d4-a716-446655440000',
-    format: 'uuid',
-    type: String
-  })
-  public userId: string;
-
   @IsNotEmpty({
     message: provideIsNotEmptyValidationMessage('Nome do Usuário'),
   })

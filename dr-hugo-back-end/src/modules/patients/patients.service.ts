@@ -30,6 +30,8 @@ export class PatientsService extends BaseService<
   public override async create(dto: PatientDto): Promise<PatientDto> {
     const [ pacient, user ] = this.mapper.toEntityAndUser(dto);
 
+    pacient.clearId();
+
     const savedUser = await this.userService.create(user);
 
     pacient.user = {
@@ -57,7 +59,7 @@ export class PatientsService extends BaseService<
     ).orElseThrow(() => new NotFoundException(this.ENTITY_NOT_FOUND));
   }
 
-  public override async update(id: string, dto: PatientDto): Promise<PatientDto> {
+  public async updatePatient(id: string, dto: PatientDto, currentUserId: string): Promise<PatientDto> {
     const existingPatient = await this.repository.findById(id);
 
     if (!existingPatient) {
@@ -66,13 +68,11 @@ export class PatientsService extends BaseService<
 
     const [ updatedPatientEntity, updatedUserEntity ] = this.mapper.toEntityAndUser(dto);
 
-    const userId = existingPatient.user.id;
-
-    const updatedUser = await this.userService.update(userId, updatedUserEntity);
+    const updatedUser = await this.userService.update(currentUserId, updatedUserEntity);
 
     updatedPatientEntity.id = id;
     updatedPatientEntity.user = {
-      id: userId,
+      id: currentUserId,
     } as any;
 
     const savedPatient = await this.repository.save(updatedPatientEntity);
