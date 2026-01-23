@@ -27,10 +27,10 @@ const extractErrorMessages = (errors: ValidationError[]): string[] => {
   return messages;
 };
 
-const configAppDocument = (app: INestApplication): void => {
+const configureSwagger = (app: INestApplication): void => {
   const options = new DocumentBuilder()
-    .setTitle('Dr Hugo API')
-    .setDescription('API for Dr Hugo Platform')
+    .setTitle('Doutor Viu API')
+    .setDescription('API for Doutor Viu Platform')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
@@ -38,37 +38,40 @@ const configAppDocument = (app: INestApplication): void => {
   SwaggerModule.setup('docs', app, document);
 };
 
-const configAppPipes = (): ValidationPipe[] => {
+const configureValidation = (): ValidationPipe[] => {
   return [
     new ValidationPipe({
       transform: true,
       exceptionFactory: async (errors: ValidationError[]) => {
-        const errorMessages = extractErrorMessages(errors);
-        return new BadRequestException(errorMessages.toString());
+        return new BadRequestException({
+          message: extractErrorMessages(errors)
+        });
       },
     }),
   ];
 };
 
-const configAppFilters = (app: INestApplication): ExceptionFilter[] => {
-  return [new AllExceptionsFilter(app.get(HttpAdapterHost))];
+const configureApplicationFilters = (app: INestApplication): ExceptionFilter => {
+  return new AllExceptionsFilter(app.get(HttpAdapterHost));
 };
 
-const configAppInterceptors = (app: INestApplication): void => {
-  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+const configureApplicationInterceptors = (app: INestApplication): void => {
+  app.useGlobalInterceptors(
+    new ClassSerializerInterceptor(app.get(Reflector)),
+  );
 };
 
-const configApp = (app: INestApplication): void => {
-  app.useGlobalPipes(...configAppPipes());
-  app.useGlobalFilters(...configAppFilters(app));
-  configAppInterceptors(app);
-  configAppDocument(app);
+const configureApplication = (app: INestApplication): void => {
+  app.useGlobalPipes(...configureValidation());
+  app.useGlobalFilters(configureApplicationFilters(app));
+  configureApplicationInterceptors(app);
+  configureSwagger(app);
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
 };
 
 const bootstrap = async () => {
   const app = await NestFactory.create(AppModule, { cors: corsOptions });
-  configApp(app);
+  configureApplication(app);
   await app.listen(process.env.PORT || 3000);
 };
 
