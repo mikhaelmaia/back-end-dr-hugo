@@ -53,6 +53,7 @@ export class CreateInitialTables1769103067723 implements MigrationInterface {
                 "accepted_terms" jsonb NOT NULL,
                 "profile_picture_id" uuid,
                 CONSTRAINT "PK_dv_user" PRIMARY KEY ("id"),
+                CONSTRAINT "UQ_dv_user_taxId" UNIQUE ("taxId"),
                 CONSTRAINT "UQ_dv_user_email" UNIQUE ("email"),
                 CONSTRAINT "UQ_dv_user_phone" UNIQUE ("phone")
             )
@@ -78,7 +79,7 @@ export class CreateInitialTables1769103067723 implements MigrationInterface {
                 "created_at" TIMESTAMP NOT NULL DEFAULT now(),
                 "updated_at" TIMESTAMP,
                 "deleted_at" TIMESTAMP,
-                "token" character varying(4) NOT NULL,
+                "token" character varying(6) NOT NULL,
                 "hash" character varying(50) NOT NULL,
                 "type" "token_type_enum" NOT NULL,
                 "identification" character varying(255) NOT NULL,

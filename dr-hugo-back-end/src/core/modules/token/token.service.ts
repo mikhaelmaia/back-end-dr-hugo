@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { TokenDto } from './dtos/token.dto';
 import { Token } from './entities/token.entity';
 import { TokenRepository } from './token.repository';
@@ -19,6 +19,8 @@ export class TokenService extends BaseService<
   TokenRepository,
   TokenMapper
 > {
+  private readonly logger = new Logger(TokenService.name);
+
   public constructor(
     tokenRepository: TokenRepository,
     tokenMapper: TokenMapper,
@@ -119,6 +121,8 @@ export class TokenService extends BaseService<
 
   @Cron(CronExpression.EVERY_MINUTE)
   public async deleteExpiredTokens(): Promise<void> {
+    this.logger.log('Iniciando remoção de tokens expirados...');
     await this.repository.deleteExpiredTokens();
+    this.logger.log('Remoção de tokens expirados concluída.');
   }
 }

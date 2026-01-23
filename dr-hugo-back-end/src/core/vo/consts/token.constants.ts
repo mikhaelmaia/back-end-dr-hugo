@@ -7,8 +7,8 @@ export abstract class TokenConstants {
       expiration: 15
     },
     [TokenType.EMAIL_CONFIRMATION]: {
-      renewal: 5,
-      expiration: 30
+      renewal: 3,
+      expiration: 1440
     }
   } as const;
 
@@ -17,7 +17,7 @@ export abstract class TokenConstants {
   public static readonly ERROR_MESSAGES = {
     INVALID_TOKEN: () => 'Token inválido',
     TOKEN_WITH_IDENTIFIER_ALREADY_CREATED: (type: TokenType) => 
-      `Token com identificador já criado, aguarde ${TokenConstants.getRenewalTimeMinutes(type)} minutos`,
+      `Aguarde ${TokenConstants.getRenewalTimeMinutes(type)} minutos para gerar um novo código`,
     TOKEN_RENEWAL_TIME_NOT_REACHED: (type: TokenType) => 
       `Tempo de renovação ainda não atingido, aguarde ${TokenConstants.getRenewalTimeMinutes(type)} minutos`,
     TOKEN_EXPIRED: () => 'Token expirado'

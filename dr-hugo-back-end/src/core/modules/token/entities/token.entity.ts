@@ -29,6 +29,7 @@ export class Token extends BaseEntity {
   public identification: string;
 
   @Column({
+    name: 'renewal_time',
     type: 'timestamp',
     nullable: false,
     update: false,
@@ -37,6 +38,7 @@ export class Token extends BaseEntity {
   public renewalTime: Date;
 
   @Column({
+    name: 'expiration_time',
     type: 'timestamp',
     nullable: false,
     update: false,

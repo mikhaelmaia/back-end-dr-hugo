@@ -57,7 +57,7 @@ export class TokenRepository extends BaseRepository<Token> {
     const now = new Date();
     return this.createBaseQuery()
       .where(
-        'token.identification = :identification AND token.type = :type AND token.expirationTime > :now',
+        'token.identification = :identification AND token.type = :type AND token.expiration_time > :now',
         {
           identification: identification,
           type: type,
@@ -75,7 +75,7 @@ export class TokenRepository extends BaseRepository<Token> {
     const now = new Date();
     return this.createBaseQuery()
       .where(
-        'token.identification = :identification AND token.type = :type AND token.expirationTime > :now',
+        'token.identification = :identification AND token.type = :type AND token.expiration_time > :now',
         {
           identification: identification,
           type: type,
@@ -92,7 +92,7 @@ export class TokenRepository extends BaseRepository<Token> {
     const now = new Date();
     return this.createBaseQuery()
       .where(
-        'token.identification = :identification AND token.type = :type AND token.renewalTime <= :now AND token.expirationTime > :now',
+        'token.identification = :identification AND token.type = :type AND token.renewal_time <= :now AND token.expiration_time > :now',
         {
           identification: identification,
           type: type,
@@ -139,7 +139,7 @@ export class TokenRepository extends BaseRepository<Token> {
     await this.createBaseQuery()
       .delete()
       .from(Token)
-      .where('expirationTime <= :now', { now })
+      .where('expiration_time <= :now', { now })
       .execute();
   }
 }
