@@ -44,7 +44,12 @@ export class UserDto extends BaseEntityDto<User> {
   @IsNotBlacklisted()
   @MaxLength(100, { message: provideMaxLengthValidationMessage })
   @Expose()
-  @ApiProperty({ description: 'Nome do usuário', maxLength: 100 })
+  @ApiProperty({ 
+    description: 'Nome completo do usuário',
+    example: 'Dr. João Silva',
+    maxLength: 100,
+    type: String
+  })
   public name: string;
 
   @IsNotEmpty({
@@ -60,7 +65,13 @@ export class UserDto extends BaseEntityDto<User> {
   @IsUnique('dv_user', 'email', {
     message: 'Já existe usuário com este e-mail cadastrado',
   })
-  @ApiProperty({ description: 'E-mail do usuário', maxLength: 50 })
+  @ApiProperty({ 
+    description: 'Endereço de e-mail do usuário (deve ser único)',
+    example: 'joao.silva@email.com',
+    maxLength: 50,
+    format: 'email',
+    type: String
+  })
   public email: string;
 
   @ValidateIf((o: User) => !o.id)
@@ -75,7 +86,13 @@ export class UserDto extends BaseEntityDto<User> {
     message: provideMinLengthValidationMessage('Senha do Usuário', 6),
   })
   @Exclude({ toPlainOnly: true })
-  @ApiProperty({ description: 'Senha do usuário' })
+  @ApiProperty({ 
+    description: 'Senha do usuário (mínimo 6 caracteres)',
+    example: 'senhaSegura123',
+    minLength: 6,
+    type: String,
+    writeOnly: true
+  })
   public password: string;
 
   @IsString({
@@ -95,9 +112,11 @@ export class UserDto extends BaseEntityDto<User> {
     message: 'Já existe usuário com este CPF/CNPJ cadastrado',
   })
   @ApiProperty({
-    description: 'CPF/CNPJ do usuário',
+    description: 'CPF ou CNPJ do usuário (apenas números, deve ser único)',
+    example: '12345678901',
     minLength: 11,
     maxLength: 14,
+    type: String
   })
   public taxId: string;
 
@@ -109,9 +128,11 @@ export class UserDto extends BaseEntityDto<User> {
   })
   @Length(10, 15, { message: provideLengthValidationMessage })
   @ApiProperty({
-    description: 'Telefone/Celular do usuário',
+    description: 'Número de telefone ou celular do usuário (apenas números)',
+    example: '11987654321',
     minLength: 10,
     maxLength: 15,
+    type: String
   })
   public phone: string;
 
@@ -123,9 +144,11 @@ export class UserDto extends BaseEntityDto<User> {
   })
   @Length(1, 3, { message: provideLengthValidationMessage })
   @ApiProperty({
-    description: 'Código do país',
+    description: 'Código do país (ISO 3166-1 alfa-2 ou alfa-3)',
+    example: 'BR',
     minLength: 1,
     maxLength: 3,
+    type: String
   })
   public countryCode: string;
 
@@ -137,18 +160,20 @@ export class UserDto extends BaseEntityDto<User> {
   })
   @Length(1, 5, { message: provideLengthValidationMessage })
   @ApiProperty({
-    description: 'Código IDD do país',
+    description: 'Código de discagem direta internacional (IDD) do país',
+    example: '+55',
     minLength: 1,
     maxLength: 5,
+    type: String
   })
   public countryIdd: string;
 
   @ApiProperty({
-    description: 'Perfil de acesso do usuário',
+    description: 'Perfil de acesso do usuário no sistema',
+    example: 'DOCTOR',
     required: false,
-    minLength: 10,
-    maxLength: 15,
     enum: UserRole,
+    enumName: 'UserRole'
   })
   public role: UserRole;
 
@@ -160,12 +185,23 @@ export class UserDto extends BaseEntityDto<User> {
     message: 'Os termos obrigatórios devem ser aceitos: política de privacidade e termos de serviço',
   })
   @ApiProperty({
-    description: 'Lista de termos aceitos pelo paciente',
+    description: 'Lista dos tipos de termos aceitos pelo usuário (obrigatórios: privacy_policy, terms_of_service)',
     type: [String],
     example: ['privacy_policy', 'terms_of_service'],
+    items: {
+      type: 'string',
+      enum: ['privacy_policy', 'terms_of_service']
+    }
   })
   public acceptedTerms: string[];
 
+  @ApiProperty({
+    description: 'ID da mídia que contém a foto de perfil do usuário',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+    format: 'uuid',
+    required: false,
+    type: String
+  })
   @Expose()
   @IsOptional()
   @ExistsIn('dv_media', 'id', { message: 'Arquivo de mídia não encontrado' })
