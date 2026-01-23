@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { TermsType } from '../../../vo/consts/enums';
@@ -8,6 +8,7 @@ import { TermDto } from './dtos/term.dto';
 export class TermsService {
   private readonly LEGAL_FILES_PATH = join(process.cwd(), 'src', 'core', 'resources', 'legal');
   private readonly cache = new Map<TermsType, TermDto>();
+  private readonly logger = new Logger(TermsService.name);
 
   private readonly FILE_MAPPING = {
     [TermsType.PRIVACY_POLICY]: {
@@ -40,7 +41,7 @@ export class TermsService {
       
       return termDto;
     } catch (error) {
-      console.error(`Erro ao carregar arquivo de termos ${mapping.filename}:`, error);
+      this.logger.error(`Erro ao carregar arquivo de termos ${mapping.filename}:`, error);
       throw new InternalServerErrorException(`Erro ao carregar arquivo de termos: ${mapping.filename}`);
     }
   }
