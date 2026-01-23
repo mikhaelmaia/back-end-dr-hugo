@@ -14,7 +14,7 @@ export class User extends BaseEntity {
   @Column({ name: 'password', length: 255, nullable: false })
   public password: string;
 
-  @Column({ name: 'taxId', length: 14, nullable: false })
+  @Column({ name: 'taxId', length: 14, nullable: false, unique: true })
   public taxId: string;
 
   @Column({ name: 'phone', length: 15, nullable: false, unique: true })
