@@ -2,59 +2,39 @@ import {
   ExceptionFilter,
   Catch,
   ArgumentsHost,
-  HttpException,
-  HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
+import { ExceptionResponse } from './exception-response';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
+  private readonly logger = new Logger(AllExceptionsFilter.name);
+
   constructor(private readonly httpAdapterHost: HttpAdapterHost) {}
 
-  public catch(exception: any, host: ArgumentsHost) {
+  public catch(exception: unknown, host: ArgumentsHost): void {
     const { httpAdapter } = this.httpAdapterHost;
-
     const ctx = host.switchToHttp();
 
-    const response: ExceptionResponse = ExceptionResponse.from(exception);
+    const response = ExceptionResponse.from(exception, ctx);
+
+    this.logException(exception, response);
 
     httpAdapter.reply(ctx.getResponse(), response, response.status);
   }
-}
 
-class ExceptionResponse {
-  public exception: string;
-  public status: number;
-  public message: string;
-  public timestamp: string;
-
-  constructor() {
-    this.timestamp = new Date().toISOString();
-  }
-
-  public static from(exception: unknown): ExceptionResponse {
-    return exception instanceof HttpException
-      ? ExceptionResponse.fromHttpException(exception)
-      : ExceptionResponse.fromUnknown(exception);
-  }
-
-  private static fromHttpException(
-    exception: HttpException,
-  ): ExceptionResponse {
-    const exceptionResponse: ExceptionResponse = new ExceptionResponse();
-    exceptionResponse.exception = exception.name;
-    exceptionResponse.status = exception.getStatus();
-    exceptionResponse.message = exception.message;
-    return exceptionResponse;
-  }
-
-  private static fromUnknown(exception: any): ExceptionResponse {
-    const exceptionResponse: ExceptionResponse = new ExceptionResponse();
-    exceptionResponse.exception = exception?.name ?? 'Internal Server Error';
-    exceptionResponse.status =
-      exception?.status ?? HttpStatus.INTERNAL_SERVER_ERROR;
-    exceptionResponse.message =
-      exception?.message ?? 'Erro ao processar requisição';
-    return exceptionResponse;
+  private logException(exception: unknown, response: ExceptionResponse): void {
+    if (exception instanceof Error) {
+      this.logger.error(
+        `${response.method} ${response.path} → ${response.status}`,
+        exception.stack,
+      );
+    } else {
+      this.logger.error(
+        `${response.method} ${response.path} → ${response.status}`,
+        JSON.stringify(exception),
+      );
+    }
   }
 }
