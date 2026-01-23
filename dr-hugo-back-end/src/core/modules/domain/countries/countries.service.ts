@@ -1,7 +1,11 @@
 import { Injectable, InternalServerErrorException, Logger } from "@nestjs/common";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { CountryDto, CountriesResponseDto, CountryFlagsDto } from "./dtos/country.dto";
+import { CountryDto, CountryFlagsDto } from "./dtos/country.dto";
+
+class CountriesResponseDto {
+  [acronym: string]: CountryDto;
+}
 
 @Injectable()
 export class CountriesService {

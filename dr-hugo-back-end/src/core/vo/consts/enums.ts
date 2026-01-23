@@ -39,7 +39,15 @@ export enum HttpHeaders {
   UserAgent = 'user-agent',
 }
 
+/**
+ * Tipos de termos disponíveis na plataforma
+ * 
+ * @swagger
+ * @enum {string}
+ */
 export enum TermsType {
+  /** Política de Privacidade da plataforma */
   PRIVACY_POLICY = 'privacy_policy',
+  /** Termos de Serviço da plataforma */
   TERMS_OF_SERVICE = 'terms_of_service',
 }
