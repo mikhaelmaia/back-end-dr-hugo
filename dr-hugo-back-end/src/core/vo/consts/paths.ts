@@ -65,3 +65,25 @@ export class TokenPaths extends BasePaths {
     
     public static readonly VALIDATE_FULL = `${this.BASE}${this.VALIDATE}`;
 }
+
+export class TermsPaths extends BasePaths {
+    public static readonly BASE = '/terms';
+    public static readonly ALL = '/all';
+    
+    public static readonly FIND_BY_TYPE = '/:type';
+    public static readonly ALL_FULL = `${this.BASE}${this.ALL}`;
+    public static readonly FIND_BY_TYPE_FULL = `${this.BASE}${this.FIND_BY_TYPE}`;
+}
+
+export class CountriesPaths extends BasePaths {
+    public static readonly BASE = '/countries';
+    public static readonly ALL = '/all';
+    public static readonly BY_ACRONYM = '/:acronym';
+    
+    public static readonly ALL_FULL = `${this.BASE}${this.ALL}`;
+    public static readonly BY_ACRONYM_FULL = `${this.BASE}${this.BY_ACRONYM}`;
+}
+
+export class DomainPaths {
+    public static readonly BASE = '/domain';
+}
