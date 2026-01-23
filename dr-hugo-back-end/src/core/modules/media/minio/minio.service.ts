@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Client } from 'minio';
 import { ConfigService } from '@nestjs/config';
 import { getAllMinioBuckets } from './minio.buckets';
@@ -6,6 +6,7 @@ import { getAllMinioBuckets } from './minio.buckets';
 @Injectable()
 export class MinioService implements OnModuleInit {
   private readonly client: Client;
+  private readonly logger = new Logger(MinioService.name);
 
   public constructor(private readonly configService: ConfigService) {
     this.client = new Client({
@@ -15,13 +16,28 @@ export class MinioService implements OnModuleInit {
       accessKey: this.configService.get<string>('MINIO_ACCESS_KEY'),
       secretKey: this.configService.get<string>('MINIO_SECRET_KEY'),
     });
+    
+    this.logger.log('Cliente Minio configurado com sucesso');
   }
 
   public async onModuleInit(): Promise<void> {
-    const allBuckets = getAllMinioBuckets();
+    try {
+      this.logger.log('Inicializando conexão com Minio...');
+      
+      await this.client.listBuckets();
+      this.logger.log('Conexão com Minio estabelecida com sucesso');
+      
+      const allBuckets = getAllMinioBuckets();
+      this.logger.log(`Verificando ${allBuckets.length} bucket(s): ${allBuckets.join(', ')}`);
 
-    for (const bucket of allBuckets) {
-      await this.ensureBucketExists(bucket);
+      for (const bucket of allBuckets) {
+        await this.ensureBucketExists(bucket);
+      }
+      
+      this.logger.log('Todos os buckets foram verificados/criados com sucesso');
+    } catch (error) {
+      this.logger.error('Erro ao conectar com Minio ou criar buckets', error);
+      throw error;
     }
   }
 
@@ -35,9 +51,17 @@ export class MinioService implements OnModuleInit {
   }
 
   private async ensureBucketExists(bucket: string): Promise<void> {
-    const exists = await this.client.bucketExists(bucket);
-    if (!exists) {
-      await this.client.makeBucket(bucket);
+    try {
+      const exists = await this.client.bucketExists(bucket);
+      if (!exists) {
+        await this.client.makeBucket(bucket);
+        this.logger.log(`Bucket '${bucket}' criado com sucesso`);
+      } else {
+        this.logger.debug(`Bucket '${bucket}' já existe`);
+      }
+    } catch (error) {
+      this.logger.error(`Erro ao verificar/criar bucket '${bucket}'`, error);
+      throw error;
     }
   }
 }

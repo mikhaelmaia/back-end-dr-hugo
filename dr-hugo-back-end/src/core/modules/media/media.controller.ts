@@ -14,9 +14,10 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { multerSingleFileConfig } from '../../config/media/multer.config';
 import { ApiTags } from '@nestjs/swagger';
 import { IsUUIDParam } from '../../vo/decorators/is-uuid-param.decorator';
+import { MediaPaths } from '../../vo/consts/paths';
 
 @ApiTags('Media Controller')
-@Controller('media')
+@Controller(MediaPaths.BASE)
 export class MediaController {
   public constructor(private readonly mediaService: MediaService) {}
 
@@ -29,12 +30,12 @@ export class MediaController {
   }
 
   @Public()
-  @Get(':id')
+  @Get(MediaPaths.FIND_BY_ID)
   public async findById(@IsUUIDParam('id') id: string): Promise<MediaDto> {
     return await this.mediaService.findById(id);
   }
 
-  @Put(':id')
+  @Put(MediaPaths.UPDATE)
   @UseInterceptors(FileInterceptor('file', multerSingleFileConfig))
   public async update(
     @IsUUIDParam('id') id: string,
@@ -43,7 +44,7 @@ export class MediaController {
     return await this.mediaService.update(id, file);
   }
 
-  @Delete(':id')
+  @Delete(MediaPaths.DELETE)
   public async deleteById(@IsUUIDParam('id') id: string): Promise<void> {
     await this.mediaService.deleteById(id);
   }

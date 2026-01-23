@@ -1,0 +1,67 @@
+export abstract class BasePaths {
+    public static readonly CREATE = '';
+    public static readonly FIND_BY_ID = '/:id';
+    public static readonly UPDATE = '/:id';
+    public static readonly DELETE = '/:id';
+    public static readonly FIND_ALL = '';
+}
+
+export class AuthPaths extends BasePaths {
+    public static readonly BASE = '/auth';
+    public static readonly LOGIN = '/login';
+    public static readonly REFRESH_TOKEN = '/refresh-token';
+    public static readonly PASSWORD_RECOVERY = '/password-recovery';
+    public static readonly PASSWORD_RESET = '/password-reset';
+    
+    public static readonly LOGIN_FULL = `${this.BASE}${this.LOGIN}`;
+    public static readonly REFRESH_TOKEN_FULL = `${this.BASE}${this.REFRESH_TOKEN}`;
+    public static readonly PASSWORD_RECOVERY_FULL = `${this.BASE}${this.PASSWORD_RECOVERY}`;
+    public static readonly PASSWORD_RESET_FULL = `${this.BASE}${this.PASSWORD_RESET}`;
+}
+
+export class UserPaths extends BasePaths {
+    public static readonly BASE = '/users';
+    public static readonly CURRENT = '/current';
+    
+    public static readonly CURRENT_FULL = `${this.BASE}${this.CURRENT}`;
+    public static readonly CREATE_FULL = `${this.BASE}${this.CREATE}`;
+    public static readonly FIND_BY_ID_FULL = `${this.BASE}${this.FIND_BY_ID}`;
+    public static readonly UPDATE_FULL = `${this.BASE}${this.UPDATE}`;
+    public static readonly DELETE_FULL = `${this.BASE}${this.DELETE}`;
+    public static readonly FIND_ALL_FULL = `${this.BASE}${this.FIND_ALL}`;
+}
+
+export class PatientsPaths extends BasePaths {
+    public static readonly BASE = '/patients';
+    public static readonly BY_USER = '/by-user/:userId';
+    
+    public static readonly CREATE_FULL = `${this.BASE}${this.CREATE}`;
+    public static readonly FIND_BY_ID_FULL = `${this.BASE}${this.FIND_BY_ID}`;
+    public static readonly BY_USER_FULL = `${this.BASE}${this.BY_USER}`;
+    public static readonly UPDATE_FULL = `${this.BASE}${this.UPDATE}`;
+    public static readonly DELETE_FULL = `${this.BASE}${this.DELETE}`;
+    public static readonly FIND_ALL_FULL = `${this.BASE}${this.FIND_ALL}`;
+}
+
+export class AuditPaths extends BasePaths {
+    public static readonly BASE = '/audit';
+    
+    public static readonly FIND_ALL_FULL = `${this.BASE}${this.FIND_ALL}`;
+    public static readonly FIND_BY_ID_FULL = `${this.BASE}${this.FIND_BY_ID}`;
+}
+
+export class MediaPaths extends BasePaths {
+    public static readonly BASE = '/media';
+    
+    public static readonly CREATE_FULL = `${this.BASE}${this.CREATE}`;
+    public static readonly FIND_BY_ID_FULL = `${this.BASE}${this.FIND_BY_ID}`;
+    public static readonly UPDATE_FULL = `${this.BASE}${this.UPDATE}`;
+    public static readonly DELETE_FULL = `${this.BASE}${this.DELETE}`;
+}
+
+export class TokenPaths extends BasePaths {
+    public static readonly BASE = '/token';
+    public static readonly VALIDATE = '/validate';
+    
+    public static readonly VALIDATE_FULL = `${this.BASE}${this.VALIDATE}`;
+}

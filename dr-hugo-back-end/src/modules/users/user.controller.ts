@@ -5,15 +5,16 @@ import { User } from './entities/user.entity';
 import { UserDto } from './dtos/user.dto';
 import { UserService } from './user.service';
 import { CurrentUser } from 'src/core/vo/decorators/current-user.decorator';
+import { UserPaths } from 'src/core/vo/consts/paths';
 
 @ApiTags('Módulo de Usuários')
-@Controller('users')
+@Controller(UserPaths.BASE)
 export class UserController extends BaseController<User, UserDto, UserService> {
   public constructor(userService: UserService) {
     super(userService);
   }
 
-  @Get('current')
+  @Get(UserPaths.CURRENT)
   public getCurrentUser(@CurrentUser() user: UserDto): UserDto {
     return user;
   }

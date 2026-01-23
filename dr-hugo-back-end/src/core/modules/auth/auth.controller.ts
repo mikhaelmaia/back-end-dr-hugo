@@ -5,20 +5,21 @@ import { AuthResponse } from './dto/auth-response.dto';
 import { PasswordResetDto } from './dto/password-reset.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/core/vo/decorators/public.decorator';
+import { AuthPaths } from '../../vo/consts/paths';
 
 @ApiTags('Módulo de Autenticação')
-@Controller('auth')
+@Controller(AuthPaths.BASE)
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('login')
+  @Post(AuthPaths.LOGIN)
   @HttpCode(HttpStatus.OK)
   @Public()
   public async login(@Body() authRequest: AuthRequest): Promise<AuthResponse> {
     return await this.authService.login(authRequest);
   }
 
-  @Post('refresh-token')
+  @Post(AuthPaths.REFRESH_TOKEN)
   @HttpCode(HttpStatus.OK)
   @Public()
   public async refreshToken(
@@ -27,7 +28,7 @@ export class AuthController {
     return await this.authService.refreshToken(refreshToken);
   }
 
-  @Post('password-recovery')
+  @Post(AuthPaths.PASSWORD_RECOVERY)
   @HttpCode(HttpStatus.OK)
   @Public()
   public async startPasswordRecovery(
@@ -36,7 +37,7 @@ export class AuthController {
     return await this.authService.startPasswordRecovery(email);
   }
 
-  @Post('password-reset')
+  @Post(AuthPaths.PASSWORD_RESET)
   @HttpCode(HttpStatus.OK)
   @Public()
   public async performPasswordReset(

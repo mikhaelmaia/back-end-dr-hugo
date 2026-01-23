@@ -6,8 +6,9 @@ import { Roles } from '../../vo/decorators/roles.decorator';
 import { IsUUIDParam } from '../../vo/decorators/is-uuid-param.decorator';
 import { BaseController } from '../../base/base.controller';
 import { Audit } from './entities/audit.entity';
+import { AuditPaths } from '../../vo/consts/paths';
 
-@Controller('audit')
+@Controller(AuditPaths.BASE)
 export class AuditController extends BaseController<
   Audit,
   AuditDto,
@@ -35,7 +36,7 @@ export class AuditController extends BaseController<
   }
 
   @Roles(UserRole.ADMIN)
-  @Get(':id')
+  @Get(AuditPaths.FIND_BY_ID)
   @HttpCode(HttpStatus.OK)
   public async findByIdWithRelations(
     @IsUUIDParam('id') id: string,

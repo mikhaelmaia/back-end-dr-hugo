@@ -14,9 +14,10 @@ import { Patient } from './entities/patient.entity';
 import { PatientDto } from './dtos/patient.dto';
 import { PatientsService } from './patients.service';
 import { IsUUIDParam } from 'src/core/vo/decorators/is-uuid-param.decorator';
+import { PatientsPaths } from 'src/core/vo/consts/paths';
 
 @ApiTags('Módulo de Pacientes')
-@Controller('patients')
+@Controller(PatientsPaths.BASE)
 export class PatientsController extends BaseController<
   Patient,
   PatientDto,
@@ -36,7 +37,7 @@ export class PatientsController extends BaseController<
     return this.service.create(dto);
   }
 
-  @Get(':id')
+  @Get(PatientsPaths.FIND_BY_ID)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Buscar paciente por ID' })
   @ApiResponse({ status: 200, description: 'Paciente encontrado' })
@@ -45,7 +46,7 @@ export class PatientsController extends BaseController<
     return this.service.findById(id);
   }
 
-  @Get('by-user/:userId')
+  @Get(PatientsPaths.BY_USER)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Buscar paciente por ID do usuário' })
   @ApiResponse({ status: 200, description: 'Paciente encontrado' })
@@ -56,7 +57,7 @@ export class PatientsController extends BaseController<
     return this.service.findByUserId(userId);
   }
 
-  @Put(':id')
+  @Put(PatientsPaths.UPDATE)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Atualizar paciente' })
   @ApiResponse({ status: 200, description: 'Paciente atualizado com sucesso' })
@@ -69,7 +70,7 @@ export class PatientsController extends BaseController<
     await this.service.update(id, dto);
   }
 
-  @Delete(':id')
+  @Delete(PatientsPaths.DELETE)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Excluir paciente' })
   @ApiResponse({ status: 204, description: 'Paciente excluído com sucesso' })

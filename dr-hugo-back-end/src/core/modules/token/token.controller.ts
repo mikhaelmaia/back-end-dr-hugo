@@ -6,10 +6,11 @@ import { BaseController } from 'src/core/base/base.controller';
 import { Token } from './entities/token.entity';
 import { Public } from 'src/core/vo/decorators/public.decorator';
 import { TokenType } from 'src/core/vo/consts/enums';
+import { TokenPaths } from '../../vo/consts/paths';
 
 @ApiTags('Token Controller')
 @Public()
-@Controller('token')
+@Controller(TokenPaths.BASE)
 export class TokenController extends BaseController<
   Token,
   TokenDto,
@@ -19,7 +20,7 @@ export class TokenController extends BaseController<
     super(tokenService);
   }
 
-  @Post('validate')
+  @Post(TokenPaths.VALIDATE)
   @HttpCode(HttpStatus.OK)
   public async validateToken(
     @Query('token') token: string,
