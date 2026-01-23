@@ -115,6 +115,34 @@ export class UserDto extends BaseEntityDto<User> {
   })
   public phone: string;
 
+  @IsString({
+    message: provideIsStringValidationMessage('Código do País'),
+  })
+  @IsNotEmpty({
+    message: provideIsNotEmptyValidationMessage('Código do País'),
+  })
+  @Length(1, 3, { message: provideLengthValidationMessage })
+  @ApiProperty({
+    description: 'Código do país',
+    minLength: 1,
+    maxLength: 3,
+  })
+  public countryCode: string;
+
+  @IsString({
+    message: provideIsStringValidationMessage('Código DDI do País'),
+  })
+  @IsNotEmpty({
+    message: provideIsNotEmptyValidationMessage('Código DDI do País'),
+  })
+  @Length(1, 5, { message: provideLengthValidationMessage })
+  @ApiProperty({
+    description: 'Código IDD do país',
+    minLength: 1,
+    maxLength: 5,
+  })
+  public countryIdd: string;
+
   @ApiProperty({
     description: 'Perfil de acesso do usuário',
     required: false,
