@@ -55,6 +55,7 @@ export class UserService extends BaseService<
     await this.repository.save(user);
   }
 
+    this.emailHelper.sendEmailConfirmationEmail(user.name, user.email, token.token);
   protected override async beforeCreate(entity: User): Promise<void> {
     entity.inactivate();
     await this.handleUserPassword(entity);
@@ -62,6 +63,7 @@ export class UserService extends BaseService<
 
   protected override async postCreate(entity: User): Promise<void> {
     await this.emailHelper.sendUserRegisteredEmail(entity.name, entity.email);
+    this.emailHelper.sendUserRegisteredEmail(entity.name, entity.email, UserRole.PATIENT, token.token);
   }
 
   protected override async beforeUpdate(entity: User): Promise<void> {

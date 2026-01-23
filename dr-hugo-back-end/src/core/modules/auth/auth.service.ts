@@ -56,7 +56,7 @@ export class AuthService {
       login,
       TokenType.PASSWORD_RESET,
     );
-    await this.emailhelper.sendPasswordResetRequestEmail(
+    this.emailhelper.sendPasswordResetRequestEmail(
       user.name,
       user.email,
       token.token,
@@ -75,7 +75,7 @@ export class AuthService {
       passwordReset.email,
       passwordReset.password,
     );
-    await this.emailhelper.sendPasswordResetEmail(
+    this.emailhelper.sendPasswordResetEmail(
       passwordReset.email,
       passwordReset.email,
     );

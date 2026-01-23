@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { EmailService } from './email.service';
+import { EmailQueueService } from './email-queue.service';
 import { EmailReference } from './consts/email-reference';
 import { EmailSend } from './dtos/email-send.dto';
 import { ConfigService } from '@nestjs/config';
@@ -9,16 +9,16 @@ import { UserRole } from 'src/core/vo/consts/enums';
 @Injectable()
 export class EmailHelper {
   constructor(
-    private readonly emailService: EmailService,
+    private readonly emailQueueService: EmailQueueService,
     private readonly configService: ConfigService,
   ) {}
 
-  public async sendPasswordResetRequestEmail(
+  public sendPasswordResetRequestEmail(
     name: string,
     email: string,
     token: string,
-  ): Promise<void> {
-    await this.emailService.sendEmail(
+  ): void {
+    this.emailQueueService.enqueueEmail(
       EmailSend.builder()
         .to(email)
         .reference(EmailReference.PASSWORD_RESET_REQUEST)
@@ -29,11 +29,11 @@ export class EmailHelper {
     );
   }
 
-  public async sendPasswordResetEmail(
+  public sendPasswordResetEmail(
     name: string,
     email: string,
-  ): Promise<void> {
-    await this.emailService.sendEmail(
+  ): void {
+    this.emailQueueService.enqueueEmail(
       EmailSend.builder()
         .to(email)
         .reference(EmailReference.PASSWORD_RESET)
@@ -43,13 +43,13 @@ export class EmailHelper {
     );
   }
 
-  public async sendUserRegisteredEmail(
+  public sendUserRegisteredEmail(
     name: string,
     email: string,
     userRole: UserRole,
     token: string,
-  ): Promise<void> {
-    await this.emailService.sendEmail(
+  ): void {
+    this.emailQueueService.enqueueEmail(
       EmailSend.builder()
         .to(email)
         .reference(EmailReference.USER_REGISTERED)
@@ -69,12 +69,12 @@ export class EmailHelper {
     );
   }
 
-  public async sendEmailConfirmationEmail(
+  public sendEmailConfirmationEmail(
     name: string,
     email: string,
     token: string,
-  ): Promise<void> {
-    await this.emailService.sendEmail(
+  ): void {
+    this.emailQueueService.enqueueEmail(
       EmailSend.builder()
         .to(email)
         .reference(EmailReference.EMAIL_CONFIRMATION)
@@ -89,12 +89,12 @@ export class EmailHelper {
     );
   }
 
-  public async sendEmailConfirmedEmail(
+  public sendEmailConfirmedEmail(
     name: string,
     email: string,
     userRole: UserRole,
-  ): Promise<void> {
-    await this.emailService.sendEmail(
+  ): void {
+    this.emailQueueService.enqueueEmail(
       EmailSend.builder()
         .to(email)
         .reference(EmailReference.EMAIL_CONFIRMED)
