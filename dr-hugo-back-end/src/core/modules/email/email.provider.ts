@@ -1,4 +1,4 @@
-import { join } from 'path';
+import { join } from 'node:path';
 import { ConfigService } from '@nestjs/config';
 import { MailerOptions } from '@nestjs-modules/mailer';
 import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';

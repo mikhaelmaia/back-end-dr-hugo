@@ -2,6 +2,11 @@ export default () => ({
   application: {
     cryptoKey: process.env.CRYPTO_KEY,
   },
+  web: {
+    baseUrl: process.env.DV_WEB_BASE_URL,
+    loginPath: process.env.DV_WEB_LOGIN_PATH,
+    emailConfirmationPath: process.env.DV_WEB_EMAIL_CONFIRMATION_PATH,
+  },
   database: {
     host: process.env.DATABASE_HOST,
     port: Number.parseInt(process.env.DATABASE_PORT, 10) || 5432,

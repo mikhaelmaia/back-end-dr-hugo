@@ -61,7 +61,7 @@ export class EmailHelper {
         )
         .addParameter(
           'loginPageUrl',
-          `${this.configService.get('dh.baseUrl')}/${this.configService.get('dh.loginPath')}`,
+          `${this.configService.get('web.baseUrl')}${this.configService.get('web.loginPath')}`,
         )
         .build(),
     );
@@ -81,7 +81,7 @@ export class EmailHelper {
         .addParameter('token', token)
         .addParameter(
           'confirmationUrl',
-          `${this.configService.get('dh.baseUrl')}/${this.configService.get('dh.emailConfirmationPath')}`,
+          `${this.configService.get('web.baseUrl')}${this.configService.get('web.emailConfirmationPath')}`,
         )
         .build(),
     );
