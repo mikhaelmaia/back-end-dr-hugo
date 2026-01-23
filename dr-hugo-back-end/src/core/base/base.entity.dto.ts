@@ -23,8 +23,7 @@ export abstract class BaseEntityDto<T extends BaseEntity> {
     format: 'date-time',
     type: String
   })
-  @IsDate()
-  @Transform(({ value }) => new Date(value))
+  @Transform(({ value }) => new Date(value), { toPlainOnly: true })
   @Expose()
   public createdAt: Date;
 
@@ -34,8 +33,7 @@ export abstract class BaseEntityDto<T extends BaseEntity> {
     format: 'date-time',
     type: String
   })
-  @IsDate()
-  @Transform(({ value }) => new Date(value))
+  @Transform(({ value }) => new Date(value), { toPlainOnly: true })
   @Expose()
   public updatedAt: Date;
 }

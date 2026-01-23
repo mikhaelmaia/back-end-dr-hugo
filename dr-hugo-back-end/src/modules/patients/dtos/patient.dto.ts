@@ -149,7 +149,7 @@ export class PatientDto extends BaseEntityDto<Patient> {
   @Length(1, 3, { message: provideLengthValidationMessage })
   @ApiProperty({
     description: 'Código do país do paciente (ISO 3166-1 alfa-2 ou alfa-3)',
-    example: 'BR',
+    example: 'BRA',
     minLength: 1,
     maxLength: 3,
     type: String
