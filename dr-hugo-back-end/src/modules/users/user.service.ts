@@ -13,6 +13,8 @@ import {
 } from 'src/core/utils/functions';
 import { EmailHelper } from 'src/core/modules/email/email.helper';
 import { Optional } from 'src/core/utils/optional';
+import { TokenService } from 'src/core/modules/token/token.service';
+import { TokenType, UserRole } from 'src/core/vo/consts/enums';
 
 @Injectable()
 export class UserService extends BaseService<
@@ -24,10 +26,14 @@ export class UserService extends BaseService<
   protected override readonly ENTITY_NOT_FOUND: string =
     'Usuário não encontrado';
 
+  private readonly COULDNT_RESEND_EMAIL_CONFIRMATION: string =
+    'Não foi possível reenviar a confirmação de e-mail';
+
   public constructor(
     userRepository: UserRepository,
     userMapper: UserMapper,
     private readonly emailHelper: EmailHelper,
+    private readonly tokenService: TokenService
   ) {
     super(userRepository, userMapper);
   }
@@ -55,14 +61,34 @@ export class UserService extends BaseService<
     await this.repository.save(user);
   }
 
+  public async resendEmailConfirmation(email: string): Promise<void> {
+    const user = Optional.ofNullable(await this.repository.findByEmail(email))
+      .orElseThrow(() => new NotFoundException(this.COULDNT_RESEND_EMAIL_CONFIRMATION));
+    const token = await this.tokenService.renewToken(
+      user.email,
+      TokenType.EMAIL_CONFIRMATION
+    );
     this.emailHelper.sendEmailConfirmationEmail(user.name, user.email, token.token);
+  }
+
+  public async confirmUserEmail(email: string): Promise<void> {
+    const user = Optional.ofNullable(await this.repository.findByEmail(email))
+      .orElseThrow(() => new NotFoundException(this.COULDNT_RESEND_EMAIL_CONFIRMATION));
+    user.activate();
+    await this.repository.save(user);
+    this.emailHelper.sendEmailConfirmedEmail(user.name, user.email, UserRole.PATIENT);
+  }
+
   protected override async beforeCreate(entity: User): Promise<void> {
     entity.inactivate();
     await this.handleUserPassword(entity);
   }
 
   protected override async postCreate(entity: User): Promise<void> {
-    await this.emailHelper.sendUserRegisteredEmail(entity.name, entity.email);
+    const token = await this.tokenService.generateToken(
+      entity.email,
+      TokenType.EMAIL_CONFIRMATION
+    );
     this.emailHelper.sendUserRegisteredEmail(entity.name, entity.email, UserRole.PATIENT, token.token);
   }
 
