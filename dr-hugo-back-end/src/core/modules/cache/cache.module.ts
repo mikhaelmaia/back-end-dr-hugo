@@ -12,6 +12,6 @@ import redisConfig from '../../config/cache/redis.config';
       useClass: CacheService,
     },
   ],
-  exports: [CACHE_SERVICE, RedisModule],
+  exports: [CACHE_SERVICE],
 })
 export class CacheModule {}

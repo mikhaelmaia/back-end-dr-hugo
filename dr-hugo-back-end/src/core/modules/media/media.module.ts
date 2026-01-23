@@ -12,6 +12,6 @@ import { MinioModule } from './minio/minio.module';
   imports: [TypeOrmModule.forFeature([Media]), ScheduleModule.forRoot(), MinioModule],
   controllers: [MediaController],
   providers: [MediaService, MediaRepository, MediaMapper],
-  exports: [MediaService, MinioModule],
+  exports: [MediaService],
 })
 export class MediaModule {}
