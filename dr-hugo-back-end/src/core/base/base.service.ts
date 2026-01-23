@@ -23,6 +23,7 @@ export abstract class BaseService<
 
   public async create(dto: TDto): Promise<TDto> {
     const entity = this.mapper.toEntity(dto);
+    entity.id = undefined;
     await this.beforeCreate(entity);
     const savedEntity = await this.repository.save(entity);
     await this.postCreate(savedEntity);
