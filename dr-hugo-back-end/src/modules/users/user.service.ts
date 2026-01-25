@@ -6,16 +6,19 @@ import { UserRepository } from './user.repository';
 import { UserMapper } from './user.mapper';
 import {
   acceptFalseThrows,
+  acceptTrueThrows,
   compare,
   encrypt,
   isNotPresent,
   isPresent,
+  whenNullThrows,
 } from 'src/core/utils/functions';
 import { EmailHelper } from 'src/core/modules/email/email.helper';
 import { Optional } from 'src/core/utils/optional';
 import { TokenService } from 'src/core/modules/token/token.service';
 import { TokenType, UserRole } from 'src/core/vo/consts/enums';
 import { UserEmailConfirmDto } from './dtos/user-email-confirm.dto';
+import { toHttpException } from 'src/core/utils/errors.utils';
 
 @Injectable()
 export class UserService extends BaseService<
@@ -62,9 +65,15 @@ export class UserService extends BaseService<
   public async resendEmailConfirmation(email: string): Promise<void> {
     const user = Optional.ofNullable(await this.repository.findByEmail(email))
       .orElse(null);
-    if (!user || user.isActive) {
-      return;
-    }
+    whenNullThrows(
+      user,
+      () => toHttpException('E033')
+    );
+    acceptTrueThrows(
+      user.isActive,
+      () => toHttpException('E036')
+    );
+
     const token = await this.tokenService.renewToken(
       user.email,
       TokenType.EMAIL_CONFIRMATION
@@ -76,9 +85,14 @@ export class UserService extends BaseService<
     const userEmail = userEmailConfirm.email;
     const user = Optional.ofNullable(await this.repository.findByEmail(userEmail))
       .orElse(null);
-    if (!user || user.isActive) {
-      return;
-    }
+    whenNullThrows(
+      user,
+      () => toHttpException('E033')
+    );
+    acceptTrueThrows(
+      user.isActive,
+      () => toHttpException('E036')
+    );
     await this.tokenService.concludeToken(userEmailConfirm.tokenIdentification, userEmail, TokenType.EMAIL_CONFIRMATION);
     user.activate();
     await this.repository.save(user);

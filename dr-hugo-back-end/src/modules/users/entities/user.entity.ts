@@ -51,6 +51,10 @@ export class User extends BaseEntity {
     this.isActive = true;
   }
 
+  public get isInactive(): boolean {
+    return !this.isActive;
+  }
+
   public updatePassword(password: string): void {
     this.password = password;
   }
