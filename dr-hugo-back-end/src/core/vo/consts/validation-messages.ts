@@ -3,7 +3,7 @@ import { ValidationArguments } from 'class-validator';
 export const provideIsNotEmptyValidationMessage = (
   validationArguments: string | ValidationArguments,
 ): string => {
-  return `${getPropertyFromParameter(validationArguments)} não pode ser vazio`;
+  return `${getPropertyFromParameter(validationArguments)} é obrigatório`;
 };
 
 export const provideIsNumberValidationMessage = (
@@ -21,13 +21,11 @@ export const provideIsStringValidationMessage = (
 export const provideIsNotEmptyStringValidationMessage = (
   validationArguments: string | ValidationArguments,
 ): string => {
-  return `${getPropertyFromParameter(validationArguments)} não pode ser um texto em branco`;
+  return `${getPropertyFromParameter(validationArguments)} é obrigatório`;
 };
 
-export const provideIsEmailValidationMessage = (
-  validationArguments: string | ValidationArguments,
-): string => {
-  return `${getPropertyFromParameter(validationArguments)} deve ser um e-mail válido`;
+export const provideIsEmailValidationMessage = (): string => {
+  return 'Digite um e-mail válido. Exemplo de e-mail: seu@email.com';
 };
 
 export const provideMaxLengthValidationMessage = (
@@ -53,8 +51,11 @@ export const provideMinLengthValidationMessage = (
 };
 
 export const provideLengthValidationMessage = (
-  validationArguments: ValidationArguments,
+  validationArguments: string | ValidationArguments,
 ): string => {
+  if (typeof validationArguments === 'string') {
+    return `${getPropertyFromParameter(validationArguments)} deve ter um comprimento válido`;
+  }
   return `${getPropertyFromParameter(validationArguments)} deve ter entre ${validationArguments.constraints[0]} e ${validationArguments.constraints[1]} caracteres`;
 };
 

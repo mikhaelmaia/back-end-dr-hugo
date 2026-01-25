@@ -27,7 +27,7 @@ export class PasswordResetDto {
   })
   @IsEmail(
     {},
-    { message: provideIsEmailValidationMessage('E-mail do usuário') },
+    { message: provideIsEmailValidationMessage() },
   )
   @ApiProperty({ 
     description: 'Endereço de email do usuário para confirmação',

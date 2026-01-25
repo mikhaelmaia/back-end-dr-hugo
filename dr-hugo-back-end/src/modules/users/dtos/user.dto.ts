@@ -58,7 +58,7 @@ export class UserDto extends BaseEntityDto<User> {
   @IsString({ message: provideIsStringValidationMessage('E-mail do Usuário') })
   @IsEmail(
     {},
-    { message: provideIsEmailValidationMessage('E-mail do Usuário') },
+    { message: provideIsEmailValidationMessage() },
   )
   @IsNotBlacklisted()
   @MaxLength(50, { message: provideMaxLengthValidationMessage })

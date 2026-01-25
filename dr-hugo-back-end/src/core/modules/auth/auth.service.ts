@@ -52,6 +52,9 @@ export class AuthService {
 
   public async startPasswordRecovery(login: string): Promise<void> {
     const user: UserDto = await this.userService.findByEmailOrTaxId(login);
+    if (!user) {
+      return;
+    }
     const token = await this.tokenService.generateToken(
       login,
       TokenType.PASSWORD_RESET,

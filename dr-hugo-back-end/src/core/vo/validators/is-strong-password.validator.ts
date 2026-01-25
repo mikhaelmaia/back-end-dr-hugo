@@ -27,7 +27,7 @@ export class StrongPasswordValidator implements ValidatorConstraintInterface {
   }
 
   public defaultMessage(args: ValidationArguments): string {
-    return 'A senha deve ter no mínimo 8 caracteres, um número, uma letra maiúscula e um caractere especial (ex: !#$%@)';
+    return 'Escreva a senha com no mínimo 8 caracteres, um número, uma letra maiúscula e um caractere especial (ex: !#$%@)';
   }
 }
 

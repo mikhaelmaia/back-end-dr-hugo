@@ -10,7 +10,7 @@ export class ResendUserEmailConfirmationDto {
     message: provideIsNotEmptyValidationMessage('Email'),
   })
   @IsEmail({}, {
-    message: provideIsEmailValidationMessage('Email'),
+    message: provideIsEmailValidationMessage(),
   })
   @ApiProperty({
     description: 'Email do usuário para confirmação',

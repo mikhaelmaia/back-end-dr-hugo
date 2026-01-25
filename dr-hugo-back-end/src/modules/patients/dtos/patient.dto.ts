@@ -35,17 +35,17 @@ import { User } from 'src/modules/users/entities/user.entity';
 
 export class PatientDto extends BaseEntityDto<Patient> {
   @IsNotEmpty({
-    message: provideIsNotEmptyValidationMessage('Nome do Usuário'),
+    message: provideIsNotEmptyValidationMessage('Nome Completo'),
   })
-  @IsString({ message: provideIsStringValidationMessage('Nome do Usuário') })
+  @IsString({ message: provideIsStringValidationMessage('Nome Completo') })
   @IsNotEmptyString({
-    message: provideIsNotEmptyStringValidationMessage('Nome do Usuário'),
+    message: provideIsNotEmptyStringValidationMessage('Nome Completo'),
   })
   @IsOnlyLetters({
-    message: 'Nome do usuário deve conter apenas letras, espaços e caracteres básicos de pontuação',
+    message: 'Nome Completo deve conter apenas letras, espaços e caracteres básicos de pontuação',
   })
   @IsNotBlacklisted()
-  @MaxLength(100, { message: provideMaxLengthValidationMessage })
+  @MaxLength(100, { message: provideMaxLengthValidationMessage('Nome Completo') })
   @Expose()
   @ApiProperty({ 
     description: 'Nome completo do paciente (apenas letras, espaços e pontuação básica)',
@@ -56,15 +56,15 @@ export class PatientDto extends BaseEntityDto<Patient> {
   public name: string;
 
   @IsNotEmpty({
-    message: provideIsNotEmptyValidationMessage('E-mail do Usuário'),
+    message: provideIsNotEmptyValidationMessage('E-mail'),
   })
-  @IsString({ message: provideIsStringValidationMessage('E-mail do Usuário') })
+  @IsString({ message: provideIsStringValidationMessage('E-mail') })
   @IsEmail(
     {},
-    { message: provideIsEmailValidationMessage('E-mail do Usuário') },
+    { message: provideIsEmailValidationMessage() },
   )
   @IsNotBlacklisted()
-  @MaxLength(50, { message: provideMaxLengthValidationMessage })
+  @MaxLength(50, { message: provideMaxLengthValidationMessage('E-mail') })
   @IsUnique('dv_user', 'email', {
     message: 'Já existe usuário com este e-mail cadastrado',
   })
@@ -97,23 +97,23 @@ export class PatientDto extends BaseEntityDto<Patient> {
   public password: string;
 
   @IsString({
-    message: provideIsStringValidationMessage('CPF/CNPJ do Usuário'),
+    message: provideIsStringValidationMessage('CPF'),
   })
   @IsNotEmpty({
-    message: provideIsNotEmptyValidationMessage('CPF/CNPJ do Usuário'),
+    message: provideIsNotEmptyValidationMessage('CPF'),
   })
-  @Length(11, 14, { message: provideLengthValidationMessage })
+  @Length(11, 14, { message: provideLengthValidationMessage('CPF') })
   @IsNotEmptyString({
-    message: provideIsNotEmptyStringValidationMessage('CPF/CNPJ do Usuário'),
+    message: provideIsNotEmptyStringValidationMessage('CPF'),
   })
   @IsValidTaxId({
-    message: provideIsValidTaxIdValidationMessage('CPF/CNPJ do Usuário'),
+    message: provideIsValidTaxIdValidationMessage('CPF'),
   })
   @IsUnique('dv_user', 'taxId', {
-    message: 'Já existe usuário com este CPF/CNPJ cadastrado',
+    message: 'Já existe usuário com este CPF cadastrado',
   })
   @ApiProperty({
-    description: 'CPF ou CNPJ do paciente (apenas números, deve ser único)',
+    description: 'CPF do paciente (apenas números, deve ser único)',
     example: '12345678901',
     minLength: 11,
     maxLength: 14,
@@ -122,12 +122,12 @@ export class PatientDto extends BaseEntityDto<Patient> {
   public taxId: string;
 
   @IsString({
-    message: provideIsStringValidationMessage('Telefone/Celular do Usuário'),
+    message: provideIsStringValidationMessage('Telefone'),
   })
   @IsNotEmpty({
-    message: provideIsNotEmptyValidationMessage('Telefone/Celular do Usuário'),
+    message: provideIsNotEmptyValidationMessage('Telefone'),
   })
-  @Length(10, 15, { message: provideLengthValidationMessage })
+  @Length(10, 15, { message: provideLengthValidationMessage('Telefone') })
   @IsUnique('dv_user', 'phone', {
     message: 'Já existe usuário com este telefone/celular cadastrado',
   })
@@ -196,7 +196,7 @@ export class PatientDto extends BaseEntityDto<Patient> {
   @IsNotEmpty({
     message: provideIsNotEmptyValidationMessage('Data de Nascimento'),
   })
-  @IsDate({ message: 'Data de nascimento deve ser uma data válida' })
+  @IsDate({ message: 'Data de nascimento deve estar no formato DD/MM/AAAA' })
   @Type(() => Date)
   @ApiProperty({ 
     description: 'Data de nascimento do paciente',
@@ -211,7 +211,7 @@ export class PatientDto extends BaseEntityDto<Patient> {
   })
   @IsArray({ message: 'Termos aceitos deve ser um array' })
   @ContainsRequiredTerms([TermsType.PRIVACY_POLICY, TermsType.TERMS_OF_SERVICE], {
-    message: 'Os termos obrigatórios devem ser aceitos: política de privacidade e termos de serviço',
+    message: 'Você deve aceitar os Termos de Uso e a Política de Privacidade para continuar',
   })
   @ApiProperty({
     description: 'Lista dos tipos de termos aceitos pelo paciente (obrigatórios: privacy_policy, terms_of_service)',
