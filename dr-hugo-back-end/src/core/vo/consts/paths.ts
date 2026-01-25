@@ -22,8 +22,12 @@ export class AuthPaths extends BasePaths {
 export class UserPaths extends BasePaths {
     public static readonly BASE = '/users';
     public static readonly CURRENT = '/current';
+    public static readonly RESEND_EMAIL_CONFIRMATION = '/resend-email-confirmation';
+    public static readonly CONFIRM_EMAIL = '/confirm-email';
     
     public static readonly CURRENT_FULL = `${this.BASE}${this.CURRENT}`;
+    public static readonly RESEND_EMAIL_CONFIRMATION_FULL = `${this.BASE}${this.RESEND_EMAIL_CONFIRMATION}`;
+    public static readonly CONFIRM_EMAIL_FULL = `${this.BASE}${this.CONFIRM_EMAIL}`;
     public static readonly CREATE_FULL = `${this.BASE}${this.CREATE}`;
     public static readonly FIND_BY_ID_FULL = `${this.BASE}${this.FIND_BY_ID}`;
     public static readonly UPDATE_FULL = `${this.BASE}${this.UPDATE}`;
