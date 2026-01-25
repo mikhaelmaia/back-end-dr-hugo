@@ -56,6 +56,16 @@ export const acceptFalseThrows = (
   }
 };
 
+export const whenNullThrows = <T>(
+  value: T | null | undefined,
+  onNull: () => Error,
+): T => {
+  if (value === null || value === undefined) {
+    throw onNull();
+  }
+  return value;
+}
+
 export const until = async (
   value: () => Promise<boolean> | boolean,
   perform: () => void,

@@ -8,14 +8,13 @@ import { EmailHelper } from '../email/email.helper';
 import { UserDto } from 'src/modules/users/dtos/user.dto';
 import { TokenType } from 'src/core/vo/consts/enums';
 import { compare } from 'bcrypt';
-import { acceptFalseThrows } from 'src/core/utils/functions';
+import { acceptFalseThrows, whenNullThrows } from 'src/core/utils/functions';
 import { JwtPayload } from 'src/core/vo/types/types';
 import { UserService } from 'src/modules/users/user.service';
+import { toHttpException } from 'src/core/utils/errors.utils';
 
 @Injectable()
 export class AuthService {
-  private readonly INVALID_CREDENTIALS: string = 'E-mail ou senha inválidos';
-
   private readonly INVALID_REFRESH_TOKEN: string =
     'Token de atualização inválido';
 
@@ -29,10 +28,19 @@ export class AuthService {
   public async login(authRequest: AuthRequest): Promise<AuthResponse> {
     const { login, password } = authRequest;
     const user: UserDto = await this.userService.findByEmailOrTaxId(login);
+    whenNullThrows(
+      user, () => toHttpException('E030')
+    );
+
+    acceptFalseThrows(
+      user.isActive,
+      () => toHttpException('E031'),
+    );
+
     const matches: boolean = await compare(password, user.password);
     acceptFalseThrows(
       matches,
-      () => new UnauthorizedException(this.INVALID_CREDENTIALS),
+      () => toHttpException('E029'),
     );
     return this.jwtProviderService.signTokens(user);
   }
@@ -52,9 +60,15 @@ export class AuthService {
 
   public async startPasswordRecovery(login: string): Promise<void> {
     const user: UserDto = await this.userService.findByEmailOrTaxId(login);
-    if (!user) {
-      return;
-    }
+    whenNullThrows(
+      user, () => toHttpException('E030')
+    );
+
+    acceptFalseThrows(
+      user.isActive,
+      () => toHttpException('E031'),
+    );
+
     const token = await this.tokenService.generateToken(
       login,
       TokenType.PASSWORD_RESET,

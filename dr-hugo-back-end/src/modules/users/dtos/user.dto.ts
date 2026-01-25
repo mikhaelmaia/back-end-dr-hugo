@@ -206,4 +206,7 @@ export class UserDto extends BaseEntityDto<User> {
   @IsOptional()
   @ExistsIn('dv_media', 'id', { message: 'Arquivo de mídia não encontrado' })
   public profilePictureId: string;
+
+  @Exclude()
+  public isActive: boolean;
 }
