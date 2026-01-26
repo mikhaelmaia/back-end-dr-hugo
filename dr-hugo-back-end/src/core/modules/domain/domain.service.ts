@@ -4,6 +4,8 @@ import { CountriesService } from './countries/countries.service';
 import { TermsType } from '../../vo/consts/enums';
 import { TermDto } from './terms/dtos/term.dto';
 import { CountryDto } from './countries/dtos/country.dto';
+import { CountriesPaginationDto } from './countries/dtos/countries-pagination.dto';
+import { Page } from '../../vo/types/types';
 
 @Injectable()
 export class DomainService {
@@ -26,5 +28,9 @@ export class DomainService {
 
   public getAllCountries(): CountryDto[] {
     return this.countriesService.getAllCountries();
+  }
+
+  public getPaginatedCountries(paginationDto: CountriesPaginationDto): Page<CountryDto> {
+    return this.countriesService.getPaginatedCountries(paginationDto);
   }
 }

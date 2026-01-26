@@ -82,9 +82,11 @@ export class TermsPaths extends BasePaths {
 export class CountriesPaths extends BasePaths {
     public static readonly BASE = '/countries';
     public static readonly ALL = '/all';
+    public static readonly PAGINATED = '';
     public static readonly BY_ACRONYM = '/:acronym';
     
     public static readonly ALL_FULL = `${this.BASE}${this.ALL}`;
+    public static readonly PAGINATED_FULL = `${this.BASE}${this.PAGINATED}`;
     public static readonly BY_ACRONYM_FULL = `${this.BASE}${this.BY_ACRONYM}`;
 }
 

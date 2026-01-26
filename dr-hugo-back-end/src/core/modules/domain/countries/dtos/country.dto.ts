@@ -23,6 +23,13 @@ export class CountryFlagsDto {
 
 export class CountryDto {
   @ApiProperty({
+    description: 'Nome do país em português',
+    example: 'Brasil',
+    type: String
+  })
+  name: string;
+
+  @ApiProperty({
     description: 'Informações sobre a bandeira do país',
     type: CountryFlagsDto
   })
@@ -44,7 +51,8 @@ export class CountryDto {
   })
   acronym: string;
 
-  constructor(flags: CountryFlagsDto, idd: string, acronym: string) {
+  constructor(name: string, flags: CountryFlagsDto, idd: string, acronym: string) {
+    this.name = name;
     this.flags = flags;
     this.idd = idd;
     this.acronym = acronym;

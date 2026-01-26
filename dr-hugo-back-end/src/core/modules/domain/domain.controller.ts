@@ -1,12 +1,14 @@
-import { Controller, Get, Param, HttpStatus } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { Controller, Get, Param, HttpStatus, Query } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { Public } from 'src/core/vo/decorators/public.decorator';
 import { DomainService } from './domain.service';
 import { DomainPaths, TermsPaths, CountriesPaths } from '../../vo/consts/paths';
 import { TermsType } from '../../vo/consts/enums';
 import { TermDto } from './terms/dtos/term.dto';
 import { CountryDto } from './countries/dtos/country.dto';
+import { CountriesPaginationDto } from './countries/dtos/countries-pagination.dto';
 import { ExceptionResponse } from 'src/core/config/exceptions/exception-response';
+import type { Page } from '../../vo/types/types';
 
 @ApiTags('Domínio')
 @Public()
@@ -82,7 +84,7 @@ export class DomainController {
   @Get(CountriesPaths.ALL_FULL)
   @ApiOperation({
     summary: 'Buscar todos os países',
-    description: 'Retorna uma lista com todos os países disponíveis, incluindo bandeiras e códigos de discagem'
+    description: 'Retorna uma lista com todos os países disponíveis, incluindo bandeiras e códigos de discagem. ⚠️ Esta consulta pode retornar muito dados (>3MB). Use a rota paginada para melhor performance.'
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -133,5 +135,81 @@ export class DomainController {
   })
   public getCountryByAcronym(@Param('acronym') acronym: string): CountryDto | null {
     return this.domainService.getCountryByAcronym(acronym);
+  }
+
+  @Get(CountriesPaths.PAGINATED_FULL)
+  @ApiOperation({
+    summary: 'Buscar países com paginação',
+    description: 'Retorna uma lista paginada de países com filtros e ordenação opcionais. Recomendado para consultas que podem retornar muitos dados.'
+  })
+  @ApiQuery({
+    name: 'page',
+    description: 'Número da página (começando em 1)',
+    example: 1,
+    required: false,
+    type: Number
+  })
+  @ApiQuery({
+    name: 'limit',
+    description: 'Quantidade de países por página (máximo 100)',
+    example: 20,
+    required: false,
+    type: Number
+  })
+  @ApiQuery({
+    name: 'sortBy',
+    description: 'Campo para ordenação',
+    enum: ['name', 'acronym'],
+    required: false,
+    type: String
+  })
+  @ApiQuery({
+    name: 'sortOrder',
+    description: 'Ordem da ordenação',
+    enum: ['ASC', 'DESC'],
+    required: false,
+    type: String
+  })
+  @ApiQuery({
+    name: 'name',
+    description: 'Filtro por nome do país (busca parcial)',
+    required: false,
+    type: String
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Página de países retornada com sucesso',
+    schema: {
+      type: 'object',
+      properties: {
+        items: {
+          type: 'array',
+          items: { $ref: '#/components/schemas/CountryDto' }
+        },
+        totalItems: {
+          type: 'number',
+          description: 'Total de países encontrados',
+          example: 195
+        },
+        currentPage: {
+          type: 'number', 
+          description: 'Página atual',
+          example: 1
+        },
+        totalPages: {
+          type: 'number',
+          description: 'Total de páginas disponíveis',
+          example: 10
+        }
+      }
+    }
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Parâmetros de paginação inválidos',
+    type: ExceptionResponse
+  })
+  public getPaginatedCountries(@Query() paginationDto: CountriesPaginationDto): Page<CountryDto> {
+    return this.domainService.getPaginatedCountries(paginationDto);
   }
 }
