@@ -1,4 +1,4 @@
-import { IsOptional, IsUUID, IsDate } from 'class-validator';
+import { IsOptional, IsUUID } from 'class-validator';
 import { BaseEntity } from './base.entity';
 import { provideIsUUIDValidationMessage } from '../vo/consts/validation-messages';
 import { Expose, Transform } from 'class-transformer';

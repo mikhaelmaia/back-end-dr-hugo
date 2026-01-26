@@ -1,19 +1,19 @@
-import { Controller, HttpCode, HttpStatus, Post, Query } from '@nestjs/common';
+import { Controller, HttpCode, HttpStatus, Post, Body } from '@nestjs/common';
 import { TokenService } from './token.service';
 import { TokenDto } from './dtos/token.dto';
 import { 
   ApiTags, 
   ApiOperation, 
-  ApiQuery,
+  ApiBody,
   ApiBadRequestResponse,
   ApiOkResponse
 } from '@nestjs/swagger';
 import { BaseController } from 'src/core/base/base.controller';
 import { Token } from './entities/token.entity';
 import { Public } from 'src/core/vo/decorators/public.decorator';
-import { TokenType } from 'src/core/vo/consts/enums';
 import { TokenPaths } from '../../vo/consts/paths';
 import { TokenValidationDto } from './dtos/token-validation.dto';
+import { ValidateTokenDto } from './dtos/validate-token.dto';
 import { ExceptionResponse } from '../../config/exceptions/exception-response';
 
 @ApiTags('Gerenciamento de Tokens')
@@ -35,27 +35,29 @@ export class TokenController extends BaseController<
     description: 'Valida um token de acesso gerado para um usuário específico. O token pode ser usado para redefinição de senha ou confirmação de e-mail.',
     operationId: 'validateToken'
   })
-  @ApiQuery({
-    name: 'token',
-    description: 'Token de 6 dígitos gerado para o usuário',
-    type: String,
-    example: '123456',
-    required: true
-  })
-  @ApiQuery({
-    name: 'identification',
-    description: 'Identificação do usuário (e-mail ou ID) associada ao token',
-    type: String,
-    example: 'usuario@exemplo.com',
-    required: true
-  })
-  @ApiQuery({
-    name: 'type',
-    description: 'Tipo de token a ser validado',
-    enum: TokenType,
-    enumName: 'TokenType',
-    example: TokenType.PASSWORD_RESET,
-    required: true
+  @ApiBody({
+    description: 'Dados necessários para validar o token',
+    type: ValidateTokenDto,
+    examples: {
+      passwordReset: {
+        summary: 'Validação de token para redefinição de senha',
+        description: 'Exemplo de validação de token para redefinição de senha',
+        value: {
+          token: '123456',
+          identification: 'usuario@exemplo.com',
+          type: 'PASSWORD_RESET'
+        }
+      },
+      emailConfirmation: {
+        summary: 'Validação de token para confirmação de e-mail',
+        description: 'Exemplo de validação de token para confirmação de e-mail',
+        value: {
+          token: '654321',
+          identification: 'novo@exemplo.com',
+          type: 'EMAIL_CONFIRMATION'
+        }
+      }
+    }
   })
   @ApiOkResponse({
     description: 'Token validado com sucesso',
@@ -103,10 +105,12 @@ export class TokenController extends BaseController<
     }
   })
   public async validateToken(
-    @Query('token') token: string,
-    @Query('identification') identification: string,
-    @Query('type') type: TokenType,
+    @Body() validateTokenDto: ValidateTokenDto,
   ): Promise<TokenValidationDto> {
-    return await this.service.validateToken(token, identification, type);
+    return await this.service.validateToken(
+      validateTokenDto.token,
+      validateTokenDto.identification,
+      validateTokenDto.type
+    );
   }
 }
