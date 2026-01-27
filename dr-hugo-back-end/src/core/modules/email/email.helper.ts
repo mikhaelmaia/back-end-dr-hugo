@@ -25,6 +25,10 @@ export class EmailHelper {
         .addParameter('name', name)
         .addParameter('email', email)
         .addParameter('token', token)
+        .addParameter(
+          'resetPasswordUrl',
+          `${this.configService.get('web.baseUrl')}${this.configService.get('web.forgotPasswordPath')}?email=${email}&token=${token}`,
+        )
         .build(),
     );
   }
@@ -63,7 +67,7 @@ export class EmailHelper {
         )
         .addParameter(
           'confirmationUrl',
-          `${this.configService.get('web.baseUrl')}${this.configService.get('web.emailConfirmationPath')}?token=${token}`,
+          `${this.configService.get('web.baseUrl')}${this.configService.get('web.emailConfirmationPath')}?email=${email}&token=${token}`,
         )
         .build(),
     );
@@ -83,7 +87,7 @@ export class EmailHelper {
         .addParameter('token', token)
         .addParameter(
           'confirmationUrl',
-          `${this.configService.get('web.baseUrl')}${this.configService.get('web.emailConfirmationPath')}?token=${token}`,
+          `${this.configService.get('web.baseUrl')}${this.configService.get('web.emailConfirmationPath')}?email=${email}&token=${token}`,
         )
         .build(),
     );

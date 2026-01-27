@@ -92,7 +92,7 @@ export const provideIsUUIDValidationMessage = (
 export const provideIsValidTaxIdValidationMessage = (
   validationArguments: string | ValidationArguments,
 ): string => {
-  return `${getPropertyFromParameter(validationArguments)} deve ser um CPF/CNPJ válido`;
+  return `${getPropertyFromParameter(validationArguments)} deve ser válido`;
 };
 
 export const provideMaxValidationMessage = (

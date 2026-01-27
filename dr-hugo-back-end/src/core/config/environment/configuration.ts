@@ -5,6 +5,7 @@ export default () => ({
   web: {
     baseUrl: process.env.DV_WEB_BASE_URL,
     loginPath: process.env.DV_WEB_LOGIN_PATH,
+    forgotPasswordPath: process.env.DV_WEB_FORGOT_PASSWORD_PATH,
     emailConfirmationPath: process.env.DV_WEB_EMAIL_CONFIRMATION_PATH,
   },
   database: {
