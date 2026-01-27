@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 import { ExceptionResponse } from './exception-response';
+import { ApplicationResponse } from 'src/core/vo/types/types';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -17,22 +18,28 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const { httpAdapter } = this.httpAdapterHost;
     const ctx = host.switchToHttp();
 
-    const response = ExceptionResponse.from(exception, ctx);
+    const exceptionResponse = ExceptionResponse.from(exception, ctx);
+    
+    const responseData: ApplicationResponse<ExceptionResponse> = {
+      statusCode: exceptionResponse.status,
+      data: exceptionResponse,
+      message: exceptionResponse.name,
+    };
 
-    this.logException(exception, response);
+    this.logException(exception, exceptionResponse);
 
-    httpAdapter.reply(ctx.getResponse(), response, response.status);
+    httpAdapter.reply(ctx.getResponse(), responseData, exceptionResponse.status);
   }
 
-  private logException(exception: unknown, response: ExceptionResponse): void {
+  private logException(exception: unknown, exceptionResponse: ExceptionResponse): void {
     if (exception instanceof Error) {
       this.logger.error(
-        `${response.method} ${response.path} → ${response.status}`,
+        `${exceptionResponse.method} ${exceptionResponse.path} → ${exceptionResponse.status}`,
         exception.stack,
       );
     } else {
       this.logger.error(
-        `${response.method} ${response.path} → ${response.status}`,
+        `${exceptionResponse.method} ${exceptionResponse.path} → ${exceptionResponse.status}`,
         JSON.stringify(exception),
       );
     }
