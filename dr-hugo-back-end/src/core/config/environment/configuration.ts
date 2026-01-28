@@ -39,4 +39,9 @@ export default () => ({
     useSSL: process.env.MINIO_USE_SSL === 'true',
     accessKey: process.env.MINIO_ACCESS_KEY,
   },
+  receitaWs: {
+    apiUrl: process.env.RECEITAWS_API_URL,
+    apiTimeout: Number.parseInt(process.env.RECEITAWS_API_TIMEOUT, 10) || 30000,
+    companyDataPath: process.env.RECEITAWS_COMPANY_DATA_PATH
+  }
 });
