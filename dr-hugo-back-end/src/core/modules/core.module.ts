@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { MediaModule } from './media/media.module';
 import { TokenModule } from './token/token.module';
 import { DomainModule } from './domain/domain.module';
+import { ExternalModule } from './external/external.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { DomainModule } from './domain/domain.module';
     CryptoModule,
     DomainModule,
     EmailModule,
+    ExternalModule,
     MediaModule,
     TokenModule,
   ],
@@ -26,6 +28,7 @@ import { DomainModule } from './domain/domain.module';
     CryptoModule,
     DomainModule,
     EmailModule,
+    ExternalModule,
     MediaModule,
     TokenModule,
   ],

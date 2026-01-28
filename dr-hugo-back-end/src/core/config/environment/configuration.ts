@@ -1,5 +1,7 @@
 export default () => ({
   application: {
+    name: process.env.DV_APP_NAME,
+    version: process.env.DV_APP_VERSION,
     cryptoKey: process.env.CRYPTO_KEY,
   },
   web: {
