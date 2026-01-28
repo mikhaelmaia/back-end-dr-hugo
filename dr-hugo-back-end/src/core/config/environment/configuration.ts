@@ -45,5 +45,9 @@ export default () => ({
     apiUrl: process.env.RECEITAWS_API_URL,
     apiTimeout: Number.parseInt(process.env.RECEITAWS_API_TIMEOUT, 10) || 30000,
     companyDataPath: process.env.RECEITAWS_COMPANY_DATA_PATH
-  }
+  },
+  viaCep: {
+    apiUrl: process.env.VIA_CEP_API_URL,
+    apiTimeout: Number.parseInt(process.env.VIA_CEP_API_TIMEOUT, 10) || 3000,
+  },
 });
