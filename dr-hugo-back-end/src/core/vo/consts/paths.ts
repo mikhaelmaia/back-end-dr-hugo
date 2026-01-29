@@ -93,3 +93,32 @@ export class CountriesPaths extends BasePaths {
 export class DomainPaths {
     public static readonly BASE = '/domain';
 }
+
+export class AddressPaths extends BasePaths {
+    public static readonly BASE = '/address';
+    public static readonly BY_ZIP_CODE = '/zip-code/:zipCode';
+    
+    public static readonly BY_ZIP_CODE_FULL = `${this.BASE}${this.BY_ZIP_CODE}`;
+}
+
+export class InstitutionPaths extends BasePaths {
+    public static readonly BASE = '/institutions';
+    public static readonly LOOKUP = '/lookup';
+    public static readonly BY_USER = '/by-user/:userId';
+    
+    public static readonly CREATE_FULL = `${this.BASE}${this.CREATE}`;
+    public static readonly FIND_BY_ID_FULL = `${this.BASE}${this.FIND_BY_ID}`;
+    public static readonly BY_USER_FULL = `${this.BASE}${this.BY_USER}`;
+    public static readonly UPDATE_FULL = `${this.BASE}${this.UPDATE}`;
+    public static readonly DELETE_FULL = `${this.BASE}${this.DELETE}`;
+    public static readonly FIND_ALL_FULL = `${this.BASE}${this.FIND_ALL}`;
+    public static readonly LOOKUP_FULL = `${this.BASE}${this.LOOKUP}`;
+}
+
+export class DoctorPaths extends BasePaths {
+    public static readonly BASE = '/doctors';
+    public static readonly LOOKUP = '/lookup';
+    
+    public static readonly CREATE_FULL = `${this.BASE}${this.CREATE}`;
+    public static readonly LOOKUP_FULL = `${this.BASE}${this.LOOKUP}`;
+}

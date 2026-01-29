@@ -23,17 +23,12 @@ export class InstitutionAdapter {
         return institutionValidated;
     }
 
-    public async getValidation(taxId: string): Promise<InstitutionValidatedDto> {
+    public async getValidation(taxId: string): Promise<InstitutionValidatedDto | null> {
         const cacheKey = `${this.CACHE_KEY_PREFIX}${taxId}`;
         
         const cachedData = await this.cacheService.get<InstitutionValidatedDto>(cacheKey);
-        if (cachedData) {
-            return cachedData;
-        }
-
-        const validatedData = await this.lookupTaxId(taxId);
         
-        return validatedData;
+        return cachedData || null;
     }
 
     private isValidInstitution(situation: string): boolean {
