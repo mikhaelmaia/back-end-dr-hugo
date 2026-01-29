@@ -8,6 +8,7 @@ import { MediaModule } from './media/media.module';
 import { TokenModule } from './token/token.module';
 import { DomainModule } from './domain/domain.module';
 import { ExternalModule } from './external/external.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ExternalModule } from './external/external.module';
     DomainModule,
     EmailModule,
     ExternalModule,
+    HealthModule,
     MediaModule,
     TokenModule,
   ],
@@ -29,6 +31,7 @@ import { ExternalModule } from './external/external.module';
     DomainModule,
     EmailModule,
     ExternalModule,
+    HealthModule,
     MediaModule,
     TokenModule,
   ],

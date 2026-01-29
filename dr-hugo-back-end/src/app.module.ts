@@ -1,7 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ScheduleModule } from '@nestjs/schedule';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { ManagerModule } from './modules/manager.module';
 import { IsUniqueConstraint } from './core/vo/validators/is-unique.validator';
 import { ExistsInValidator } from './core/vo/validators/exists-in.validator';
@@ -25,9 +23,7 @@ import { CoreModule } from './core/modules/core.module';
     ManagerModule,
     DatabaseModule,
   ],
-  controllers: [AppController],
   providers: [
-    AppService,
     IsUniqueConstraint,
     ExistsInValidator,
     {
