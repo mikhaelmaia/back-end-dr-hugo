@@ -94,6 +94,10 @@ export class DomainPaths {
     public static readonly BASE = '/domain';
 }
 
+export class HealthPaths {
+    public static readonly BASE = '/health';
+}
+
 export class EnumPaths {
     public static readonly BASE = '/enums';
     public static readonly BY_TYPE = '/:type';
