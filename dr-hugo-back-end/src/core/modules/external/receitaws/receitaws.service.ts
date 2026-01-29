@@ -29,11 +29,11 @@ export class ReceitaWsService {
     }
   }
 
-  public async getCompanyByCnpj(cnpj: string): Promise<ReceitaWsResponseDto> {
-    const url = `${this.apiUrl}${this.companyDataPath}/${cnpj}`;
+  public async getCompanyByTaxId(taxId: string): Promise<ReceitaWsResponseDto> {
+    const url = `${this.apiUrl}${this.companyDataPath}/${taxId}`;
     
     try {
-      this.logger.log(`Consultando o CNPJ ${cnpj} na ReceitaWS`);
+      this.logger.log(`Consultando o CNPJ ${taxId} na ReceitaWS`);
       
       const response: AxiosResponse<CompanyDto | ReceitaWsErrorDto> = await firstValueFrom(
         this.httpService.get(url, {
@@ -49,7 +49,7 @@ export class ReceitaWsService {
 
       if ('status' in data && data.status === 'ERROR') {
         const errorData = data as ReceitaWsErrorDto;
-        this.logger.warn(`ReceitaWS retornou erro para o CNPJ ${cnpj}: ${errorData.message}`);
+        this.logger.warn(`ReceitaWS retornou erro para o CNPJ ${taxId}: ${errorData.message}`);
         return {
           success: false,
           error: errorData
@@ -59,7 +59,7 @@ export class ReceitaWsService {
       const companyData = data as CompanyDto;
       
       if (!companyData.cnpj || !companyData.nome) {
-        this.logger.warn(`Dados da empresa inválidos recebidos para o CNPJ: ${cnpj}`);
+        this.logger.warn(`Dados da empresa inválidos recebidos para o CNPJ: ${taxId}`);
         return {
           success: false,
           error: {
@@ -76,7 +76,7 @@ export class ReceitaWsService {
       };
       
     } catch (error) {
-      this.logger.error(`Erro ao consultar ReceitaWS para o CNPJ ${cnpj}:`, error.message);
+      this.logger.error(`Erro ao consultar ReceitaWS para o CNPJ ${taxId}:`, error.message);
       
       let errorMessage = 'Erro interno ao consultar dados da empresa';
       let errorCode: string | undefined;

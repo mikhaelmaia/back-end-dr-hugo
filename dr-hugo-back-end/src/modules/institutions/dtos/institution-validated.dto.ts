@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-export class InstitutionValidatedDto {
+export class InstitutionValidationData {
 
     @ApiProperty({
         description: 'Tipo da instituição',
@@ -97,5 +97,35 @@ export class InstitutionValidatedDto {
         example: 'Diretor Clínico'
     })
     public legalRepresentativeQualification?: string;
+
+    @ApiProperty({
+        description: 'Situação da empresa na Receita Federal',
+        example: 'ATIVA'
+    })
+    public situation: string;
+
+}
+
+export class InstitutionValidatedDto {
+
+    @ApiProperty({
+        description: 'Indica se a validação da instituição foi bem-sucedida',
+        example: true,
+        type: Boolean
+    })
+    public valid: boolean;
+
+    @ApiProperty({
+        description: 'Dados da instituição validados',
+        type: InstitutionValidationData
+    })
+    public data: InstitutionValidationData;
+
+    @ApiProperty({
+        description: 'Mensagem informativa sobre o resultado da validação',
+        example: 'Instituição validada com sucesso',
+        type: String
+    })
+    public message: string;
 
 }
