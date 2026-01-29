@@ -39,11 +39,10 @@ export class MediaService extends BaseService<
     super(repository, mapper);
   }
 
-  public async createMedia(file: Express.Multer.File): Promise<MediaDto> {
+  public async createMedia(file: Express.Multer.File, bucket: MinioBuckets = MinioBuckets.TEMP): Promise<MediaDto> {
     this.validateFileType(file);
 
     const objectName = this.generateObjectName(file);
-    const bucket = MinioBuckets.TEMP;
 
     await this.uploadToMinio(bucket, objectName, file.buffer, file.mimetype);
 

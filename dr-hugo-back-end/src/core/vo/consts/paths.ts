@@ -24,6 +24,7 @@ export class UserPaths extends BasePaths {
     public static readonly CURRENT = '/current';
     public static readonly RESEND_EMAIL_CONFIRMATION = '/resend-email-confirmation';
     public static readonly CONFIRM_EMAIL = '/confirm-email';
+    public static readonly UPDATE_PROFILE_PICTURE = '/profile-picture';
     
     public static readonly CURRENT_FULL = `${this.BASE}${this.CURRENT}`;
     public static readonly RESEND_EMAIL_CONFIRMATION_FULL = `${this.BASE}${this.RESEND_EMAIL_CONFIRMATION}`;

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, UploadedFile, UseInterceptors, Patch } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -15,6 +15,8 @@ import { UserPaths } from 'src/core/vo/consts/paths';
 import { ExceptionResponse } from 'src/core/config/exceptions/exception-response';
 import { ResendUserEmailConfirmationDto } from './dtos/resend-user-email-confirmation.dto';
 import { Public } from 'src/core/vo/decorators/public.decorator';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { multerSingleFileConfig } from 'src/core/config/media/multer.config';
 
 @ApiTags('Gerenciamento de Usuários')
 @ApiBearerAuth()
@@ -99,5 +101,35 @@ export class UserController extends BaseController<User, UserDto, UserService> {
   @Post(UserPaths.CONFIRM_EMAIL)
   public async confirmUserEmail(@Body() userEmailConfirmDto: UserEmailConfirmDto): Promise<void> {
     await this.service.confirmUserEmail(userEmailConfirmDto);
+  }
+
+  @ApiOperation({
+    summary: 'Atualizar foto de perfil do usuário',
+    description: 'Permite que o usuário autenticado atualize sua foto de perfil enviando um novo arquivo de imagem.'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Foto de perfil atualizada com sucesso',
+    type: UserDto
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Arquivo malformado ou inválido',
+    type: ExceptionResponse
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Token de acesso inválido, ausente ou expirado',
+    type: ExceptionResponse
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Erro interno do servidor',
+    type: ExceptionResponse
+  })
+  @Patch(UserPaths.UPDATE_PROFILE_PICTURE)
+  @UseInterceptors(FileInterceptor('file', multerSingleFileConfig))
+  public async updateUserProfilePicture(@CurrentUser('id') userId: string, @UploadedFile() file: Express.Multer.File) {
+    return await this.service.updateProfilePicture(userId, file);
   }
 }

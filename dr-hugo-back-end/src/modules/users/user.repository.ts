@@ -31,4 +31,11 @@ export class UserRepository extends BaseRepository<User> {
       })
       .getOne();
   }
+
+  public async updateProfilePicture(userId: string, profilePictureId: string | null): Promise<void> {
+    await this.repository.update(
+      { id: userId },
+      { profilePicture: profilePictureId ? { id: profilePictureId } : null }
+    );
+  }
 }

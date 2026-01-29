@@ -19,6 +19,8 @@ import { TokenService } from 'src/core/modules/token/token.service';
 import { TokenType, UserRole } from 'src/core/vo/consts/enums';
 import { UserEmailConfirmDto } from './dtos/user-email-confirm.dto';
 import { toHttpException } from 'src/core/utils/errors.utils';
+import { MediaService } from 'src/core/modules/media/media.service';
+import { MinioBuckets } from 'src/core/modules/media/minio/minio.buckets';
 
 @Injectable()
 export class UserService extends BaseService<
@@ -34,7 +36,8 @@ export class UserService extends BaseService<
     userRepository: UserRepository,
     userMapper: UserMapper,
     private readonly emailHelper: EmailHelper,
-    private readonly tokenService: TokenService
+    private readonly tokenService: TokenService,
+    private readonly mediaService: MediaService,
   ) {
     super(userRepository, userMapper);
   }
@@ -47,6 +50,18 @@ export class UserService extends BaseService<
     )
       .map((user: User) => this.mapper.toDto(user))
       .orElse(null);
+  }
+
+  public async updateProfilePicture(
+    userId: string,
+    file: Express.Multer.File | null,
+  ): Promise<UserDto> {
+    const mediaDto = await this.mediaService.createMedia(file, MinioBuckets.USERS);
+
+    await this.repository.updateProfilePicture(userId,  mediaDto.id);
+
+    const updatedUser = await this.repository.findById(userId);
+    return this.mapper.toDto(updatedUser);
   }
 
   public async updateUserPassword(
