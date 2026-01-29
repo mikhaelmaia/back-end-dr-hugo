@@ -23,18 +23,18 @@ export class DoctorAdapter {
     public async lookupRegistration(request: DoctorRegistrationValidationDto): Promise<DoctorRegistrationValidatedDto> {
         const cfmRequest = {
             crm: Number(request.crm),
-            uf: request.uf,
+            uf: request.state,
             chave: ''
         };
         
         const response = await this.cfmService.consultDoctor(cfmRequest);
         const doctorValidated = this.mapToDoctorRegistrationValidatedDto(response, request);
-        await this.cacheService.set(`${this.CACHE_KEY_PREFIX}${request.crm}-${request.uf}`, doctorValidated, this.VALIDATION_TTL_SECONDS);
+        await this.cacheService.set(`${this.CACHE_KEY_PREFIX}${request.crm}-${request.state}`, doctorValidated, this.VALIDATION_TTL_SECONDS);
         return doctorValidated;
     }
 
     public async getValidation(request: DoctorRegistrationValidationDto): Promise<DoctorRegistrationValidatedDto> {
-        const cacheKey = `${this.CACHE_KEY_PREFIX}${request.crm}-${request.uf}`;
+        const cacheKey = `${this.CACHE_KEY_PREFIX}${request.crm}-${request.state}`;
         
         const cachedData = await this.cacheService.get<DoctorRegistrationValidatedDto>(cacheKey);
         if (cachedData) {
@@ -63,7 +63,7 @@ export class DoctorAdapter {
 
         const result = new DoctorRegistrationValidatedDto();
         result.valid = isValid;
-        result.data = this.buildDoctorRegistrationData(doctor);
+        result.data = this.buildDoctorRegistrationData(doctor, request);
         result.message = this.buildValidationMessage(doctor, request);
 
         return result;
@@ -74,23 +74,32 @@ export class DoctorAdapter {
             return true;
         }
 
+        if (!request.specialties || request.specialties.length === 0) {
+            return false;
+        }
+
         return request.specialties.every(specialty => 
             doctor.especialidades.some(doctorSpecialty => 
-                doctorSpecialty.toLowerCase().includes(specialty.toLowerCase()) ||
-                specialty.toLowerCase().includes(doctorSpecialty.toLowerCase())
+                doctorSpecialty.toLowerCase().includes(specialty.name.toLowerCase()) ||
+                specialty.name.toLowerCase().includes(doctorSpecialty.toLowerCase())
             )
         );
     }
 
-    private buildDoctorRegistrationData(doctor: CfmDoctorData): DoctorRegistrationData {
+    private buildDoctorRegistrationData(doctor: CfmDoctorData, request: DoctorRegistrationValidationDto): DoctorRegistrationData {
         const data = new DoctorRegistrationData();
+        
         data.name = doctor.nome;
-        data.crm = doctor.crm.toString();
-        data.uf = doctor.uf;
         data.situation = doctor.situacao;
         data.type = doctor.tipoInscricao;
         data.lastUpdate = doctor.dataAtualizacao;
-        data.specialties = doctor.especialidades;
+        data.cfmSpecialties = doctor.especialidades;
+        
+        data.taxId = request.taxId;
+        data.crm = request.crm;
+        data.state = request.state;
+        data.isGeneralist = request.isGeneralist;
+        data.specialties = request.specialties || [];
 
         return data;
     }

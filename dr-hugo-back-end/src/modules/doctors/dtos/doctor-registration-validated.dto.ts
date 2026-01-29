@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { DoctorSpecializationDto } from '../aggregates/specialization/dtos/doctor-specialization.dto';
 
 export class DoctorRegistrationData {
 
@@ -21,7 +22,7 @@ export class DoctorRegistrationData {
         example: 'SP',
         type: String
     })
-    public uf: string;
+    public state: string;
 
     @ApiProperty({
         description: 'Situação atual do registro no CRM',
@@ -45,11 +46,32 @@ export class DoctorRegistrationData {
     public lastUpdate: string;
 
     @ApiProperty({
-        description: 'Lista de especialidades do médico',
+        description: 'CPF do médico conforme informado na validação',
+        example: '12345678901',
+        type: String
+    })
+    public taxId: string;
+
+    @ApiProperty({
+        description: 'Indica se o médico é generalista ou especialista',
+        example: false,
+        type: Boolean
+    })
+    public isGeneralist: boolean;
+
+    @ApiProperty({
+        description: 'Lista de especialidades validadas do médico',
+        type: [DoctorSpecializationDto],
+        example: [{ name: 'CARDIOLOGIA', rqe: '12345' }]
+    })
+    public specialties: DoctorSpecializationDto[];
+
+    @ApiProperty({
+        description: 'Lista de especialidades conforme registro no CFM',
         type: [String],
         example: ['CARDIOLOGIA', 'MEDICINA INTERNA']
     })
-    public specialties: string[];
+    public cfmSpecialties: string[];
 
 }
 

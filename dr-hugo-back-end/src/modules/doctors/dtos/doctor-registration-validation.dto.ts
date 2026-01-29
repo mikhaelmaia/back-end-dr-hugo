@@ -11,6 +11,7 @@ import {
 } from 'src/core/vo/consts/validation-messages';
 import { IsNotEmptyString } from 'src/core/vo/validators/is-not-empty-string.validator';
 import { IsValidTaxId } from 'src/core/vo/validators/is-valid-tax-id.validator';
+import { DoctorSpecializationDto } from '../aggregates/specialization/dtos/doctor-specialization.dto';
 
 export class DoctorRegistrationValidationDto {
 
@@ -48,7 +49,7 @@ export class DoctorRegistrationValidationDto {
         enum: BrazilianState,
         example: BrazilianState.SP
     })
-    public uf: BrazilianState;
+    public state: BrazilianState;
 
     @IsNotEmpty({ message: provideIsNotEmptyValidationMessage('É Generalista') })
     @IsBoolean({ message: provideIsBooleanValidationMessage('É Generalista') })
@@ -62,10 +63,10 @@ export class DoctorRegistrationValidationDto {
     @IsArray({ message: provideIsArrayValidationMessage('Especialidades') })
     @ApiProperty({
         description: 'Lista de especialidades do médico (obrigatório quando não é generalista)',
-        type: [String],
-        example: ['CARDIOLOGY', 'INTERNAL_MEDICINE'],
+        type: [DoctorSpecializationDto],
+        example: [{ name: 'CARDIOLOGIA', rqe: '12345' }, { name: 'MEDICINA INTERNA', rqe: '67890' }],
         required: false
     })
-    public specialties: string[];
+    public specialties: DoctorSpecializationDto[];
 
 }
