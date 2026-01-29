@@ -29,21 +29,16 @@ export class DoctorAdapter {
         
         const response = await this.cfmService.consultDoctor(cfmRequest);
         const doctorValidated = this.mapToDoctorRegistrationValidatedDto(response, request);
-        await this.cacheService.set(`${this.CACHE_KEY_PREFIX}${request.crm}-${request.state}`, doctorValidated, this.VALIDATION_TTL_SECONDS);
+        await this.cacheService.set(`${this.CACHE_KEY_PREFIX}${request.taxId}`, doctorValidated, this.VALIDATION_TTL_SECONDS);
         return doctorValidated;
     }
 
-    public async getValidation(request: DoctorRegistrationValidationDto): Promise<DoctorRegistrationValidatedDto> {
-        const cacheKey = `${this.CACHE_KEY_PREFIX}${request.crm}-${request.state}`;
+    public async getLookedRegistration(taxId: string): Promise<DoctorRegistrationValidatedDto | null> {
+        const cacheKey = `${this.CACHE_KEY_PREFIX}${taxId}`;
         
         const cachedData = await this.cacheService.get<DoctorRegistrationValidatedDto>(cacheKey);
-        if (cachedData) {
-            return cachedData;
-        }
-
-        const validatedData = await this.lookupRegistration(request);
         
-        return validatedData;
+        return cachedData || null;
     }
 
     private isValidDoctor(situation: DoctorSituation): boolean {
