@@ -1,7 +1,6 @@
 import {
   IsNotEmpty,
   IsString,
-  IsOptional,
   IsEmail,
   Length,
   MaxLength,
@@ -9,7 +8,8 @@ import {
   IsArray,
   IsDate,
   IsEnum,
-  ValidateNested
+  ValidateNested,
+  IsBoolean
 } from 'class-validator';
 import { Expose, Exclude, Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
@@ -23,7 +23,8 @@ import {
   provideIsValidTaxIdValidationMessage,
   provideLengthValidationMessage,
   provideMaxLengthValidationMessage,
-  provideIsEnumValidationMessage
+  provideIsEnumValidationMessage,
+  provideIsBooleanValidationMessage
 } from 'src/core/vo/consts/validation-messages';
 import { IsNotBlacklisted } from 'src/core/vo/validators/is-not-blacklisted.validator';
 import { IsOnlyLetters } from 'src/core/vo/validators/is-only-letters.validator';
@@ -39,7 +40,9 @@ import { DoctorRegistrationDto } from '../aggregates/registration/dtos/doctor-re
 import { DoctorSpecializationDto } from '../aggregates/specialization/dtos/doctor-specialization.dto';
 
 export class DoctorDto extends BaseEntityDto<Doctor> {
-  @IsOptional()
+  @IsNotEmpty({
+    message: provideIsNotEmptyValidationMessage('Nome Completo'),
+  })
   @IsString({ message: provideIsStringValidationMessage('Nome Completo') })
   @IsOnlyLetters({
     message: 'Nome Completo deve conter apenas letras, espaços e caracteres básicos de pontuação',
@@ -51,10 +54,9 @@ export class DoctorDto extends BaseEntityDto<Doctor> {
     description: 'Nome completo do médico (apenas letras, espaços e pontuação básica)',
     example: 'Dr. João Silva Santos',
     maxLength: 100,
-    type: String,
-    required: false
+    type: String
   })
-  public name?: string;
+  public name: string;
 
   @IsNotEmpty({
     message: provideIsNotEmptyValidationMessage('E-mail'),
@@ -141,7 +143,9 @@ export class DoctorDto extends BaseEntityDto<Doctor> {
   })
   public phone: string;
 
-  @IsOptional()
+  @IsNotEmpty({
+    message: provideIsNotEmptyValidationMessage('Código do País'),
+  })
   @IsString({
     message: provideIsStringValidationMessage('Código do País'),
   })
@@ -151,12 +155,13 @@ export class DoctorDto extends BaseEntityDto<Doctor> {
     example: 'BRA',
     minLength: 1,
     maxLength: 3,
-    type: String,
-    required: false
+    type: String
   })
-  public countryCode?: string;
+  public countryCode: string;
 
-  @IsOptional()
+  @IsNotEmpty({
+    message: provideIsNotEmptyValidationMessage('Código IDD do País'),
+  })
   @IsString({
     message: provideIsStringValidationMessage('Código IDD do País'),
   })
@@ -166,31 +171,34 @@ export class DoctorDto extends BaseEntityDto<Doctor> {
     example: '+55',
     minLength: 1,
     maxLength: 5,
-    type: String,
-    required: false
+    type: String
   })
-  public countryIdd?: string;
+  public countryIdd: string;
 
+  @IsNotEmpty({
+    message: provideIsNotEmptyValidationMessage('Perfil de Acesso'),
+  })
+  @IsEnum(UserRole, { message: (args) => provideIsEnumValidationMessage(args, UserRole) })
   @ApiProperty({
     description: 'Perfil de acesso do médico no sistema (sempre DOCTOR para médicos)',
     example: 'DOCTOR',
     enum: UserRole,
-    enumName: 'UserRole',
-    required: false
+    enumName: 'UserRole'
   })
-  public role?: UserRole;
+  public role: UserRole;
 
+  @IsNotEmpty({
+    message: provideIsNotEmptyValidationMessage('Foto de Perfil'),
+  })
+  @ExistsIn('dv_media', 'id', { message: 'Arquivo de mídia não encontrado' })
+  @Expose()
   @ApiProperty({
     description: 'ID da mídia que contém a foto de perfil do médico',
     example: '550e8400-e29b-41d4-a716-446655440000',
     format: 'uuid',
-    required: false,
     type: String
   })
-  @Expose()
-  @IsOptional()
-  @ExistsIn('dv_media', 'id', { message: 'Arquivo de mídia não encontrado' })
-  public profilePictureId?: string;
+  public profilePictureId: string;
 
   @IsNotEmpty({
     message: provideIsNotEmptyValidationMessage('Data de Nascimento'),
@@ -205,39 +213,42 @@ export class DoctorDto extends BaseEntityDto<Doctor> {
   })
   public birthDate: Date;
 
-  @IsOptional()
+  @IsNotEmpty({
+    message: provideIsNotEmptyValidationMessage('Estado'),
+  })
   @IsEnum(BrazilianState, { message: (args) => provideIsEnumValidationMessage(args, BrazilianState) })
   @ApiProperty({
     description: 'Estado brasileiro onde o médico atua',
     enum: BrazilianState,
-    example: BrazilianState.SP,
-    required: false
+    example: BrazilianState.SP
   })
   @Expose()
-  public state?: BrazilianState;
+  public state: BrazilianState;
 
-  @IsOptional()
+  @IsNotEmpty({
+    message: provideIsNotEmptyValidationMessage('Registro Médico'),
+  })
   @ValidateNested()
   @Type(() => DoctorRegistrationDto)
   @ApiProperty({
     description: 'Dados do registro do médico no CRM',
-    type: DoctorRegistrationDto,
-    required: false
+    type: DoctorRegistrationDto
   })
   @Expose()
-  public registration?: DoctorRegistrationDto;
+  public registration: DoctorRegistrationDto;
 
-  @IsOptional()
+  @IsNotEmpty({
+    message: provideIsNotEmptyValidationMessage('Especializações'),
+  })
   @IsArray({ message: 'Especializações deve ser um array' })
   @ValidateNested({ each: true })
   @Type(() => DoctorSpecializationDto)
   @ApiProperty({
     description: 'Lista de especializações do médico',
-    type: [DoctorSpecializationDto],
-    required: false
+    type: [DoctorSpecializationDto]
   })
   @Expose()
-  public specializations?: DoctorSpecializationDto[];
+  public specializations: DoctorSpecializationDto[];
 
   @IsNotEmpty({
     message: provideIsNotEmptyValidationMessage('Termos Aceitos'),
@@ -257,6 +268,10 @@ export class DoctorDto extends BaseEntityDto<Doctor> {
   })
   public acceptedTerms: string[];
 
+  @IsNotEmpty({
+    message: provideIsNotEmptyValidationMessage('É Generalista'),
+  })
+  @IsBoolean({ message: provideIsBooleanValidationMessage('É Generalista') })
   @ApiProperty({
     description: 'Indica se o médico é generalista',
     example: false,
