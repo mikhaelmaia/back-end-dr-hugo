@@ -58,4 +58,31 @@ export enum TermsType {
   PRIVACY_POLICY = 'privacy_policy',
   /** Termos de Serviço da plataforma */
   TERMS_OF_SERVICE = 'terms_of_service',
+export enum DoctorSituation {
+  REGULAR = 'A',
+  SUSPENSAO_PARCIAL_PERMANENTE = 'B',
+  CASSADO = 'C',
+  INOPERANTE = 'E',
+  FALECIDO = 'F',
+  SEM_EXERCICIO_UF = 'G',
+  INTERDICAO_CAUTELAR_TOTAL = 'I',
+  SUSPENSO_ORDEM_JUDICIAL_PARCIAL = 'J',
+  CANCELADO = 'L',
+  SUSPENSAO_TOTAL_TEMPORARIA = 'M',
+  INTERDICAO_CAUTELAR_PARCIAL = 'N',
+  SUSPENSO_ORDEM_JUDICIAL_TOTAL = 'O',
+  APOSENTADO = 'P',
+  SUSPENSAO_TEMPORARIA = 'R',
+  SUSPENSO_TOTAL = 'S',
+  TRANSFERIDO = 'T',
+  SUSPENSO_PARCIAL = 'X',
+}
+
+export enum DoctorRegistrationType {
+  PRINCIPAL = 'P',
+  SECUNDARIA = 'S',
+  PROVISORIA = 'V',
+  TEMPORARIA = 'T',
+  ESTUDANTE_ESTRANGEIRO = 'E',
+}
 }
