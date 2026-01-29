@@ -1,6 +1,5 @@
 import {
   Injectable,
-  NotFoundException,
 } from '@nestjs/common';
 import { BaseService } from 'src/core/base/base.service';
 import { Patient } from './entities/patient.entity';
@@ -8,7 +7,6 @@ import { PatientDto } from './dtos/patient.dto';
 import { PatientsRepository } from './patients.repository';
 import { PatientsMapper } from './patients.mapper';
 import { UserService } from '../users/user.service';
-import { Optional } from 'src/core/utils/optional';
 
 @Injectable()
 export class PatientsService extends BaseService<
@@ -41,46 +39,5 @@ export class PatientsService extends BaseService<
     const savedPatient = await this.repository.save(pacient);
 
     return this.mapper.toDtoWithUser(savedPatient, savedUser);
-  }
-
-  public async findByUserId(userId: string): Promise<PatientDto | null> {
-    return Optional.ofNullable(
-      await this.repository.findByUserId(userId)
-    ).map(
-      (patient) => this.mapper.toDtoWithUser(patient, patient.user)
-    ).orElseThrow(() => new NotFoundException(this.ENTITY_NOT_FOUND));
-  }
-
-  public override async findById(id: string): Promise<PatientDto> {
-    return Optional.ofNullable(
-      await this.repository.findById(id)
-    ).map(
-      (patient) => this.mapper.toDtoWithUser(patient, patient.user)
-    ).orElseThrow(() => new NotFoundException(this.ENTITY_NOT_FOUND));
-  }
-
-  public async updatePatient(id: string, dto: PatientDto, currentUserId: string): Promise<PatientDto> {
-    const existingPatient = await this.repository.findById(id);
-
-    if (!existingPatient) {
-      throw new NotFoundException(this.ENTITY_NOT_FOUND);
-    }
-
-    const [ updatedPatientEntity, updatedUserEntity ] = this.mapper.toEntityAndUser(dto);
-
-    const updatedUser = await this.userService.update(currentUserId, updatedUserEntity);
-
-    updatedPatientEntity.id = id;
-    updatedPatientEntity.user = {
-      id: currentUserId,
-    } as any;
-
-    const savedPatient = await this.repository.save(updatedPatientEntity);
-
-    return this.mapper.toDtoWithUser(savedPatient, updatedUser);
-  }
-
-  public override async postSoftDelete(entity: Patient): Promise<void> {
-    await this.userService.softDelete(entity.user.id);
   }
 }
