@@ -5,8 +5,9 @@ import {
   MaxLength,
   IsEmail,
   IsStrongPassword,
+  IsDate,
 } from 'class-validator';
-import { Exclude } from 'class-transformer';
+import { Exclude, Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import {
   provideIsStringValidationMessage,
@@ -138,5 +139,18 @@ export class CreateDoctorDto {
     type: String
   })
   public countryIdd: string;
+
+  @IsNotEmpty({
+    message: provideIsNotEmptyValidationMessage('Data de Nascimento'),
+  })
+  @IsDate({ message: 'Data de nascimento deve estar no formato DD/MM/AAAA' })
+  @Type(() => Date)
+  @ApiProperty({ 
+    description: 'Data de nascimento do paciente',
+    example: '1990-05-15',
+    type: String, 
+    format: 'date'
+  })
+  public birthDate: Date;
 
 }

@@ -26,6 +26,9 @@ export class User extends BaseEntity {
   @Column({ name: 'country_idd', length: 5, nullable: false })
   public countryIdd: string;
 
+  @Column({ name: 'is_valid', type: 'boolean', default: false })
+  public isValid: boolean;
+
   @Column({
     name: 'role',
     type: 'enum',
@@ -49,6 +52,14 @@ export class User extends BaseEntity {
 
   public activate(): void {
     this.isActive = true;
+  }
+
+  public validate(): void {
+    this.isValid = true;
+  }
+
+  public invalidate(): void {
+    this.isValid = false;
   }
 
   public get isInactive(): boolean {
