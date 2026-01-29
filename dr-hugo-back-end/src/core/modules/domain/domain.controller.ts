@@ -3,10 +3,11 @@ import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/
 import { Public } from 'src/core/vo/decorators/public.decorator';
 import { DomainService } from './domain.service';
 import { DomainPaths, TermsPaths, CountriesPaths } from '../../vo/consts/paths';
-import { TermsType } from '../../vo/consts/enums';
+import { TermsType, EnumType } from '../../vo/consts/enums';
 import { TermDto } from './terms/dtos/term.dto';
 import { CountryDto } from './countries/dtos/country.dto';
 import { CountriesPaginationDto } from './countries/dtos/countries-pagination.dto';
+import { EnumDto } from './enums/dtos/enum.dto';
 import { ExceptionResponse } from 'src/core/config/exceptions/exception-response';
 import type { Page } from '../../vo/types/types';
 
@@ -14,7 +15,34 @@ import type { Page } from '../../vo/types/types';
 @Public()
 @Controller(DomainPaths.BASE)
 export class DomainController {
-  constructor(private readonly domainService: DomainService) {}
+  constructor(
+    private readonly domainService: DomainService
+  ) {}
+
+  @Get('/enums/:type')
+  @ApiOperation({
+    summary: 'Buscar enum por tipo',
+    description: 'Retorna os valores de um enum específico no formato key-value para uso em formulários e dropdowns'
+  })
+  @ApiParam({
+    name: 'type',
+    description: 'Tipo de enum a ser buscado',
+    enum: EnumType,
+    example: EnumType.BRAZILIAN_STATE
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Valores do enum retornados com sucesso',
+    type: [EnumDto]
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Tipo de enum inválido',
+    type: ExceptionResponse
+  })
+  public getEnumValues(@Param('type') type: EnumType): EnumDto[] {
+    return this.domainService.getEnumValues(type);
+  }
 
   @Get(TermsPaths.ALL_FULL)
   @ApiOperation({

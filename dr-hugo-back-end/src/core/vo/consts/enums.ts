@@ -5,6 +5,12 @@ export enum UserRole {
   INSTITUTION = 'INSTITUTION',
 }
 
+export enum EnumType {
+  BRAZILIAN_STATE = 'BRAZILIAN_STATE',
+  DOCTOR_SPECIALIZATION_TYPE = 'DOCTOR_SPECIALIZATION_TYPE',
+  MEDICAL_INSTITUTION_TYPE = 'MEDICAL_INSTITUTION_TYPE',
+}
+
 /**
  * Tipos de tokens disponíveis no sistema
  * 

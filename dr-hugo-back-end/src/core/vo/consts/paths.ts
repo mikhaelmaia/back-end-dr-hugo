@@ -94,6 +94,13 @@ export class DomainPaths {
     public static readonly BASE = '/domain';
 }
 
+export class EnumPaths {
+    public static readonly BASE = '/enums';
+    public static readonly BY_TYPE = '/:type';
+    
+    public static readonly BY_TYPE_FULL = `${this.BASE}${this.BY_TYPE}`;
+}
+
 export class AddressPaths extends BasePaths {
     public static readonly BASE = '/address';
     public static readonly BY_ZIP_CODE = '/zip-code/:zipCode';
