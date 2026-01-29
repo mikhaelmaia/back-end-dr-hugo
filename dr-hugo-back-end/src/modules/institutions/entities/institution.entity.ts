@@ -23,4 +23,7 @@ export class Institution extends BaseEntity {
 
   @Column({ name: 'medical_institution_type', type: 'enum', enum: MedicalInstitutionType, nullable: false })
   public medicalInstitutionType: MedicalInstitutionType;
+
+  @Column({ name: 'other_medical_institution_type', length: 255, nullable: true })
+  public otherMedicalInstitutionType: string;
 }
