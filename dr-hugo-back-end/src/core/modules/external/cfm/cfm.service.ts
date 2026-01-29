@@ -10,6 +10,7 @@ import {
   CfmValidationResult,
   CfmServiceResponse,
 } from './dtos/cfm.dtos';
+import { DoctorRegistrationType, DoctorSituation } from 'src/core/vo/consts/enums';
 
 @Injectable()
 export class CfmService {
@@ -38,6 +39,18 @@ export class CfmService {
   public async consultDoctor(
     request: CfmConsultRequest,
   ): Promise<CfmServiceResponse<CfmDoctorData>> {
+    return {
+      success: true,
+      doctorData: {
+        nome: 'Dr. João Silva',
+        crm: 123456,
+        uf: 'SP',
+        situacao: DoctorSituation.REGULAR,
+        tipoInscricao: DoctorRegistrationType.PRINCIPAL,
+        especialidades: ['Cardiologia', 'Pediatria'],
+        dataAtualizacao: '2023-06-01',
+      }
+    };
     const soapEnvelope = this.buildConsultSoapEnvelope(request);
 
     try {
