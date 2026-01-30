@@ -2,16 +2,20 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { AuthRequest } from './dto/auth-request.dto';
 import { AuthResponse } from './dto/auth-response.dto';
 import { PasswordResetDto } from './dto/password-reset.dto';
+import { StartPasswordRecoveryDto } from './dto/start-password-recovery.dto';
+import { EmailConfirmDto } from './dto/email-confirm.dto';
+import { ResendEmailConfirmationDto } from './dto/resend-email-confirmation.dto';
 import { TokenService } from '../token/token.service';
 import { JwtProviderService } from './aggregates/jwt-provider.service';
 import { EmailHelper } from '../email/email.helper';
 import { UserDto } from 'src/modules/users/dtos/user.dto';
 import { TokenType } from 'src/core/vo/consts/enums';
 import { compare } from 'bcrypt';
-import { acceptFalseThrows, whenNullThrows } from 'src/core/utils/functions';
+import { acceptFalseThrows, acceptTrueThrows, whenNullThrows } from 'src/core/utils/functions';
 import { JwtPayload } from 'src/core/vo/types/types';
 import { UserService } from 'src/modules/users/user.service';
 import { toHttpException } from 'src/core/utils/errors.utils';
+import { Optional } from 'src/core/utils/optional';
 
 @Injectable()
 export class AuthService {
@@ -26,8 +30,8 @@ export class AuthService {
   ) {}
 
   public async login(authRequest: AuthRequest): Promise<AuthResponse> {
-    const { login, password } = authRequest;
-    const user: UserDto = await this.userService.findByEmailOrTaxId(login);
+    const { login, password, role } = authRequest;
+    const user: UserDto = await this.userService.findByEmailOrTaxId(login, role);
     whenNullThrows(
       user, () => toHttpException('E030')
     );
@@ -58,8 +62,8 @@ export class AuthService {
     );
   }
 
-  public async startPasswordRecovery(login: string): Promise<void> {
-    const user: UserDto = await this.userService.findByEmailOrTaxId(login);
+  public async startPasswordRecovery(recoveryData: StartPasswordRecoveryDto): Promise<void> {
+    const user: UserDto = await this.userService.findByEmailOrTaxId(recoveryData.login, recoveryData.role);
     whenNullThrows(
       user, () => toHttpException('E030')
     );
@@ -70,7 +74,7 @@ export class AuthService {
     );
 
     const token = await this.tokenService.generateToken(
-      login,
+      `${recoveryData.login}:${recoveryData.role}`,
       TokenType.PASSWORD_RESET,
     );
     this.emailhelper.sendPasswordResetRequestEmail(
@@ -85,16 +89,59 @@ export class AuthService {
   ): Promise<void> {
     await this.tokenService.concludeToken(
       passwordReset.tokenIdentification,
-      passwordReset.email,
+      `${passwordReset.email}:${passwordReset.role}`,
       TokenType.PASSWORD_RESET,
     );
     await this.userService.updateUserPassword(
       passwordReset.email,
       passwordReset.password,
+      passwordReset.role,
     );
     this.emailhelper.sendPasswordResetEmail(
       passwordReset.email,
       passwordReset.email,
     );
+  }
+
+  public async resendEmailConfirmation(resendData: ResendEmailConfirmationDto): Promise<void> {
+    const user = Optional.ofNullable(await this.userService.findByEmailEntity(resendData.email, resendData.role))
+      .orElse(null);
+    whenNullThrows(
+      user,
+      () => toHttpException('E033')
+    );
+    acceptTrueThrows(
+      user.isValid,
+      () => toHttpException('E036')
+    );
+
+    const token = await this.tokenService.renewToken(
+      `${user.email}:${user.role}`,
+      TokenType.EMAIL_CONFIRMATION
+    );
+    this.emailhelper.sendEmailConfirmationEmail(user.name, user.email, token.token);
+  }
+
+  public async confirmUserEmail(userEmailConfirm: EmailConfirmDto): Promise<void> {
+    const userEmail = userEmailConfirm.email;
+    const userRole = userEmailConfirm.role;
+    const user = Optional.ofNullable(await this.userService.findByEmailEntity(userEmail, userRole))
+      .orElse(null);
+    whenNullThrows(
+      user,
+      () => toHttpException('E033')
+    );
+    acceptTrueThrows(
+      user.isValid,
+      () => toHttpException('E036')
+    );
+    await this.tokenService.concludeToken(
+      userEmailConfirm.tokenIdentification, 
+      `${userEmail}:${userRole}`, 
+      TokenType.EMAIL_CONFIRMATION
+    );
+    user.validate();
+    await this.userService.saveUserEntity(user);
+    this.emailhelper.sendEmailConfirmedEmail(user.name, user.email, user.role);
   }
 }

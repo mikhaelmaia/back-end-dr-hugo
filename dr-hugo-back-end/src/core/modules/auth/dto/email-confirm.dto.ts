@@ -3,9 +3,9 @@ import { IsNotEmpty } from 'class-validator';
 import {
   provideIsNotEmptyValidationMessage,
 } from 'src/core/vo/consts/validation-messages';
-import { ResendUserEmailConfirmationDto } from './resend-user-email-confirmation.dto';
+import { ResendEmailConfirmationDto } from './resend-email-confirmation.dto';
 
-export class UserEmailConfirmDto extends ResendUserEmailConfirmationDto {
+export class EmailConfirmDto extends ResendEmailConfirmationDto {
   @IsNotEmpty({
     message: provideIsNotEmptyValidationMessage('ID do código'),
   })

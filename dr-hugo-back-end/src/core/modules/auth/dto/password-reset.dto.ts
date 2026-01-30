@@ -1,10 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, IsEnum } from 'class-validator';
 import {
   provideIsNotEmptyValidationMessage,
   provideIsStringValidationMessage,
   provideIsEmailValidationMessage,
+  provideIsEnumValidationMessage,
 } from 'src/core/vo/consts/validation-messages';
+import { UserRole } from 'src/core/vo/consts/enums';
 
 export class PasswordResetDto {
   @IsNotEmpty({
@@ -51,4 +53,14 @@ export class PasswordResetDto {
     writeOnly: true
   })
   public password: string;
+
+  @IsNotEmpty({ message: provideIsNotEmptyValidationMessage('Perfil de Acesso') })
+  @IsEnum(UserRole, { message: (args) => provideIsEnumValidationMessage(args, UserRole) })
+  @ApiProperty({
+    description: 'Perfil de acesso do usuário',
+    example: 'PATIENT',
+    enum: UserRole,
+    enumName: 'UserRole'
+  })
+  public role: UserRole;
 }

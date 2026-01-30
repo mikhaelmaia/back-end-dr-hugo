@@ -9,6 +9,9 @@ import { AuthService } from './auth.service';
 import { AuthRequest } from './dto/auth-request.dto';
 import { AuthResponse } from './dto/auth-response.dto';
 import { PasswordResetDto } from './dto/password-reset.dto';
+import { StartPasswordRecoveryDto } from './dto/start-password-recovery.dto';
+import { EmailConfirmDto } from './dto/email-confirm.dto';
+import { ResendEmailConfirmationDto } from './dto/resend-email-confirmation.dto';
 import { Public } from 'src/core/vo/decorators/public.decorator';
 import { AuthPaths } from '../../vo/consts/paths';
 import { ExceptionResponse } from '../../config/exceptions/exception-response';
@@ -110,19 +113,8 @@ export class AuthController {
     description: 'Envia um email com token para recuperação de senha para o endereço especificado, caso o usuário exista no sistema.'
   })
   @ApiBody({
-    description: 'Email para envio do token de recuperação',
-    schema: {
-      type: 'object',
-      properties: {
-        email: {
-          type: 'string',
-          format: 'email',
-          description: 'Endereço de email cadastrado no sistema',
-          example: 'usuario@email.com'
-        }
-      },
-      required: ['email']
-    }
+    description: 'Dados para início da recuperação de senha',
+    type: StartPasswordRecoveryDto
   })
   @ApiResponse({
     status: 200,
@@ -130,12 +122,12 @@ export class AuthController {
   })
   @ApiResponse({
     status: 400,
-    description: 'Email ausente ou formato inválido',
+    description: 'Dados ausentes ou formato inválido',
     type: ExceptionResponse
   })
   @ApiResponse({
     status: 422,
-    description: 'Email não atende aos critérios de validação',
+    description: 'Dados não atendem aos critérios de validação',
     type: ExceptionResponse
   })
   @ApiResponse({
@@ -147,9 +139,9 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Public()
   public async startPasswordRecovery(
-    @Body('email') email: string,
+    @Body() startPasswordRecoveryDto: StartPasswordRecoveryDto,
   ): Promise<void> {
-    return await this.authService.startPasswordRecovery(email);
+    return await this.authService.startPasswordRecovery(startPasswordRecoveryDto);
   }
 
   @ApiOperation({
@@ -196,5 +188,53 @@ export class AuthController {
     @Body() passwordReset: PasswordResetDto,
   ): Promise<void> {
     return await this.authService.performPasswordReset(passwordReset);
+  }
+
+  @ApiOperation({
+    summary: 'Reenviar confirmação de email',
+    description: 'Reenvia o email de confirmação para um usuário que ainda não confirmou seu email. Se o usuário já estiver ativo, a operação será ignorada silenciosamente.'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Email de confirmação reenviado com sucesso (ou usuário já ativo)',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Dados de entrada inválidos',
+    type: ExceptionResponse
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Erro interno do servidor',
+    type: ExceptionResponse
+  })
+  @Public()
+  @Post(AuthPaths.RESEND_EMAIL_CONFIRMATION)
+  public async resendEmailConfirmation(@Body() resendEmailConfirmationDto: ResendEmailConfirmationDto): Promise<void> {
+    await this.authService.resendEmailConfirmation(resendEmailConfirmationDto);
+  }
+
+  @ApiOperation({
+    summary: 'Confirmar email do usuário',
+    description: 'Confirma o email de um usuário, ativando sua conta. Se o usuário já estiver ativo, a operação será ignorada silenciosamente.'
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Email confirmado com sucesso (ou usuário já ativo)',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Dados de entrada inválidos',
+    type: ExceptionResponse
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Erro interno do servidor',
+    type: ExceptionResponse
+  })
+  @Public()
+  @Post(AuthPaths.CONFIRM_EMAIL)
+  public async confirmUserEmail(@Body() emailConfirmDto: EmailConfirmDto): Promise<void> {
+    await this.authService.confirmUserEmail(emailConfirmDto);
   }
 }

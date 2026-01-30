@@ -7,7 +7,7 @@ import {
 } from 'src/core/vo/consts/validation-messages';
 import { UserRole } from 'src/core/vo/consts/enums';
 
-export class AuthRequest {
+export class StartPasswordRecoveryDto {
   @IsNotEmpty({
     message: provideIsNotEmptyValidationMessage('Login de acesso'),
   })
@@ -19,16 +19,6 @@ export class AuthRequest {
     type: String
   })
   public login: string;
-
-  @IsNotEmpty({ message: provideIsNotEmptyValidationMessage('Senha') })
-  @IsString({ message: provideIsStringValidationMessage('Senha') })
-  @ApiProperty({ 
-    description: 'Senha de acesso do usuário',
-    example: 'minhasenhasegura123',
-    type: String,
-    writeOnly: true
-  })
-  public password: string;
 
   @IsNotEmpty({ message: provideIsNotEmptyValidationMessage('Perfil de Acesso') })
   @IsEnum(UserRole, { message: (args) => provideIsEnumValidationMessage(args, UserRole) })

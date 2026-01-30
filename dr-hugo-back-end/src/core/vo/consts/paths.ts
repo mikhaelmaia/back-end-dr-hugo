@@ -12,28 +12,24 @@ export class AuthPaths extends BasePaths {
     public static readonly REFRESH_TOKEN = '/refresh-token';
     public static readonly PASSWORD_RECOVERY = '/password-recovery';
     public static readonly PASSWORD_RESET = '/password-reset';
+    public static readonly RESEND_EMAIL_CONFIRMATION = '/resend-email-confirmation';
+    public static readonly CONFIRM_EMAIL = '/confirm-email';
     
     public static readonly LOGIN_FULL = `${this.BASE}${this.LOGIN}`;
     public static readonly REFRESH_TOKEN_FULL = `${this.BASE}${this.REFRESH_TOKEN}`;
     public static readonly PASSWORD_RECOVERY_FULL = `${this.BASE}${this.PASSWORD_RECOVERY}`;
     public static readonly PASSWORD_RESET_FULL = `${this.BASE}${this.PASSWORD_RESET}`;
+    public static readonly RESEND_EMAIL_CONFIRMATION_FULL = `${this.BASE}${this.RESEND_EMAIL_CONFIRMATION}`;
+    public static readonly CONFIRM_EMAIL_FULL = `${this.BASE}${this.CONFIRM_EMAIL}`;
 }
 
 export class UserPaths extends BasePaths {
     public static readonly BASE = '/users';
     public static readonly CURRENT = '/current';
-    public static readonly RESEND_EMAIL_CONFIRMATION = '/resend-email-confirmation';
-    public static readonly CONFIRM_EMAIL = '/confirm-email';
     public static readonly UPDATE_PROFILE_PICTURE = '/profile-picture';
     
     public static readonly CURRENT_FULL = `${this.BASE}${this.CURRENT}`;
-    public static readonly RESEND_EMAIL_CONFIRMATION_FULL = `${this.BASE}${this.RESEND_EMAIL_CONFIRMATION}`;
-    public static readonly CONFIRM_EMAIL_FULL = `${this.BASE}${this.CONFIRM_EMAIL}`;
     public static readonly CREATE_FULL = `${this.BASE}${this.CREATE}`;
-    public static readonly FIND_BY_ID_FULL = `${this.BASE}${this.FIND_BY_ID}`;
-    public static readonly UPDATE_FULL = `${this.BASE}${this.UPDATE}`;
-    public static readonly DELETE_FULL = `${this.BASE}${this.DELETE}`;
-    public static readonly FIND_ALL_FULL = `${this.BASE}${this.FIND_ALL}`;
 }
 
 export class PatientsPaths extends BasePaths {

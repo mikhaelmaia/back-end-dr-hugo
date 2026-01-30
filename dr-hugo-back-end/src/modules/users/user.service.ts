@@ -6,19 +6,15 @@ import { UserRepository } from './user.repository';
 import { UserMapper } from './user.mapper';
 import {
   acceptFalseThrows,
-  acceptTrueThrows,
   compare,
   encrypt,
   isNotPresent,
   isPresent,
-  whenNullThrows,
 } from 'src/core/utils/functions';
 import { EmailHelper } from 'src/core/modules/email/email.helper';
 import { Optional } from 'src/core/utils/optional';
 import { TokenService } from 'src/core/modules/token/token.service';
 import { TokenType, UserRole } from 'src/core/vo/consts/enums';
-import { UserEmailConfirmDto } from './dtos/user-email-confirm.dto';
-import { toHttpException } from 'src/core/utils/errors.utils';
 import { MediaService } from 'src/core/modules/media/media.service';
 import { MinioBuckets } from 'src/core/modules/media/minio/minio.buckets';
 
@@ -44,12 +40,21 @@ export class UserService extends BaseService<
 
   public async findByEmailOrTaxId(
     emailOrTaxId: string,
+    role: UserRole,
   ): Promise<UserDto | null> {
     return Optional.ofNullable(
-      await this.repository.findByEmailOrTaxId(emailOrTaxId),
+      await this.repository.findByEmailOrTaxId(emailOrTaxId, role),
     )
       .map((user: User) => this.mapper.toDto(user))
       .orElse(null);
+  }
+
+  public async findByEmailEntity(email: string, role?: UserRole): Promise<User | null> {
+    return await this.repository.findByEmail(email, role);
+  }
+
+  public async saveUserEntity(user: User): Promise<User> {
+    return await this.repository.save(user);
   }
 
   public async updateProfilePicture(
@@ -67,51 +72,15 @@ export class UserService extends BaseService<
   public async updateUserPassword(
     email: string,
     password: string,
+    role?: UserRole,
   ): Promise<void> {
-    const user: User = await this.repository.findByEmail(email);
+    const user: User = await this.repository.findByEmail(email, role);
     acceptFalseThrows(
       isPresent(user),
       () => new NotFoundException(this.ENTITY_NOT_FOUND),
     );
     user.updatePassword(await encrypt(password));
     await this.repository.save(user);
-  }
-
-  public async resendEmailConfirmation(email: string): Promise<void> {
-    const user = Optional.ofNullable(await this.repository.findByEmail(email))
-      .orElse(null);
-    whenNullThrows(
-      user,
-      () => toHttpException('E033')
-    );
-    acceptTrueThrows(
-      user.isActive,
-      () => toHttpException('E036')
-    );
-
-    const token = await this.tokenService.renewToken(
-      user.email,
-      TokenType.EMAIL_CONFIRMATION
-    );
-    this.emailHelper.sendEmailConfirmationEmail(user.name, user.email, token.token);
-  }
-
-  public async confirmUserEmail(userEmailConfirm: UserEmailConfirmDto): Promise<void> {
-    const userEmail = userEmailConfirm.email;
-    const user = Optional.ofNullable(await this.repository.findByEmail(userEmail))
-      .orElse(null);
-    whenNullThrows(
-      user,
-      () => toHttpException('E033')
-    );
-    acceptTrueThrows(
-      user.isActive,
-      () => toHttpException('E036')
-    );
-    await this.tokenService.concludeToken(userEmailConfirm.tokenIdentification, userEmail, TokenType.EMAIL_CONFIRMATION);
-    user.activate();
-    await this.repository.save(user);
-    this.emailHelper.sendEmailConfirmedEmail(user.name, user.email, UserRole.PATIENT);
   }
 
   protected override async beforeCreate(entity: User): Promise<void> {
