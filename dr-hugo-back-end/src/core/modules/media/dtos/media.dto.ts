@@ -54,4 +54,18 @@ export class MediaDto extends BaseEntityDto<Media> {
   @IsNotEmpty()
   @MaxLength(500)
   public objectName: string;
+
+  @ApiProperty({ 
+    description: 'Dados do arquivo codificados em base64 para renderização direta no front-end',
+    example: 'JVBERi0xLjQKJdPr6eEKMSAwIG9iago8PAovVHlwZSAvQ2F0YWxvZwovUGFnZXMgMiAwIFI+PgplbmRvYmoKMiAwIG9iago8PAovVHlwZSAvUGFnZXM=',
+    type: String
+  })
+  public data: string;
+
+  @ApiProperty({ 
+    description: 'Tipo MIME do arquivo para renderização adequada no navegador',
+    example: 'application/pdf',
+    type: String
+  })
+  public mimeType: string;
 }

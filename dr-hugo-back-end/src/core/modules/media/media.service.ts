@@ -48,8 +48,21 @@ export class MediaService extends BaseService<
 
     const media = Media.from(file, bucket, objectName);
     const savedMedia = await this.repository.save(media);
+    const mediaDto = this.mapper.toDto(savedMedia);
+    
+    const client = this.minioService.getClient();
+    const objectStream = await client.getObject(bucket, objectName);
+    const chunks: Buffer[] = [];
+    
+    for await (const chunk of objectStream) {
+      chunks.push(chunk);
+    }
+    
+    const fileBuffer = Buffer.concat(chunks);
+    mediaDto.data = fileBuffer.toString('base64');
+    mediaDto.mimeType = this.getContentType(media.type);
 
-    return this.mapper.toDto(savedMedia);
+    return mediaDto;
   }
 
   public async findById(id: string): Promise<MediaDto> {
@@ -124,6 +137,23 @@ export class MediaService extends BaseService<
     const updatedMedia = await this.repository.save(media);
 
     return this.mapper.toDto(updatedMedia);
+  }
+
+  public async getFileStream(mediaId: string): Promise<{ stream: NodeJS.ReadableStream; contentType: string; filename: string }> {
+    const media = await this.repository.findById(mediaId);
+    acceptFalseThrows(
+      media !== null,
+      () => new NotFoundException(this.MEDIA_NOT_FOUND),
+    );
+
+    const client = this.minioService.getClient();
+    const stream = await client.getObject(media.bucket, media.objectName);
+    
+    return {
+      stream,
+      contentType: this.getContentType(media.type),
+      filename: media.filename
+    };
   }
 
   @Cron(CronExpression.EVERY_HOUR)
@@ -216,5 +246,21 @@ export class MediaService extends BaseService<
       .orElseThrow(
         () => new BadRequestException(this.MEDIA_TYPE_NOT_SUPPORTED),
       );
+  }
+
+  private getContentType(mediaType: MediaType): string {
+    const mimeTypeMap = {
+      [MediaType.JPG]: 'image/jpeg',
+      [MediaType.JPEG]: 'image/jpeg',
+      [MediaType.PNG]: 'image/png',
+      [MediaType.GIF]: 'image/gif',
+      [MediaType.PDF]: 'application/pdf',
+      [MediaType.DOC]: 'application/msword',
+      [MediaType.DOCX]: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      [MediaType.XLS]: 'application/vnd.ms-excel',
+      [MediaType.XLSX]: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      [MediaType.TXT]: 'text/plain',
+    };
+    return mimeTypeMap[mediaType] || 'application/octet-stream';
   }
 }

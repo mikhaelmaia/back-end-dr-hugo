@@ -45,6 +45,15 @@ export class MinioService implements OnModuleInit {
     return this.client;
   }
 
+  public getObjectUrl(bucket: string, objectName: string): string {
+    const endpoint = this.configService.get<string>('MINIO_ENDPOINT');
+    const port = this.configService.get<number>('MINIO_PORT');
+    const useSSL = this.configService.get<string>('MINIO_USE_SSL') === 'true';
+    const protocol = useSSL ? 'https' : 'http';
+    const portSuffix = (useSSL && port === 443) || (!useSSL && port === 80) ? '' : `:${port}`;
+    return `${protocol}://${endpoint}${portSuffix}/${bucket}/${objectName}`;
+  }
+
   public async getBucket(bucket: string): Promise<string> {
     await this.ensureBucketExists(bucket);
     return bucket;
@@ -53,11 +62,11 @@ export class MinioService implements OnModuleInit {
   private async ensureBucketExists(bucket: string): Promise<void> {
     try {
       const exists = await this.client.bucketExists(bucket);
-      if (!exists) {
+      if (exists) {
+        this.logger.debug(`Bucket '${bucket}' já existe`);
+      } else {
         await this.client.makeBucket(bucket);
         this.logger.log(`Bucket '${bucket}' criado com sucesso`);
-      } else {
-        this.logger.debug(`Bucket '${bucket}' já existe`);
       }
     } catch (error) {
       this.logger.error(`Erro ao verificar/criar bucket '${bucket}'`, error);
