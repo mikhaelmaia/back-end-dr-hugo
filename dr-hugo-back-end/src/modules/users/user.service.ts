@@ -17,6 +17,7 @@ import { TokenService } from 'src/core/modules/token/token.service';
 import { TokenType, UserRole } from 'src/core/vo/consts/enums';
 import { MediaService } from 'src/core/modules/media/media.service';
 import { MinioBuckets } from 'src/core/modules/media/minio/minio.buckets';
+import { MediaDto } from 'src/core/modules/media/dtos/media.dto';
 
 @Injectable()
 export class UserService extends BaseService<
@@ -64,13 +65,12 @@ export class UserService extends BaseService<
   public async updateProfilePicture(
     userId: string,
     file: Express.Multer.File | null,
-  ): Promise<UserDto> {
+  ): Promise<MediaDto> {
     const mediaDto = await this.mediaService.createMedia(file, MinioBuckets.USERS);
 
     await this.repository.updateProfilePicture(userId,  mediaDto.id);
 
-    const updatedUser = await this.repository.findById(userId);
-    return this.mapper.toDto(updatedUser);
+    return mediaDto;
   }
 
   public async updateUserPassword(

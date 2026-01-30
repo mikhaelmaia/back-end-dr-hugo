@@ -14,6 +14,7 @@ import { UserPaths } from 'src/core/vo/consts/paths';
 import { ExceptionResponse } from 'src/core/config/exceptions/exception-response';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerSingleFileConfig } from 'src/core/config/media/multer.config';
+import { MediaDto } from 'src/core/modules/media/dtos/media.dto';
 
 @ApiTags('Gerenciamento de Usuários')
 @ApiBearerAuth()
@@ -59,7 +60,7 @@ export class UserController extends BaseController<User, UserDto, UserService> {
   @ApiResponse({
     status: 200,
     description: 'Foto de perfil atualizada com sucesso',
-    type: UserDto
+    type: MediaDto
   })
   @ApiResponse({
     status: 400,
@@ -78,7 +79,7 @@ export class UserController extends BaseController<User, UserDto, UserService> {
   })
   @Patch(UserPaths.UPDATE_PROFILE_PICTURE)
   @UseInterceptors(FileInterceptor('file', multerSingleFileConfig))
-  public async updateUserProfilePicture(@CurrentUser('id') userId: string, @UploadedFile() file: Express.Multer.File) {
+  public async updateUserProfilePicture(@CurrentUser('id') userId: string, @UploadedFile() file: Express.Multer.File): Promise<MediaDto> {
     return await this.service.updateProfilePicture(userId, file);
   }
 }
