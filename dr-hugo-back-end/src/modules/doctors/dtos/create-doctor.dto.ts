@@ -20,7 +20,7 @@ import {
 } from 'src/core/vo/consts/validation-messages';
 import { IsNotBlacklisted } from 'src/core/vo/validators/is-not-blacklisted.validator';
 import { IsNotEmptyString } from 'src/core/vo/validators/is-not-empty-string.validator';
-import { IsUnique } from 'src/core/vo/validators/is-unique.validator';
+import { IsUniqueComposite } from 'src/core/vo/validators/is-unique-composite.validator';
 import { IsValidTaxId } from 'src/core/vo/validators/is-valid-tax-id.validator';
 
 export class CreateDoctorDto {
@@ -34,8 +34,12 @@ export class CreateDoctorDto {
   )
   @IsNotBlacklisted()
   @MaxLength(50, { message: provideMaxLengthValidationMessage('E-mail') })
-  @IsUnique('dv_user', 'email', {
-    message: 'Já existe usuário com este e-mail cadastrado',
+  @IsUniqueComposite({
+    tableName: 'dv_user',
+    column: 'email',
+    additionalField: { column: 'role', value: 'DOCTOR' }
+  }, {
+    message: 'Já existe médico com este e-mail cadastrado',
   })
   @ApiProperty({ 
     description: 'Endereço de e-mail do médico (deve ser único no sistema)',
@@ -77,8 +81,12 @@ export class CreateDoctorDto {
   @IsValidTaxId({
     message: provideIsValidTaxIdValidationMessage('CPF'),
   })
-  @IsUnique('dv_user', 'taxId', {
-    message: 'Já existe usuário com este CPF cadastrado',
+  @IsUniqueComposite({
+    tableName: 'dv_user',
+    column: 'taxId',
+    additionalField: { column: 'role', value: 'DOCTOR' }
+  }, {
+    message: 'Já existe médico com este CPF cadastrado',
   })
   @ApiProperty({
     description: 'CPF do médico (apenas números, deve ser único)',
@@ -96,8 +104,12 @@ export class CreateDoctorDto {
     message: provideIsNotEmptyValidationMessage('Telefone'),
   })
   @Length(10, 15, { message: provideLengthValidationMessage('Telefone') })
-  @IsUnique('dv_user', 'phone', {
-    message: 'Já existe usuário com este telefone/celular cadastrado',
+  @IsUniqueComposite({
+    tableName: 'dv_user',
+    column: 'phone',
+    additionalField: { column: 'role', value: 'DOCTOR' }
+  }, {
+    message: 'Já existe médico com este telefone/celular cadastrado',
   })
   @ApiProperty({
     description: 'Número de telefone ou celular do médico (apenas números, deve ser único)',

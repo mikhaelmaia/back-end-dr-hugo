@@ -29,7 +29,7 @@ import { ContainsRequiredTerms } from 'src/core/vo/validators/contains-required-
 import { TermsType, UserRole } from 'src/core/vo/consts/enums';
 import { ExistsIn } from 'src/core/vo/validators/exists-in.validator';
 import { IsNotEmptyString } from 'src/core/vo/validators/is-not-empty-string.validator';
-import { IsUnique } from 'src/core/vo/validators/is-unique.validator';
+import { IsUniqueComposite } from 'src/core/vo/validators/is-unique-composite.validator';
 import { IsValidTaxId } from 'src/core/vo/validators/is-valid-tax-id.validator';
 import { User } from 'src/modules/users/entities/user.entity';
 
@@ -65,8 +65,12 @@ export class PatientDto extends BaseEntityDto<Patient> {
   )
   @IsNotBlacklisted()
   @MaxLength(50, { message: provideMaxLengthValidationMessage('E-mail') })
-  @IsUnique('dv_user', 'email', {
-    message: 'Já existe usuário com este e-mail cadastrado',
+  @IsUniqueComposite({
+    tableName: 'dv_user',
+    column: 'email',
+    additionalField: { column: 'role', value: 'PATIENT' }
+  }, {
+    message: 'Já existe paciente com este e-mail cadastrado',
   })
   @ApiProperty({ 
     description: 'Endereço de e-mail do paciente (deve ser único no sistema)',
@@ -109,8 +113,12 @@ export class PatientDto extends BaseEntityDto<Patient> {
   @IsValidTaxId({
     message: provideIsValidTaxIdValidationMessage('CPF'),
   })
-  @IsUnique('dv_user', 'taxId', {
-    message: 'Já existe usuário com este CPF cadastrado',
+  @IsUniqueComposite({
+    tableName: 'dv_user',
+    column: 'taxId',
+    additionalField: { column: 'role', value: 'PATIENT' }
+  }, {
+    message: 'Já existe paciente com este CPF cadastrado',
   })
   @ApiProperty({
     description: 'CPF do paciente (apenas números, deve ser único)',
@@ -128,8 +136,12 @@ export class PatientDto extends BaseEntityDto<Patient> {
     message: provideIsNotEmptyValidationMessage('Telefone'),
   })
   @Length(10, 15, { message: provideLengthValidationMessage('Telefone') })
-  @IsUnique('dv_user', 'phone', {
-    message: 'Já existe usuário com este telefone/celular cadastrado',
+  @IsUniqueComposite({
+    tableName: 'dv_user',
+    column: 'phone',
+    additionalField: { column: 'role', value: 'PATIENT' }
+  }, {
+    message: 'Já existe paciente com este telefone/celular cadastrado',
   })
   @ApiProperty({
     description: 'Número de telefone ou celular do paciente (apenas números, deve ser único)',
