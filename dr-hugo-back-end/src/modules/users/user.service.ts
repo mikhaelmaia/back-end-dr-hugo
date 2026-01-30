@@ -58,14 +58,8 @@ export class UserService extends BaseService<
       .orElse(null);
   }
 
-  public async validateUserEmail(email: string, role: UserRole): Promise<void> {
-    const user = await this.repository.findByEmail(email, role);
-    acceptFalseThrows(
-      isPresent(user),
-      () => new NotFoundException(this.ENTITY_NOT_FOUND),
-    );
-    user.validate();
-    await this.repository.save(user);
+  public async validateUserEmail(userId: string): Promise<void> {
+    await this.repository.activateUser(userId);
   }
 
   public async updateProfilePicture(
