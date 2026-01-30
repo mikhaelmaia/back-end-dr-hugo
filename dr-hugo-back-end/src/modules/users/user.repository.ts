@@ -43,6 +43,15 @@ export class UserRepository extends BaseRepository<User> {
     return query.getOne();
   }
 
+  public findUserProfilePictureId(userId: string): Promise<string | null> {
+    return this.createBaseQuery()
+      .leftJoin(`${this.alias}.profilePicture`, 'profilePicture')
+      .select('profilePicture.id', 'profilePictureId')
+      .where(`${this.alias}.id = :userId`, { userId })
+      .getRawOne()
+      .then(result => result ? result.profilePictureId : null);
+  }
+
   public async updateProfilePicture(userId: string, profilePictureId: string | null): Promise<void> {
     await this.repository.update(
       { id: userId },

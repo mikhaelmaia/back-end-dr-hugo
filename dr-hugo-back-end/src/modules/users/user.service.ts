@@ -58,17 +58,28 @@ export class UserService extends BaseService<
       .orElse(null);
   }
 
-  public async validateUserEmail(userId: string): Promise<void> {
-    await this.repository.activateUser(userId);
+  public async validateUserEmail(email: string, role: UserRole): Promise<void> {
+    const user = await this.repository.findByEmail(email, role);
+    acceptFalseThrows(
+      isPresent(user),
+      () => new NotFoundException(this.ENTITY_NOT_FOUND),
+    );
+    user.validate();
+    await this.repository.save(user);
   }
 
   public async updateProfilePicture(
     userId: string,
     file: Express.Multer.File | null,
   ): Promise<MediaDto> {
-    const mediaDto = await this.mediaService.createMedia(file, MinioBuckets.USERS);
+    const currentUserProfilePictureId = await this.repository.findUserProfilePictureId(userId);
 
-    await this.repository.updateProfilePicture(userId,  mediaDto.id);
+    if (currentUserProfilePictureId) {
+      await this.mediaService.deleteById(currentUserProfilePictureId);
+    }
+
+    const mediaDto = await this.mediaService.createMedia(file, MinioBuckets.USERS);
+    await this.repository.updateProfilePicture(userId, mediaDto.id);
 
     return mediaDto;
   }

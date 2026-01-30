@@ -3,7 +3,8 @@ import {
   ApiTags,
   ApiOperation,
   ApiResponse,
-  ApiBearerAuth
+  ApiBearerAuth,
+  ApiBody
 } from '@nestjs/swagger';
 import { BaseController } from 'src/core/base/base.controller';
 import { User } from './entities/user.entity';
@@ -56,6 +57,20 @@ export class UserController extends BaseController<User, UserDto, UserService> {
   @ApiOperation({
     summary: 'Atualizar foto de perfil do usuário',
     description: 'Permite que o usuário autenticado atualize sua foto de perfil enviando um novo arquivo de imagem.'
+  })
+  @ApiBody({
+    description: 'Arquivo a ser enviado para o sistema',
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: 'Arquivo a ser carregado (imagem, documento, planilha, etc.)'
+        }
+      },
+      required: ['file']
+    }
   })
   @ApiResponse({
     status: 200,
