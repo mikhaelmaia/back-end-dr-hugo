@@ -15,7 +15,6 @@ import { acceptFalseThrows, acceptTrueThrows, whenNullThrows } from 'src/core/ut
 import { JwtPayload } from 'src/core/vo/types/types';
 import { UserService } from 'src/modules/users/user.service';
 import { toHttpException } from 'src/core/utils/errors.utils';
-import { Optional } from 'src/core/utils/optional';
 
 @Injectable()
 export class AuthService {
@@ -104,8 +103,7 @@ export class AuthService {
   }
 
   public async resendEmailConfirmation(resendData: ResendEmailConfirmationDto): Promise<void> {
-    const user = Optional.ofNullable(await this.userService.findByEmailEntity(resendData.email, resendData.role))
-      .orElse(null);
+    const user = await this.userService.findByEmail(resendData.email, resendData.role);
     whenNullThrows(
       user,
       () => toHttpException('E033')
@@ -125,8 +123,7 @@ export class AuthService {
   public async confirmUserEmail(userEmailConfirm: EmailConfirmDto): Promise<void> {
     const userEmail = userEmailConfirm.email;
     const userRole = userEmailConfirm.role;
-    const user = Optional.ofNullable(await this.userService.findByEmailEntity(userEmail, userRole))
-      .orElse(null);
+    const user = await this.userService.findByEmail(userEmail, userRole);
     whenNullThrows(
       user,
       () => toHttpException('E033')
@@ -135,13 +132,14 @@ export class AuthService {
       user.isValid,
       () => toHttpException('E036')
     );
+    
     await this.tokenService.concludeToken(
       userEmailConfirm.tokenIdentification, 
       `${userEmail}:${userRole}`, 
       TokenType.EMAIL_CONFIRMATION
     );
-    user.validate();
-    await this.userService.saveUserEntity(user);
+    
+    await this.userService.validateUserEmail(user.id);
     this.emailhelper.sendEmailConfirmedEmail(user.name, user.email, user.role);
   }
 }

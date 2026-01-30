@@ -49,12 +49,16 @@ export class UserService extends BaseService<
       .orElse(null);
   }
 
-  public async findByEmailEntity(email: string, role?: UserRole): Promise<User | null> {
-    return await this.repository.findByEmail(email, role);
+  public async findByEmail(email: string, role?: UserRole): Promise<UserDto | null> {
+    return Optional.ofNullable(
+      await this.repository.findByEmail(email, role),
+    )
+      .map((user: User) => this.mapper.toDto(user))
+      .orElse(null);
   }
 
-  public async saveUserEntity(user: User): Promise<User> {
-    return await this.repository.save(user);
+  public async validateUserEmail(userId: string): Promise<void> {
+    await this.repository.activateUser(userId);
   }
 
   public async updateProfilePicture(

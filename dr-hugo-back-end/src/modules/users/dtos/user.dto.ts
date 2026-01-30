@@ -208,5 +208,18 @@ export class UserDto extends BaseEntityDto<User> {
   public profilePictureId: string;
 
   @Exclude()
+  @ApiProperty({
+    description: 'Indica se o usuário está ativo no sistema',
+    example: true,
+    type: Boolean
+  })
   public isActive: boolean;
+
+  @Exclude()
+  @ApiProperty({
+    description: 'Indica se o email do usuário foi validado',
+    example: true,
+    type: Boolean
+  })
+  public isValid: boolean;
 }

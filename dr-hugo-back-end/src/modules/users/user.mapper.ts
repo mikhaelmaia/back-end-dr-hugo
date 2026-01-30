@@ -16,6 +16,7 @@ export class UserMapper extends BaseMapper<User, UserDto> {
     userDto.countryCode = entity.countryCode;
     userDto.countryIdd = entity.countryIdd;
     userDto.isActive = entity.isActive;
+    userDto.isValid = entity.isValid;
     userDto.acceptedTerms = entity.acceptedTerms;
     userDto.role = entity.role;
     userDto.createdAt = entity.createdAt;
@@ -33,6 +34,7 @@ export class UserMapper extends BaseMapper<User, UserDto> {
     user.phone = dto.phone;
     user.countryCode = dto.countryCode;
     user.countryIdd = dto.countryIdd;
+    user.isValid = dto.isValid;
     user.acceptedTerms = dto.acceptedTerms;
     user.role = dto.role;
     return user;

@@ -49,4 +49,11 @@ export class UserRepository extends BaseRepository<User> {
       { profilePicture: profilePictureId ? { id: profilePictureId } : null }
     );
   }
+
+  public async activateUser(userId: string): Promise<void> {
+    await this.repository.update(
+      { id: userId },
+      { isActive: true }
+    );
+  }
 }
