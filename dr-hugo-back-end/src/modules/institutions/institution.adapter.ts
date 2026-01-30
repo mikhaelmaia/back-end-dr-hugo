@@ -1,5 +1,5 @@
-import { Injectable } from "@nestjs/common";
-import { CacheService } from "src/core/modules/cache/cache.service";
+import { Inject, Injectable } from "@nestjs/common";
+import { CACHE_SERVICE, CacheService } from "src/core/modules/cache/cache.service";
 import { ReceitaWsService } from "src/core/modules/external/receitaws/receitaws.service";
 import { InstitutionValidatedDto, InstitutionValidationData } from "./dtos/institution-validated.dto";
 import { CompanyDto, CompanyQsaDto, ReceitaWsResponseDto } from "src/core/modules/external/receitaws/dto/company.dto";
@@ -13,6 +13,7 @@ export class InstitutionAdapter {
 
     constructor(
         private readonly receitaWsService: ReceitaWsService,
+        @Inject(CACHE_SERVICE)
         private readonly cacheService: CacheService
     ) { }
 

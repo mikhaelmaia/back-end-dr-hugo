@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Expose } from "class-transformer/types/decorators/expose.decorator";
+import { Expose } from "class-transformer";
 import { IsEnum, IsNotEmpty, IsString, Length, MaxLength } from "class-validator";
 import { BrazilianState } from "src/core/vo/consts/enums";
 import { provideIsNotEmptyValidationMessage, provideIsStringValidationMessage, provideLengthValidationMessage, provideIsNotEmptyStringValidationMessage, provideMaxLengthValidationMessage, provideIsEnumValidationMessage } from "src/core/vo/consts/validation-messages";

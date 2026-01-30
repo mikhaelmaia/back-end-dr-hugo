@@ -1,5 +1,5 @@
-import { Injectable } from "@nestjs/common";
-import { CacheService } from "src/core/modules/cache/cache.service";
+import { Inject, Injectable } from "@nestjs/common";
+import { CACHE_SERVICE, CacheService } from "src/core/modules/cache/cache.service";
 import { CfmService } from "src/core/modules/external/cfm/cfm.service";
 import { DoctorRegistrationValidatedDto, DoctorRegistrationData } from "./dtos/doctor-registration-validated.dto";
 import { DoctorRegistrationValidationDto } from "./dtos/doctor-registration-validation.dto";
@@ -17,6 +17,7 @@ export class DoctorAdapter {
 
     constructor(
         private readonly cfmService: CfmService,
+        @Inject(CACHE_SERVICE)
         private readonly cacheService: CacheService
     ) { }
 

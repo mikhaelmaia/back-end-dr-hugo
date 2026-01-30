@@ -9,9 +9,11 @@ import { TokenModule } from './token/token.module';
 import { DomainModule } from './domain/domain.module';
 import { ExternalModule } from './external/external.module';
 import { HealthModule } from './health/health.module';
+import { AddressModule } from './address/address.module';
 
 @Module({
   imports: [
+    AddressModule,
     AuditModule,
     AuthModule,
     CacheModule,
@@ -24,6 +26,7 @@ import { HealthModule } from './health/health.module';
     TokenModule,
   ],
   exports: [
+    AddressModule,
     AuditModule,
     AuthModule,
     CacheModule,
