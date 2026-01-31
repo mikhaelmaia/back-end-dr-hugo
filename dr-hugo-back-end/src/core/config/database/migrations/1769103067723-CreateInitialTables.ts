@@ -24,23 +24,23 @@ export class CreateInitialTables1769103067723 implements MigrationInterface {
         `);
 
         await queryRunner.query(`
-            CREATE TYPE "doctor_situation_enum" AS ENUM('A', 'B', 'C', 'E', 'F', 'G', 'I', 'J', 'L', 'M', 'N', 'O', 'P', 'R', 'S', 'T', 'X')
+            CREATE TYPE "doctor_situation_enum" AS ENUM('REGULAR', 'SUSPENSAO_PARCIAL_PERMANENTE', 'CASSADO', 'INOPERANTE', 'FALECIDO', 'SEM_EXERCICIO_UF', 'INTERDICAO_CAUTELAR_TOTAL', 'SUSPENSO_ORDEM_JUDICIAL_PARCIAL', 'CANCELADO', 'SUSPENSAO_TOTAL_TEMPORARIA', 'INTERDICAO_CAUTELAR_PARCIAL', 'SUSPENSO_ORDEM_JUDICIAL_TOTAL', 'APOSENTADO', 'SUSPENSAO_TEMPORARIA', 'SUSPENSO_TOTAL', 'TRANSFERIDO', 'SUSPENSO_PARCIAL')
         `);
 
         await queryRunner.query(`
-            CREATE TYPE "doctor_registration_type_enum" AS ENUM('P', 'S', 'V', 'T', 'E')
+            CREATE TYPE "doctor_registration_type_enum" AS ENUM('PRINCIPAL', 'SECUNDARIA', 'PROVISORIA', 'TEMPORARIA', 'ESTUDANTE_ESTRANGEIRO')
         `);
 
         await queryRunner.query(`
-            CREATE TYPE "doctor_specialization_type_enum" AS ENUM('Acupuntura', 'Alergia e imunologia', 'Anestesiologia', 'Angiologia', 'Cardiologia', 'Cirurgia cardiovascular', 'Cirurgia da mão', 'Cirurgia de cabeça e pescoço', 'Cirurgia do aparelho digestivo', 'Cirurgia geral', 'Cirurgia oncológica', 'Cirurgia pediátrica', 'Cirurgia plástica', 'Cirurgia torácica', 'Cirurgia vascular', 'Clínica médica', 'Coloproctologia', 'Dermatologia', 'Endocrinologia e metabologia', 'Endoscopia', 'Gastroenterologia', 'Genética médica', 'Geriatria', 'Ginecologia e obstetrícia', 'Hematologia e hemoterapia', 'Homeopatia', 'Infectologia', 'Mastologia', 'Medicina de emergência', 'Medicina de família e comunidade', 'Medicina do trabalho', 'Medicina do tráfego', 'Medicina esportiva', 'Medicina física e reabilitação', 'Medicina intensiva', 'Medicina legal e perícia médica', 'Medicina nuclear', 'Medicina preventiva e social', 'Nefrologia', 'Neurocirurgia', 'Neurologia', 'Nutrologia', 'Oftalmologia', 'Oncologia clínica', 'Ortopedia e traumatologia', 'Otorrinolaringologia', 'Patologia', 'Patologia clínica/medicina laboratorial', 'Pediatria', 'Pneumologia', 'Psiquiatria', 'Radiologia e diagnóstico por imagem', 'Radioterapia', 'Reumatologia', 'Urologia')
+            CREATE TYPE "doctor_specialization_type_enum" AS ENUM('ACUPUNCTURE', 'ALLERGY_IMMUNOLOGY', 'ANESTHESIOLOGY', 'ANGIOLOGY', 'CARDIOLOGY', 'CARDIOVASCULAR_SURGERY', 'HAND_SURGERY', 'HEAD_AND_NECK_SURGERY', 'DIGESTIVE_SYSTEM_SURGERY', 'GENERAL_SURGERY', 'ONCOLOGIC_SURGERY', 'PEDIATRIC_SURGERY', 'PLASTIC_SURGERY', 'THORACIC_SURGERY', 'VASCULAR_SURGERY', 'INTERNAL_MEDICINE', 'COLOPROCTOLOGY', 'DERMATOLOGY', 'ENDOCRINOLOGY_METABOLOGY', 'ENDOSCOPY', 'GASTROENTEROLOGY', 'MEDICAL_GENETICS', 'GERIATRICS', 'GYNECOLOGY_OBSTETRICS', 'HEMATOLOGY_HEMOTHERAPY', 'HOMEOPATHY', 'INFECTOLOGY', 'MASTOLOGY', 'EMERGENCY_MEDICINE', 'FAMILY_COMMUNITY_MEDICINE', 'OCCUPATIONAL_MEDICINE', 'TRAFFIC_MEDICINE', 'SPORTS_MEDICINE', 'PHYSICAL_REHABILITATION_MEDICINE', 'INTENSIVE_CARE_MEDICINE', 'LEGAL_MEDICINE', 'NUCLEAR_MEDICINE', 'PREVENTIVE_SOCIAL_MEDICINE', 'NEPHROLOGY', 'NEUROSURGERY', 'NEUROLOGY', 'NUTROLOGY', 'OPHTHALMOLOGY', 'CLINICAL_ONCOLOGY', 'ORTHOPEDICS_TRAUMATOLOGY', 'OTORHINOLARYNGOLOGY', 'PATHOLOGY', 'CLINICAL_PATHOLOGY', 'PEDIATRICS', 'PULMONOLOGY', 'PSYCHIATRY', 'RADIOLOGY_IMAGING', 'RADIOTHERAPY', 'RHEUMATOLOGY', 'UROLOGY')
         `);
 
         await queryRunner.query(`
-            CREATE TYPE "medical_institution_type_enum" AS ENUM('Consultório / Clínica', 'Atenção Primária', 'Hospital Geral', 'Hospital Especializado', 'Urgência / Emergência', 'Diagnóstico por Imagem', 'Laboratório', 'SADT / Diagnose e Terapia', 'Bancos / Hemoterapia', 'Domiciliar', 'Regulação / Gestão / Administrativo', 'Perícia', 'Outros')
+            CREATE TYPE "medical_institution_type_enum" AS ENUM('CONSULTORIO_CLINICA', 'ATENCAO_PRIMARIA', 'HOSPITAL_GERAL', 'HOSPITAL_ESPECIALIZADO', 'URGENCIA_EMERGENCIA', 'DIAGNOSTICO_POR_IMAGEM', 'LABORATORIO', 'SADT_DIAGNOSE_TERAPIA', 'BANCOS_HEMOTERAPIA', 'DOMICILIAR', 'REGULACAO_GESTAO_ADMINISTRATIVO', 'PERICIA', 'OUTROS')
         `);
 
         await queryRunner.query(`
-            CREATE TYPE "company_type_enum" AS ENUM('Matriz', 'Filial')
+            CREATE TYPE "company_type_enum" AS ENUM('HEADQUARTERS', 'BRANCH')
         `);
 
         await queryRunner.query(`

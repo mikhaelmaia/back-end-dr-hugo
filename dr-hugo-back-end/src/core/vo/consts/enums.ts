@@ -130,31 +130,31 @@ export enum DoctorSpecializationType {
 }
 
 export enum DoctorSituation {
-  REGULAR = 'A',
-  SUSPENSAO_PARCIAL_PERMANENTE = 'B',
-  CASSADO = 'C',
-  INOPERANTE = 'E',
-  FALECIDO = 'F',
-  SEM_EXERCICIO_UF = 'G',
-  INTERDICAO_CAUTELAR_TOTAL = 'I',
-  SUSPENSO_ORDEM_JUDICIAL_PARCIAL = 'J',
-  CANCELADO = 'L',
-  SUSPENSAO_TOTAL_TEMPORARIA = 'M',
-  INTERDICAO_CAUTELAR_PARCIAL = 'N',
-  SUSPENSO_ORDEM_JUDICIAL_TOTAL = 'O',
-  APOSENTADO = 'P',
-  SUSPENSAO_TEMPORARIA = 'R',
-  SUSPENSO_TOTAL = 'S',
-  TRANSFERIDO = 'T',
-  SUSPENSO_PARCIAL = 'X',
+  REGULAR = 'Regular',
+  SUSPENSAO_PARCIAL_PERMANENTE = 'Suspensão parcial permanente',
+  CASSADO = 'Cassado',
+  INOPERANTE = 'Inoperante',
+  FALECIDO = 'Falecido',
+  SEM_EXERCICIO_UF = 'Sem exercício UF',
+  INTERDICAO_CAUTELAR_TOTAL = 'Interdição cautelar total',
+  SUSPENSO_ORDEM_JUDICIAL_PARCIAL = 'Suspenso ordem judicial parcial',
+  CANCELADO = 'Cancelado',
+  SUSPENSAO_TOTAL_TEMPORARIA = 'Suspensão total temporária',
+  INTERDICAO_CAUTELAR_PARCIAL = 'Interdição cautelar parcial',
+  SUSPENSO_ORDEM_JUDICIAL_TOTAL = 'Suspenso ordem judicial total',
+  APOSENTADO = 'Aposentado',
+  SUSPENSAO_TEMPORARIA = 'Suspensão temporária',
+  SUSPENSO_TOTAL = 'Suspenso total',
+  TRANSFERIDO = 'Transferido',
+  SUSPENSO_PARCIAL = 'Suspenso parcial',
 }
 
 export enum DoctorRegistrationType {
-  PRINCIPAL = 'P',
-  SECUNDARIA = 'S',
-  PROVISORIA = 'V',
-  TEMPORARIA = 'T',
-  ESTUDANTE_ESTRANGEIRO = 'E',
+  PRINCIPAL = 'Principal',
+  SECUNDARIA = 'Secundária',
+  PROVISORIA = 'Provisória',
+  TEMPORARIA = 'Temporária',
+  ESTUDANTE_ESTRANGEIRO = 'Estudante estrangeiro',
 }
 
 export enum BrazilianState {

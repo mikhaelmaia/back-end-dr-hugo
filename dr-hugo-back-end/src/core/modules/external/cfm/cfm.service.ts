@@ -45,8 +45,8 @@ export class CfmService {
         nome: 'Dr. João Silva',
         crm: 123456,
         uf: 'SP',
-        situacao: DoctorSituation.REGULAR,
-        tipoInscricao: DoctorRegistrationType.PRINCIPAL,
+        situacao: 'A',
+        tipoInscricao: 'P',
         especialidades: ['Cardiologia', 'Pediatria'],
         dataAtualizacao: '2023-06-01',
       }

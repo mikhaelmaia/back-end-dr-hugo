@@ -41,6 +41,7 @@ export class DoctorService extends BaseService<Doctor, DoctorDto, DoctorReposito
 
         const [ doctorToCreate, user ] = this.mapper.mapCreationDtoToEntityAndUser(doctorDto);
 
+        user.name = lookedUpRegistration.data.name;
         doctor.birthDate = doctorToCreate.birthDate;
 
         doctor.clearId();

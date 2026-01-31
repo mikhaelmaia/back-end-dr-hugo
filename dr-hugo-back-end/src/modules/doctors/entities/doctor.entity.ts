@@ -10,11 +10,11 @@ export class Doctor extends BaseEntity {
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
   public user: User;
 
-  @OneToOne(() => DoctorRegistration, registration => registration.doctor)
+  @OneToOne(() => DoctorRegistration, registration => registration.doctor, { cascade: true })
   @JoinColumn({ name: 'registration_id', referencedColumnName: 'id' })
   public registration: DoctorRegistration;
 
-  @OneToMany(() => DoctorSpecialization, specialization => specialization.doctor)
+  @OneToMany(() => DoctorSpecialization, specialization => specialization.doctor, { cascade: true })
   public specializations: DoctorSpecialization[];
 
   @Column({ name: 'is_generalist', type: 'boolean', nullable: false, default: false })

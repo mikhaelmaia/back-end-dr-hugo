@@ -11,6 +11,7 @@ import { ConfigModule } from '@nestjs/config';
 import configuration from './core/config/environment/configuration';
 import { DatabaseModule } from './core/config/database/database.module';
 import { CoreModule } from './core/modules/core.module';
+import { IsUniqueCompositeConstraint } from './core/vo/validators/is-unique-composite.validator';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { CoreModule } from './core/modules/core.module';
     DatabaseModule,
   ],
   providers: [
+    IsUniqueCompositeConstraint,
     IsUniqueConstraint,
     ExistsInValidator,
     {

@@ -1,5 +1,3 @@
-import { DoctorRegistrationType, DoctorSituation } from "src/core/vo/consts/enums";
-
 export interface CfmConsultRequest {
   crm: number;
   uf: string;
@@ -18,8 +16,8 @@ export interface CfmDoctorData {
   nome: string;
   crm: number;
   uf: string;
-  situacao: DoctorSituation;
-  tipoInscricao: DoctorRegistrationType;
+  situacao: string;
+  tipoInscricao: string;
   especialidades: string[];
   dataAtualizacao: string;
 }

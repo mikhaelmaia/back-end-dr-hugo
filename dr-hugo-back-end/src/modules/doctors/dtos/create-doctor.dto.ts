@@ -6,6 +6,7 @@ import {
   IsEmail,
   IsStrongPassword,
   IsDate,
+  IsArray,
 } from 'class-validator';
 import { Exclude, Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
@@ -22,6 +23,8 @@ import { IsNotBlacklisted } from 'src/core/vo/validators/is-not-blacklisted.vali
 import { IsNotEmptyString } from 'src/core/vo/validators/is-not-empty-string.validator';
 import { IsUniqueComposite } from 'src/core/vo/validators/is-unique-composite.validator';
 import { IsValidTaxId } from 'src/core/vo/validators/is-valid-tax-id.validator';
+import { ContainsRequiredTerms } from 'src/core/vo/validators/contains-required-terms.validator';
+import { TermsType } from 'src/core/vo/consts/enums';
 
 export class CreateDoctorDto {
   @IsNotEmpty({
@@ -164,5 +167,23 @@ export class CreateDoctorDto {
     format: 'date'
   })
   public birthDate: Date;
+
+  @IsNotEmpty({
+    message: provideIsNotEmptyValidationMessage('Termos Aceitos'),
+  })
+  @IsArray({ message: 'Termos aceitos deve ser um array' })
+  @ContainsRequiredTerms([TermsType.PRIVACY_POLICY, TermsType.TERMS_OF_SERVICE], {
+    message: 'Você deve aceitar os Termos de Uso e a Política de Privacidade para continuar',
+  })
+  @ApiProperty({
+    description: 'Lista dos tipos de termos aceitos pelo paciente (obrigatórios: privacy_policy, terms_of_service)',
+    type: [String],
+    example: ['privacy_policy', 'terms_of_service'],
+    items: {
+      type: 'string',
+      enum: ['privacy_policy', 'terms_of_service']
+    }
+  })
+  public acceptedTerms: string[];
 
 }
