@@ -11,19 +11,30 @@ export class Institution extends BaseEntity {
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
   public user: User;
 
-  @OneToOne(() => Address)
+  @OneToOne(() => Address, { cascade: true })
   @JoinColumn({ name: 'address_id', referencedColumnName: 'id' })
   public address: Address;
 
-  @OneToOne(() => InstitutionCompany, company => company.institution)
+  @OneToOne(() => InstitutionCompany, (company) => company.institution, {
+    cascade: true,
+  })
   public company: InstitutionCompany;
 
   @Column({ name: 'cnes', length: 7, nullable: true })
   public cnes: string;
 
-  @Column({ name: 'medical_institution_type', type: 'enum', enum: MedicalInstitutionType, nullable: false })
+  @Column({
+    name: 'medical_institution_type',
+    type: 'enum',
+    enum: MedicalInstitutionType,
+    nullable: false,
+  })
   public medicalInstitutionType: MedicalInstitutionType;
 
-  @Column({ name: 'other_medical_institution_type', length: 255, nullable: true })
+  @Column({
+    name: 'other_medical_institution_type',
+    length: 255,
+    nullable: true,
+  })
   public otherMedicalInstitutionType: string;
 }

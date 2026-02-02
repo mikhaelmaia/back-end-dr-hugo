@@ -47,6 +47,7 @@ export class InstitutionMapper extends BaseMapper<Institution, InstitutionDto> {
         user.countryCode = dto.countryCode;
         user.countryIdd = dto.countryIdd;
         user.role = UserRole.INSTITUTION;
+        user.acceptedTerms = dto.acceptedTerms;
 
         return [entity, user];
     }

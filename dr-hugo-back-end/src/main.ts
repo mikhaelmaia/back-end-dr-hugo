@@ -64,13 +64,15 @@ const configureApplicationInterceptors = (app: INestApplication): void => {
 const configureApplication = (app: INestApplication): void => {
   app.useGlobalPipes(...configureValidation());
   app.useGlobalFilters(configureApplicationFilters(app));
+  app.enableShutdownHooks();
+  app.get(HttpAdapterHost);
   configureApplicationInterceptors(app);
   configureSwagger(app);
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
 };
 
 const bootstrap = async () => {
-  const app = await NestFactory.create(AppModule, { cors: corsOptions });
+  const app = await NestFactory.create(AppModule, { cors: corsOptions, bufferLogs: true });
   configureApplication(app);
   await app.listen(process.env.PORT || 3000);
 };
