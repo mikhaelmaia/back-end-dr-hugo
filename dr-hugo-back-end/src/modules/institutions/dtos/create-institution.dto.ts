@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Exclude, Type } from 'class-transformer';
+import { Exclude, Transform, Type } from 'class-transformer';
 import {
   IsNotEmpty,
   IsString,
@@ -32,6 +32,7 @@ import { IsUniqueComposite } from 'src/core/vo/validators/is-unique-composite.va
 import { IsValidTaxId } from 'src/core/vo/validators/is-valid-tax-id.validator';
 import { CreateInstitutionCompanyRepresentativeDto } from '../aggregates/representative/dtos/create-representative.dto';
 import { ContainsRequiredTerms } from 'src/core/vo/validators/contains-required-terms.validator';
+import { findEnumValueByKeyOrValue } from 'src/core/utils/enum.utils';
 
 export class CreateInstitutionDto {
   @IsNotEmpty({
@@ -219,6 +220,9 @@ export class CreateInstitutionDto {
   @IsNotEmpty({
     message: provideIsNotEmptyValidationMessage('Tipo de Instituição Médica'),
   })
+  @Transform(({ value }) =>
+    findEnumValueByKeyOrValue(MedicalInstitutionType, value),
+  )
   @IsEnum(MedicalInstitutionType, {
     message: provideIsEnumValidationMessage(
       'Tipo de Instituição Médica',

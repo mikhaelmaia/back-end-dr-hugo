@@ -50,10 +50,11 @@ export class UserService extends BaseService<
       .orElse(null);
   }
 
-  public async findByEmail(email: string, role?: UserRole): Promise<UserDto | null> {
-    return Optional.ofNullable(
-      await this.repository.findByEmail(email, role),
-    )
+  public async findByEmail(
+    email: string,
+    role?: UserRole,
+  ): Promise<UserDto | null> {
+    return Optional.ofNullable(await this.repository.findByEmail(email, role))
       .map((user: User) => this.mapper.toDto(user))
       .orElse(null);
   }
@@ -66,13 +67,17 @@ export class UserService extends BaseService<
     userId: string,
     file: Express.Multer.File | null,
   ): Promise<MediaDto> {
-    const currentUserProfilePictureId = await this.repository.findUserProfilePictureId(userId);
+    const currentUserProfilePictureId =
+      await this.repository.findUserProfilePictureId(userId);
 
     if (currentUserProfilePictureId) {
       await this.mediaService.deleteById(currentUserProfilePictureId);
     }
 
-    const mediaDto = await this.mediaService.createMedia(file, MinioBuckets.USERS);
+    const mediaDto = await this.mediaService.createMedia(
+      file,
+      MinioBuckets.USERS,
+    );
     await this.repository.updateProfilePicture(userId, mediaDto.id);
 
     return mediaDto;
@@ -99,10 +104,15 @@ export class UserService extends BaseService<
 
   protected override async postCreate(entity: User): Promise<void> {
     const token = await this.tokenService.generateToken(
-      entity.email,
-      TokenType.EMAIL_CONFIRMATION
+      `${entity.email}:${entity.role}`,
+      TokenType.EMAIL_CONFIRMATION,
     );
-    this.emailHelper.sendUserRegisteredEmail(entity.name, entity.email, UserRole.PATIENT, token.token);
+    this.emailHelper.sendUserRegisteredEmail(
+      entity.name,
+      entity.email,
+      UserRole.PATIENT,
+      token.token,
+    );
   }
 
   protected override async beforeUpdate(entity: User): Promise<void> {
