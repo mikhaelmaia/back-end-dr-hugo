@@ -97,7 +97,9 @@ export class UserService extends BaseService<
     await this.repository.save(user);
   }
 
-  public async findUserProfilePicture(userId: string): Promise<MediaDto> {
+  public async findUserProfilePicture(
+    userId: string,
+  ): Promise<MediaDto | null> {
     const profilePictureId =
       await this.repository.findUserProfilePictureId(userId);
     return this.mediaService.findById(profilePictureId);

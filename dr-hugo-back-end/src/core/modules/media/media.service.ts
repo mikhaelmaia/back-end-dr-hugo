@@ -39,7 +39,10 @@ export class MediaService extends BaseService<
     super(repository, mapper);
   }
 
-  public async createMedia(file: Express.Multer.File, bucket: MinioBuckets = MinioBuckets.TEMP): Promise<MediaDto> {
+  public async createMedia(
+    file: Express.Multer.File,
+    bucket: MinioBuckets = MinioBuckets.TEMP,
+  ): Promise<MediaDto> {
     this.validateFileType(file);
 
     const objectName = this.generateObjectName(file);
@@ -49,15 +52,15 @@ export class MediaService extends BaseService<
     const media = Media.from(file, bucket, objectName);
     const savedMedia = await this.repository.save(media);
     const mediaDto = this.mapper.toDto(savedMedia);
-    
+
     const client = this.minioService.getClient();
     const objectStream = await client.getObject(bucket, objectName);
     const chunks: Buffer[] = [];
-    
+
     for await (const chunk of objectStream) {
       chunks.push(chunk);
     }
-    
+
     const fileBuffer = Buffer.concat(chunks);
     mediaDto.data = fileBuffer.toString('base64');
     mediaDto.mimeType = this.getContentType(media.type);
@@ -65,11 +68,11 @@ export class MediaService extends BaseService<
     return mediaDto;
   }
 
-  public async findById(id: string): Promise<MediaDto> {
+  public async findById(id: string): Promise<MediaDto | null> {
     const media = await this.repository.findById(id);
     return Optional.ofNullable(media)
       .map((m) => this.mapper.toDto(m))
-      .orElseThrow(() => new NotFoundException(this.MEDIA_NOT_FOUND));
+      .orElse(null);
   }
 
   public async update(
@@ -139,7 +142,13 @@ export class MediaService extends BaseService<
     return this.mapper.toDto(updatedMedia);
   }
 
-  public async getFileStream(mediaId: string): Promise<{ stream: NodeJS.ReadableStream; contentType: string; filename: string }> {
+  public async getFileStream(
+    mediaId: string,
+  ): Promise<{
+    stream: NodeJS.ReadableStream;
+    contentType: string;
+    filename: string;
+  }> {
     const media = await this.repository.findById(mediaId);
     acceptFalseThrows(
       media !== null,
@@ -148,11 +157,11 @@ export class MediaService extends BaseService<
 
     const client = this.minioService.getClient();
     const stream = await client.getObject(media.bucket, media.objectName);
-    
+
     return {
       stream,
       contentType: this.getContentType(media.type),
-      filename: media.filename
+      filename: media.filename,
     };
   }
 
@@ -256,9 +265,11 @@ export class MediaService extends BaseService<
       [MediaType.GIF]: 'image/gif',
       [MediaType.PDF]: 'application/pdf',
       [MediaType.DOC]: 'application/msword',
-      [MediaType.DOCX]: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      [MediaType.DOCX]:
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       [MediaType.XLS]: 'application/vnd.ms-excel',
-      [MediaType.XLSX]: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      [MediaType.XLSX]:
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       [MediaType.TXT]: 'text/plain',
     };
     return mimeTypeMap[mediaType] || 'application/octet-stream';
