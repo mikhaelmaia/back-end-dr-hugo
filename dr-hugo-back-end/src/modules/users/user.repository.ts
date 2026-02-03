@@ -17,29 +17,32 @@ export class UserRepository extends BaseRepository<User> {
   }
 
   public findByEmail(email: string, role?: UserRole): Promise<User | null> {
-    const query = this.createBaseQuery()
-      .where(`${this.alias}.email = :email`, { email });
-    
+    const query = this.createBaseQuery().where(`${this.alias}.email = :email`, {
+      email,
+    });
+
     if (role) {
       query.andWhere(`${this.alias}.role = :role`, { role });
     }
-    
+
     return query.getOne();
   }
 
-  public findByEmailOrTaxId(emailOrTaxId: string, role?: UserRole): Promise<User | null> {
-    const query = this.createBaseQuery()
-      .where(`${this.alias}.email = :emailOrTaxId`, {
+  public findByEmailOrTaxId(
+    emailOrTaxId: string,
+    role?: UserRole,
+  ): Promise<User | null> {
+    let query = this.createBaseQuery().where(
+      `(${this.alias}.email = :emailOrTaxId OR ${this.alias}.taxId = :emailOrTaxId)`,
+      {
         emailOrTaxId,
-      })
-      .orWhere(`${this.alias}.taxId = :emailOrTaxId`, {
-        emailOrTaxId,
-      });
-    
+      },
+    );
+
     if (role) {
-      query.andWhere(`${this.alias}.role = :role`, { role });
+      query = query.andWhere(`${this.alias}.role = :role`, { role });
     }
-    
+
     return query.getOne();
   }
 
@@ -49,20 +52,20 @@ export class UserRepository extends BaseRepository<User> {
       .select('profilePicture.id', 'profilePictureId')
       .where(`${this.alias}.id = :userId`, { userId })
       .getRawOne()
-      .then(result => result ? result.profilePictureId : null);
+      .then((result) => (result ? result.profilePictureId : null));
   }
 
-  public async updateProfilePicture(userId: string, profilePictureId: string | null): Promise<void> {
+  public async updateProfilePicture(
+    userId: string,
+    profilePictureId: string | null,
+  ): Promise<void> {
     await this.repository.update(
       { id: userId },
-      { profilePicture: profilePictureId ? { id: profilePictureId } : null }
+      { profilePicture: profilePictureId ? { id: profilePictureId } : null },
     );
   }
 
   public async activateUser(userId: string): Promise<void> {
-    await this.repository.update(
-      { id: userId },
-      { isActive: true }
-    );
+    await this.repository.update({ id: userId }, { isActive: true });
   }
 }
