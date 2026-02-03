@@ -1,32 +1,36 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&display=swap" rel="stylesheet">
-  <style>
-    html, body {
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      html,
+      body {
         margin: 0;
         padding: 0;
-    }
-    .email-body {
+      }
+      .email-body {
         margin: 0 auto;
         padding: 20px;
         max-width: 600px;
         min-height: 720px;
-        background-color: #F3F4F6;
-    }
-    .container {
+        background-color: #f3f4f6;
+      }
+      .container {
         width: 100%;
         min-height: 720px;
         background-color: white;
         border-radius: 8px;
-    }
-    .email-text {
+      }
+      .email-text {
         padding: 16px;
-    }
-    h3 {
+      }
+      h3 {
         width: 100%;
         margin: 0;
         padding: 16px 0;
@@ -35,11 +39,11 @@
         font-size: 24px;
         font-weight: 600;
         color: #fff;
-        background-color: #00B0BB;
+        background-color: #00b0bb;
         border-top-left-radius: 8px;
         border-top-right-radius: 8px;
-    }
-    p {
+      }
+      p {
         display: block;
         margin-bottom: 16px;
         color: #111827;
@@ -47,8 +51,8 @@
         font-size: 14px;
         font-weight: 400;
         line-height: 1.5;
-    }
-    em {
+      }
+      em {
         display: block;
         margin: 20px auto;
         padding: 16px;
@@ -57,73 +61,73 @@
         font-weight: 600;
         font-style: normal;
         letter-spacing: 1px;
-        color: #00B0BB;
+        color: #00b0bb;
         text-align: center;
-        background-color: #F3F4F6;
+        background-color: #f3f4f6;
         border-radius: 8px;
-        border: 2px solid #E5E7EB;
-    }
-    .info-box {
+        border: 2px solid #e5e7eb;
+      }
+      .info-box {
         margin: 24px 0;
         padding: 20px;
-        background-color: #FBBF24;
-        border: 2px solid #F59E0B;
-        border-left: 6px solid #D97706;
+        background-color: #fbbf24;
+        border: 2px solid #f59e0b;
+        border-left: 6px solid #d97706;
         border-radius: 8px;
-    }
-    .info-box h4 {
+      }
+      .info-box h4 {
         margin: 0 0 12px 0;
-        color: #FFFFFF;
+        color: #ffffff;
         font-family: 'League Spartan', 'Helvetica Neue', Arial, sans-serif;
         font-size: 16px;
         font-weight: 600;
-    }
-    .info-box p {
+      }
+      .info-box p {
         margin: 8px 0;
-        color: #FFFFFF;
+        color: #ffffff;
         font-size: 14px;
         line-height: 1.5;
-    }
-    .info-box .highlight {
-        background-color: #D97706;
+      }
+      .info-box .highlight {
+        background-color: #d97706;
         padding: 2px 4px;
         border-radius: 3px;
         font-weight: 600;
-    }
-    .platform-info {
+      }
+      .platform-info {
         margin: 24px 0;
         padding: 20px;
-        background-color: #60A5FA;
-        border: 1px solid #3B82F6;
-        border-left: 6px solid #2563EB;
+        background-color: #60a5fa;
+        border: 1px solid #3b82f6;
+        border-left: 6px solid #2563eb;
         border-radius: 8px;
-    }
-    .platform-info h4 {
+      }
+      .platform-info h4 {
         margin: 0 0 12px 0;
-        color: #FFFFFF;
+        color: #ffffff;
         font-family: 'League Spartan', 'Helvetica Neue', Arial, sans-serif;
         font-size: 16px;
         font-weight: 600;
-    }
-    .platform-info p {
+      }
+      .platform-info p {
         margin: 8px 0;
-        color: #FFFFFF;
+        color: #ffffff;
         font-size: 14px;
         line-height: 1.5;
-    }
-    .platform-info .italic-text {
+      }
+      .platform-info .italic-text {
         font-style: italic;
         margin: 16px 0;
         font-weight: 500;
-    }
-    .login-button-container {
+      }
+      .login-button-container {
         text-align: center;
         margin: 32px 0 24px 0;
-    }
-    .login-button {
+      }
+      .login-button {
         display: inline-block;
         padding: 16px 32px;
-        background-color: #00B0BB;
+        background-color: #00b0bb;
         color: #ffffff !important;
         text-decoration: none;
         font-family: 'League Spartan', 'Helvetica Neue', Arial, sans-serif;
@@ -133,44 +137,50 @@
         border: none;
         cursor: pointer;
         transition: background-color 0.3s ease;
-    }
-    .login-button:hover {
+      }
+      .login-button:hover {
         background-color: #00828bff;
-    }
-    .login-button:visited {
+      }
+      .login-button:visited {
         color: #ffffff !important;
-    }
-  </style>
-</head>
-<body>
-  <div class="email-body">
-    <div class="container">
+      }
+    </style>
+  </head>
+  <body>
+    <div class="email-body">
+      <div class="container">
         <h3>Bem-vindo ao Doutor Viu</h3>
         <div class="email-text">
           <p>Olá, <%= name %></p>
-          <p>Bem-vindo ao Doutor Viu! Sua conta foi criada com sucesso em nossa plataforma de gestão de informações médicas.</p>
+          <p>
+            Bem-vindo ao Doutor Viu! Sua conta foi criada com sucesso em nossa
+            plataforma de gestão de informações médicas.
+          </p>
           <p>Data do cadastro:</p>
           <em><%= estimatedRegisteredAt %></em>
-          
+
           <div class="info-box">
             <h4>📧 Confirmação de E-mail Necessária</h4>
-            <p>Para garantir a segurança de sua conta, é necessário confirmar seu endereço de e-mail antes de acessar a plataforma.</p>
-            <p><strong>Utilize o código abaixo para confirmar sua conta:</strong></p>
+            <p>
+              Para garantir a segurança de sua conta, é necessário confirmar seu
+              endereço de e-mail antes de acessar a plataforma.
+            </p>
           </div>
-          
-          <em><%= token %></em>
-          
+
           <div class="login-button-container">
             <a href="<%= confirmationUrl %>" class="login-button">
               Confirmar E-mail
             </a>
           </div>
-          
-          <p>Após a confirmação, você poderá acessar todos os recursos da plataforma!</p>
-          <p>Estamos felizes em tê-lo conosco.</p> 
+
+          <p>
+            Após a confirmação, você poderá acessar todos os recursos da
+            plataforma!
+          </p>
+          <p>Estamos felizes em tê-lo conosco.</p>
           <p>Atenciosamente, Equipe Doutor Viu</p>
         </div>
+      </div>
     </div>
-  </div>
-</body>
+  </body>
 </html>
