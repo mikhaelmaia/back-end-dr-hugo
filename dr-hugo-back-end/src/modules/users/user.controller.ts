@@ -1,10 +1,16 @@
-import { Controller, Get, UploadedFile, UseInterceptors, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  UploadedFile,
+  UseInterceptors,
+  Patch,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-  ApiBody
+  ApiBody,
 } from '@nestjs/swagger';
 import { BaseController } from 'src/core/base/base.controller';
 import { User } from './entities/user.entity';
@@ -27,27 +33,28 @@ export class UserController extends BaseController<User, UserDto, UserService> {
 
   @ApiOperation({
     summary: 'Obter dados do usuário atual',
-    description: 'Retorna os dados completos do usuário autenticado atualmente na sessão, incluindo informações pessoais e de perfil.'
+    description:
+      'Retorna os dados completos do usuário autenticado atualmente na sessão, incluindo informações pessoais e de perfil.',
   })
   @ApiResponse({
     status: 200,
     description: 'Dados do usuário atual retornados com sucesso',
-    type: UserDto
+    type: UserDto,
   })
   @ApiResponse({
     status: 401,
     description: 'Token de acesso inválido, ausente ou expirado',
-    type: ExceptionResponse
+    type: ExceptionResponse,
   })
   @ApiResponse({
     status: 404,
     description: 'Usuário não encontrado (sessão inválida)',
-    type: ExceptionResponse
+    type: ExceptionResponse,
   })
   @ApiResponse({
     status: 500,
     description: 'Erro interno do servidor',
-    type: ExceptionResponse
+    type: ExceptionResponse,
   })
   @Get(UserPaths.CURRENT)
   public getCurrentUser(@CurrentUser() user: UserDto): UserDto {
@@ -56,7 +63,8 @@ export class UserController extends BaseController<User, UserDto, UserService> {
 
   @ApiOperation({
     summary: 'Atualizar foto de perfil do usuário',
-    description: 'Permite que o usuário autenticado atualize sua foto de perfil enviando um novo arquivo de imagem.'
+    description:
+      'Permite que o usuário autenticado atualize sua foto de perfil enviando um novo arquivo de imagem.',
   })
   @ApiBody({
     description: 'Arquivo a ser enviado para o sistema',
@@ -66,35 +74,71 @@ export class UserController extends BaseController<User, UserDto, UserService> {
         file: {
           type: 'string',
           format: 'binary',
-          description: 'Arquivo a ser carregado (imagem, documento, planilha, etc.)'
-        }
+          description:
+            'Arquivo a ser carregado (imagem, documento, planilha, etc.)',
+        },
       },
-      required: ['file']
-    }
+      required: ['file'],
+    },
   })
   @ApiResponse({
     status: 200,
     description: 'Foto de perfil atualizada com sucesso',
-    type: MediaDto
+    type: MediaDto,
   })
   @ApiResponse({
     status: 400,
     description: 'Arquivo malformado ou inválido',
-    type: ExceptionResponse
+    type: ExceptionResponse,
   })
   @ApiResponse({
     status: 401,
     description: 'Token de acesso inválido, ausente ou expirado',
-    type: ExceptionResponse
+    type: ExceptionResponse,
   })
   @ApiResponse({
     status: 500,
     description: 'Erro interno do servidor',
-    type: ExceptionResponse
+    type: ExceptionResponse,
   })
   @Patch(UserPaths.UPDATE_PROFILE_PICTURE)
   @UseInterceptors(FileInterceptor('file', multerSingleFileConfig))
-  public async updateUserProfilePicture(@CurrentUser('id') userId: string, @UploadedFile() file: Express.Multer.File): Promise<MediaDto> {
+  public async updateUserProfilePicture(
+    @CurrentUser('id') userId: string,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<MediaDto> {
     return await this.service.updateProfilePicture(userId, file);
+  }
+
+  @ApiOperation({
+    summary: 'Obter foto de perfil do usuário',
+    description:
+      'Retorna a foto de perfil do usuário autenticado atualmente na sessão.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Foto de perfil retornada com sucesso',
+    type: MediaDto,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Token de acesso inválido, ausente ou expirado',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Foto de perfil não encontrada',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Erro interno do servidor',
+    type: ExceptionResponse,
+  })
+  @Get(UserPaths.FIND_PROFILE_PICTURE)
+  public async getUserProfilePicture(
+    @CurrentUser('id') userId: string,
+  ): Promise<MediaDto> {
+    return await this.service.findUserProfilePicture(userId);
   }
 }
