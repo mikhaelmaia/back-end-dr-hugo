@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      .email-body {
+        margin: 0 auto;
+        padding: 20px;
+        max-width: 600px;
+        min-height: 720px;
+        background-color: #f3f4f6;
+      }
+      .container {
+        width: 100%;
+        min-height: 720px;
+        background-color: white;
+        border-radius: 8px;
+      }
+      .email-text {
+        padding: 16px;
+      }
+      h3 {
+        width: 100%;
+        margin: 0;
+        padding: 16px 0;
+        text-align: center;
+        font-family: 'League Spartan', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 24px;
+        font-weight: 600;
+        color: #fff;
+        background-color: #00b0bb;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+      }
+      p {
+        display: block;
+        margin-bottom: 16px;
+        color: #111827;
+        font-family: 'League Spartan', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 1.5;
+      }
+      em {
+        display: block;
+        margin: 20px auto;
+        padding: 16px;
+        font-family: 'League Spartan', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 20px;
+        font-weight: 600;
+        font-style: normal;
+        letter-spacing: 1px;
+        color: #00b0bb;
+        text-align: center;
+        background-color: #f3f4f6;
+        border-radius: 8px;
+        border: 2px solid #e5e7eb;
+      }
+      .info-box {
+        margin: 24px 0;
+        padding: 20px;
+        background-color: #fbbf24;
+        border: 2px solid #f59e0b;
+        border-left: 6px solid #d97706;
+        border-radius: 8px;
+      }
+      .info-box h4 {
+        margin: 0 0 12px 0;
+        color: #ffffff;
+        font-family: 'League Spartan', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+      }
+      .info-box p {
+        margin: 8px 0;
+        color: #ffffff;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      .info-box .highlight {
+        background-color: #d97706;
+        padding: 2px 4px;
+        border-radius: 3px;
+        font-weight: 600;
+      }
+      .platform-info {
+        margin: 24px 0;
+        padding: 20px;
+        background-color: #60a5fa;
+        border: 1px solid #3b82f6;
+        border-left: 6px solid #2563eb;
+        border-radius: 8px;
+      }
+      .platform-info h4 {
+        margin: 0 0 12px 0;
+        color: #ffffff;
+        font-family: 'League Spartan', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+      }
+      .platform-info p {
+        margin: 8px 0;
+        color: #ffffff;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      .platform-info .italic-text {
+        font-style: italic;
+        margin: 16px 0;
+        font-weight: 500;
+      }
+      .login-button-container {
+        text-align: center;
+        margin: 32px 0 24px 0;
+      }
+      .login-button {
+        display: inline-block;
+        padding: 16px 32px;
+        background-color: #00b0bb;
+        color: #ffffff !important;
+        text-decoration: none;
+        font-family: 'League Spartan', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+      .login-button:hover {
+        background-color: #00828bff;
+      }
+      .login-button:visited {
+        color: #ffffff !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="email-body">
+      <div class="container">
+        <h3>Bem-vindo ao Doutor Viu</h3>
+        <div class="email-text">
+          <p>Olá, <%= name %></p>
+          <p>
+            Bem-vindo ao Doutor Viu! Sua conta foi criada com sucesso em nossa
+            plataforma de gestão de informações médicas.
+          </p>
+          <p>Data do cadastro:</p>
+          <em><%= estimatedRegisteredAt %></em>
+
+          <div class="info-box">
+            <h4>📧 Confirmação de E-mail Necessária</h4>
+            <p>
+              Para garantir a segurança de sua conta, é necessário confirmar seu
+              endereço de e-mail antes de acessar a plataforma.
+            </p>
+          </div>
+
+          <div class="login-button-container">
+            <a href="<%= confirmationUrl %>" class="login-button">
+              Confirmar E-mail
+            </a>
+          </div>
+
+          <p>
+            Após a confirmação, você poderá acessar todos os recursos da
+            plataforma!
+          </p>
+          <p>Estamos felizes em tê-lo conosco.</p>
+          <p>Atenciosamente, Equipe Doutor Viu</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,10 +1,45 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { ScheduleModule } from '@nestjs/schedule';
+import { ManagerModule } from './modules/manager.module';
+import { IsUniqueConstraint } from './core/vo/validators/is-unique.validator';
+import { ExistsInValidator } from './core/vo/validators/exists-in.validator';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { TimeoutInterceptor } from './core/config/interceptors/timeout.interceptor';
+import { TransformInterceptor } from './core/config/interceptors/transform.interceptor';
+import { AuthGuard } from './core/config/security/auth.guard';
+import { ConfigModule } from '@nestjs/config';
+import configuration from './core/config/environment/configuration';
+import { DatabaseModule } from './core/config/database/database.module';
+import { CoreModule } from './core/modules/core.module';
+import { IsUniqueCompositeConstraint } from './core/vo/validators/is-unique-composite.validator';
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [
+    ConfigModule.forRoot({
+      load: [configuration],
+      isGlobal: true,
+    }),
+    ScheduleModule.forRoot(),
+    CoreModule,
+    ManagerModule,
+    DatabaseModule,
+  ],
+  providers: [
+    IsUniqueCompositeConstraint,
+    IsUniqueConstraint,
+    ExistsInValidator,
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TimeoutInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TransformInterceptor,
+    },
+  ],
 })
 export class AppModule {}

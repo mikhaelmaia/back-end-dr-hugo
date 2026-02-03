@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&display=swap" rel="stylesheet">
+  <style>
+    html, body {
+        margin: 0;
+        padding: 0;
+    }
+    .email-body {
+        margin: 0 auto;
+        padding: 20px;
+        max-width: 600px;
+        min-height: 720px;
+        background-color: #F3F4F6;
+    }
+    .container {
+        width: 100%;
+        min-height: 720px;
+        background-color: white;
+        border-radius: 8px;
+    }
+    .email-text {
+        padding: 16px;
+    }
+    h3 {
+        width: 100%;
+        margin: 0;
+        padding: 16px 0;
+        text-align: center;
+        font-family: 'League Spartan', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 24px;
+        font-weight: 600;
+        color: #fff;
+        background-color: #00B0BB;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+    }
+    p {
+        display: block;
+        margin-bottom: 16px;
+        color: #111827;
+        font-family: 'League Spartan', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 1.5;
+    }
+    em {
+        display: block;
+        margin: 20px auto;
+        padding: 16px;
+        font-family: 'League Spartan', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 20px;
+        font-weight: 600;
+        font-style: normal;
+        letter-spacing: 1px;
+        color: #00B0BB;
+        text-align: center;
+        background-color: #F3F4F6;
+        border-radius: 8px;
+        border: 2px solid #E5E7EB;
+    }
+    .info-box {
+        margin: 24px 0;
+        padding: 20px;
+        background-color: #16A34A;
+        border: 2px solid #15803D;
+        border-left: 6px solid #166534;
+        border-radius: 8px;
+    }
+    .info-box h4 {
+        margin: 0 0 12px 0;
+        color: #FFFFFF;
+        font-family: 'League Spartan', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+    }
+    .info-box p {
+        margin: 8px 0;
+        color: #FFFFFF;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+    .login-button-container {
+        text-align: center;
+        margin: 32px 0 24px 0;
+    }
+    .login-button {
+        display: inline-block;
+        padding: 16px 32px;
+        background-color: #00B0BB;
+        color: #ffffff !important;
+        text-decoration: none;
+        font-family: 'League Spartan', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+    .login-button:hover {
+        background-color: #00828bff;
+    }
+    .login-button:visited {
+        color: #ffffff !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-body">
+    <div class="container">
+        <h3>E-mail Confirmado - Doutor Viu</h3>
+        <div class="email-text">
+          <p>Olá, <%= name %></p>
+          <p>Seu e-mail foi confirmado com sucesso e sua conta no Doutor Viu está ativa.</p>
+          <p>Data da confirmação:</p>
+          <em><%= estimatedConfirmedAt %></em>
+          
+          <div class="info-box">
+            <h4>✅ Conta Ativada</h4>
+            <p>Agora você pode acessar todos os recursos da plataforma com segurança.</p>
+          </div>
+          
+          <div class="login-button-container">
+            <a href="<%= loginPageUrl %>" class="login-button">
+              Acessar Doutor Viu
+            </a>
+          </div>
+          
+          <p>Bem-vindo ao Doutor Viu!</p>
+          <p>Atenciosamente, Equipe Doutor Viu</p>
+        </div>
+    </div>
+  </div>
+</body>
+</html>

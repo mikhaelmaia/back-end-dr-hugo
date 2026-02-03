@@ -17,7 +17,15 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
+    "migration:create": "npm run typeorm -- migration:create",
+    "migration:generate": "npm run typeorm -- migration:generate -d src/core/config/database/data-source.ts",
+    "migration:run": "npm run typeorm -- migration:run -d src/core/config/database/data-source.ts",
+    "migration:revert": "npm run typeorm -- migration:revert -d src/core/config/database/data-source.ts",
+    "schema:sync": "npm run typeorm -- schema:sync -d src/core/config/database/data-source.ts",
+    "schema:drop": "npm run typeorm -- schema:drop -d src/core/config/database/data-source.ts",
+    "schema:log": "npm run typeorm -- schema:log -d src/core/config/database/data-source.ts"
   },
   "dependencies": {
     "@nestjs-modules/mailer": "^2.0.2",
@@ -39,12 +47,15 @@
     "dotenv": "^17.2.3",
     "ejs": "^3.1.10",
     "helmet": "^8.1.0",
+    "ioredis": "^5.9.1",
+    "minio": "^8.0.6",
     "nodemailer": "^7.0.12",
     "pg": "^8.16.3",
     "puppeteer": "^24.34.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
-    "typeorm": "^0.3.28"
+    "typeorm": "^0.3.28",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
@@ -60,6 +71,7 @@
     "@types/nodemailer": "^7.0.4",
     "@types/puppeteer": "^5.4.7",
     "@types/supertest": "^6.0.3",
+    "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^8.50.1",
     "@typescript-eslint/parser": "^8.50.1",
     "eslint": "^9.39.2",
