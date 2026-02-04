@@ -16,7 +16,7 @@ import { Optional } from '../../utils/optional';
 import { extractFileTypeFromOriginalName } from '../../utils/utils';
 import { MediaType } from '../../vo/consts/enums';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'node:crypto';
 import * as path from 'node:path';
 
 @Injectable()
@@ -142,9 +142,7 @@ export class MediaService extends BaseService<
     return this.mapper.toDto(updatedMedia);
   }
 
-  public async getFileStream(
-    mediaId: string,
-  ): Promise<{
+  public async getFileStream(mediaId: string): Promise<{
     stream: NodeJS.ReadableStream;
     contentType: string;
     filename: string;
@@ -241,7 +239,7 @@ export class MediaService extends BaseService<
   }
 
   private generateObjectName(file: Express.Multer.File): string {
-    const uniqueId = uuidv4();
+    const uniqueId = randomUUID();
     const fileExtension = path.extname(file.originalname);
     return `${uniqueId}${fileExtension}`;
   }
