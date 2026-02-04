@@ -1,88 +1,105 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Client } from 'minio';
 import { ConfigService } from '@nestjs/config';
 import { getAllMinioBuckets } from './minio.buckets';
-import https from 'node:https';
 
 @Injectable()
-export class MinioService implements OnModuleInit {
-  private readonly client: Client;
+export class MinioService {
   private readonly logger = new Logger(MinioService.name);
+  private readonly client: Client;
 
-  public constructor(private readonly configService: ConfigService) {
-    const insecureHttps = new https.Agent({
-      rejectUnauthorized: false,
-    });
+  private initialized = false;
+  private initializing?: Promise<void>;
+
+  constructor(private readonly configService: ConfigService) {
+    const endPoint = this.configService.get<string>('MINIO_ENDPOINT');
+    const port = Number(this.configService.get<number>('MINIO_PORT'));
+    const useSSL = this.configService.get<string>('MINIO_USE_SSL') === 'true';
 
     this.client = new Client({
-      endPoint: this.configService.get<string>('MINIO_ENDPOINT'),
-      port: Number(this.configService.get('MINIO_PORT')),
-      useSSL: true,
+      endPoint,
+      port,
+      useSSL,
       accessKey: this.configService.get<string>('MINIO_ACCESS_KEY'),
       secretKey: this.configService.get<string>('MINIO_SECRET_KEY'),
-      transport: {
-        request: (options, cb) =>
-          https.request({ ...options, agent: insecureHttps }, cb),
-      },
     });
 
-    this.logger.log('Cliente Minio configurado com sucesso');
+    this.logger.log(
+      `MinIO client criado (${useSSL ? 'https' : 'http'}://${endPoint}:${port})`,
+    );
   }
 
-  public async onModuleInit(): Promise<void> {
-    try {
-      this.logger.log('Inicializando conexão com Minio...');
-
-      await this.client.listBuckets();
-      this.logger.log('Conexão com Minio estabelecida com sucesso');
-
-      const allBuckets = getAllMinioBuckets();
-      this.logger.log(
-        `Verificando ${allBuckets.length} bucket(s): ${allBuckets.join(', ')}`,
-      );
-
-      for (const bucket of allBuckets) {
-        await this.ensureBucketExists(bucket);
-      }
-
-      this.logger.log('Todos os buckets foram verificados/criados com sucesso');
-    } catch (error) {
-      this.logger.error('Erro ao conectar com Minio ou criar buckets', error);
-      throw error;
-    }
-  }
-
-  public getClient(): Client {
+  public async getClient(): Promise<Client> {
+    await this.ensureInitialized();
     return this.client;
   }
 
   public getObjectUrl(bucket: string, objectName: string): string {
     const endpoint = this.configService.get<string>('MINIO_ENDPOINT');
-    const port = this.configService.get<number>('MINIO_PORT');
+    const port = Number(this.configService.get<number>('MINIO_PORT'));
     const useSSL = this.configService.get<string>('MINIO_USE_SSL') === 'true';
+
     const protocol = useSSL ? 'https' : 'http';
     const portSuffix =
       (useSSL && port === 443) || (!useSSL && port === 80) ? '' : `:${port}`;
+
     return `${protocol}://${endpoint}${portSuffix}/${bucket}/${objectName}`;
   }
 
-  public async getBucket(bucket: string): Promise<string> {
-    await this.ensureBucketExists(bucket);
-    return bucket;
+  private async ensureInitialized(): Promise<void> {
+    if (this.initialized) return;
+
+    if (!this.initializing) {
+      this.initializing = this.initialize();
+    }
+
+    await this.initializing;
+  }
+
+  private async initialize(): Promise<void> {
+    const maxRetries = 10;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        this.logger.log(
+          `Conectando ao MinIO (tentativa ${attempt}/${maxRetries})`,
+        );
+
+        await this.client.listBuckets();
+
+        const buckets = getAllMinioBuckets();
+        for (const bucket of buckets) {
+          await this.ensureBucketExists(bucket);
+        }
+
+        this.initialized = true;
+        this.logger.log('MinIO inicializado com sucesso');
+        return;
+      } catch (error) {
+        this.logger.warn(
+          `MinIO indisponível (tentativa ${attempt}/${maxRetries})`,
+        );
+
+        if (attempt === maxRetries) {
+          this.logger.error('Falha ao inicializar MinIO', error);
+          throw error;
+        }
+
+        await this.sleep(attempt * 1500);
+      }
+    }
   }
 
   private async ensureBucketExists(bucket: string): Promise<void> {
-    try {
-      const exists = await this.client.bucketExists(bucket);
-      if (exists) {
-        this.logger.debug(`Bucket '${bucket}' já existe`);
-      } else {
-        await this.client.makeBucket(bucket);
-        this.logger.log(`Bucket '${bucket}' criado com sucesso`);
-      }
-    } catch (error) {
-      this.logger.error(`Erro ao verificar/criar bucket '${bucket}'`, error);
-      throw error;
+    const exists = await this.client.bucketExists(bucket);
+
+    if (!exists) {
+      await this.client.makeBucket(bucket);
+      this.logger.log(`Bucket '${bucket}' criado`);
     }
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }

@@ -53,7 +53,7 @@ export class MediaService extends BaseService<
     const savedMedia = await this.repository.save(media);
     const mediaDto = this.mapper.toDto(savedMedia);
 
-    const client = this.minioService.getClient();
+    const client = await this.minioService.getClient();
     const objectStream = await client.getObject(bucket, objectName);
     const chunks: Buffer[] = [];
 
@@ -153,7 +153,7 @@ export class MediaService extends BaseService<
       () => new NotFoundException(this.MEDIA_NOT_FOUND),
     );
 
-    const client = this.minioService.getClient();
+    const client = await this.minioService.getClient();
     const stream = await client.getObject(media.bucket, media.objectName);
 
     return {
@@ -203,7 +203,7 @@ export class MediaService extends BaseService<
     buffer: Buffer,
     contentType: string,
   ): Promise<void> {
-    const client = this.minioService.getClient();
+    const client = await this.minioService.getClient();
     await client.putObject(bucket, objectName, buffer, buffer.length, {
       'Content-Type': contentType,
     });
@@ -213,7 +213,7 @@ export class MediaService extends BaseService<
     bucket: string,
     objectName: string,
   ): Promise<void> {
-    const client = this.minioService.getClient();
+    const client = await this.minioService.getClient();
     try {
       await client.removeObject(bucket, objectName);
     } catch (error) {
@@ -230,7 +230,7 @@ export class MediaService extends BaseService<
     targetBucket: string,
     targetObject: string,
   ): Promise<void> {
-    const client = this.minioService.getClient();
+    const client = await this.minioService.getClient();
     await client.copyObject(
       targetBucket,
       targetObject,
