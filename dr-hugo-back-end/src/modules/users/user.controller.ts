@@ -22,6 +22,7 @@ import { ExceptionResponse } from 'src/core/config/exceptions/exception-response
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerSingleFileConfig } from 'src/core/config/media/multer.config';
 import { MediaDto } from 'src/core/modules/media/dtos/media.dto';
+import { NoCache } from 'src/core/vo/decorators/no-cache.decorator';
 
 @ApiTags('Gerenciamento de Usuários')
 @ApiBearerAuth()
@@ -135,6 +136,7 @@ export class UserController extends BaseController<User, UserDto, UserService> {
     description: 'Erro interno do servidor',
     type: ExceptionResponse,
   })
+  @NoCache()
   @Get(UserPaths.FIND_PROFILE_PICTURE)
   public async getUserProfilePicture(
     @CurrentUser('id') userId: string,

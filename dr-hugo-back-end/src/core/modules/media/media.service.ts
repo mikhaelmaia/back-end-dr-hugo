@@ -53,26 +53,23 @@ export class MediaService extends BaseService<
     const savedMedia = await this.repository.save(media);
     const mediaDto = this.mapper.toDto(savedMedia);
 
-    const client = await this.minioService.getClient();
-    const objectStream = await client.getObject(bucket, objectName);
-    const chunks: Buffer[] = [];
-
-    for await (const chunk of objectStream) {
-      chunks.push(chunk);
-    }
-
-    const fileBuffer = Buffer.concat(chunks);
-    mediaDto.data = fileBuffer.toString('base64');
-    mediaDto.mimeType = this.getContentType(media.type);
+    await this.setMimeTypeAndData(mediaDto);
 
     return mediaDto;
   }
 
   public async findById(id: string): Promise<MediaDto | null> {
-    const media = await this.repository.findById(id);
-    return Optional.ofNullable(media)
-      .map((m) => this.mapper.toDto(m))
+    const mediaDto = Optional.ofNullable(await this.repository.findById(id))
+      .map((m: Media) => this.mapper.toDto(m))
       .orElse(null);
+
+    if (mediaDto === null) {
+      return null;
+    }
+
+    await this.setMimeTypeAndData(mediaDto);
+
+    return mediaDto;
   }
 
   public async update(
@@ -271,5 +268,22 @@ export class MediaService extends BaseService<
       [MediaType.TXT]: 'text/plain',
     };
     return mimeTypeMap[mediaType] || 'application/octet-stream';
+  }
+
+  private async setMimeTypeAndData(mediaDto: MediaDto): Promise<void> {
+    const client = await this.minioService.getClient();
+    const objectStream = await client.getObject(
+      mediaDto.bucket,
+      mediaDto.objectName,
+    );
+    const chunks: Buffer[] = [];
+
+    for await (const chunk of objectStream) {
+      chunks.push(chunk);
+    }
+
+    const fileBuffer = Buffer.concat(chunks);
+    mediaDto.data = fileBuffer.toString('base64');
+    mediaDto.mimeType = this.getContentType(mediaDto.type);
   }
 }
