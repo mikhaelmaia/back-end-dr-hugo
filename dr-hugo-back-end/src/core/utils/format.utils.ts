@@ -6,3 +6,7 @@ export const formatToTitleCase = (input: string): string => {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 };
+
+export const isValidId = (id: string): boolean => {
+  return !id || id.trim() === '';
+};

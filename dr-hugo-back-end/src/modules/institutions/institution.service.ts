@@ -55,7 +55,8 @@ export class InstitutionService extends BaseService<
     const [institutionToCreate, user] =
       this.mapper.mapCreationDtoToEntityAndUser(institutionDto);
 
-    user.name = lookedUpValidation.data.name;
+    user.name =
+      lookedUpValidation.data.fantasyName ?? lookedUpValidation.data.name;
     institution.address = institutionToCreate.address;
     institution.cnes = institutionToCreate.cnes;
     institution.medicalInstitutionType =
