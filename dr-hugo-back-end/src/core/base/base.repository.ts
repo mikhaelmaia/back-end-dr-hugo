@@ -7,6 +7,7 @@ import {
 import { BaseEntity } from './base.entity';
 import { Page, PaginationParams } from '../vo/types/types';
 import { Logger } from '@nestjs/common';
+import { isValidId } from '../utils/format.utils';
 
 export abstract class BaseRepository<TEntity extends BaseEntity> {
   protected alias = 'entity';
@@ -23,6 +24,10 @@ export abstract class BaseRepository<TEntity extends BaseEntity> {
   }
 
   public findById(id: string): Promise<TEntity | null> {
+    if (isValidId(id)) {
+      return null;
+    }
+
     return this.repository.findOne({
       where: { id } as any,
       withDeleted: false,
@@ -37,16 +42,28 @@ export abstract class BaseRepository<TEntity extends BaseEntity> {
   }
 
   public async delete(id: string): Promise<boolean> {
+    if (isValidId(id)) {
+      return false;
+    }
+
     const result = await this.repository.delete(id);
     return (result.affected ?? 0) > 0;
   }
 
   public async softDelete(id: string): Promise<boolean> {
+    if (isValidId(id)) {
+      return false;
+    }
+
     const result = await this.repository.softDelete(id);
     return (result.affected ?? 0) > 0;
   }
 
   public existsById(id: string): Promise<boolean> {
+    if (isValidId(id)) {
+      return Promise.resolve(false);
+    }
+
     return this.exists({
       where: { id } as any,
       withDeleted: false,
