@@ -134,5 +134,5 @@ export class DoctorPaths extends BasePaths {
 }
 
 export class MedicalRecordPaths extends BasePaths {
-  public static readonly BASE = '/medical-records';
+  public static readonly BASE = '/patient-medical-records';
 }

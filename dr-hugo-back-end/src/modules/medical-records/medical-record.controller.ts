@@ -112,7 +112,7 @@ export class PatientMedicalRecordController {
     type: ExceptionResponse,
   })
   @Put()
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @HttpCode(HttpStatus.OK)
   public async updateMedicalRecordByUserId(
     @CurrentUser('id') userId: string,
     @Body() dto: PatientMedicalRecordDto,

@@ -38,21 +38,23 @@ export class PatientMedicalRecordService extends BaseService<
   ): Promise<void> {
     const found = await this.repository.findByPatientUserId(userId);
 
+    const patientId = await this.patientService.findPatientIdByUserId(userId);
+
     if (found) {
-      await this.updateExistingMedicalRecord(found, dto);
+      await this.updateExistingMedicalRecord(found, dto, patientId);
       return;
     }
-    await this.createMedicalRecord(dto, userId);
+    await this.createMedicalRecord(dto, patientId);
   }
 
   private async createMedicalRecord(
     dto: PatientMedicalRecordDto,
-    userId: string,
+    patientId: string,
   ): Promise<void> {
     const entity = this.mapper.toEntity(dto);
     entity.clearId();
     entity.patient = {
-      id: await this.patientService.findPatientIdByUserId(userId),
+      id: patientId,
     } as any;
     await this.repository.save(entity);
   }
@@ -60,8 +62,13 @@ export class PatientMedicalRecordService extends BaseService<
   private async updateExistingMedicalRecord(
     found: PatientMedicalRecord,
     dto: PatientMedicalRecordDto,
+    patientId: string,
   ): Promise<void> {
     const entityToUpdate = this.mapToUpdateEntity(dto, found);
+
+    entityToUpdate.patient = {
+      id: patientId,
+    } as any;
 
     await this.repository.save(entityToUpdate);
   }
