@@ -1,12 +1,11 @@
-import {
-  Injectable,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { BaseService } from 'src/core/base/base.service';
 import { Patient } from './entities/patient.entity';
 import { PatientDto } from './dtos/patient.dto';
 import { PatientsRepository } from './patients.repository';
 import { PatientsMapper } from './patients.mapper';
 import { UserService } from '../users/user.service';
+import { Optional } from 'src/core/utils/optional';
 
 @Injectable()
 export class PatientsService extends BaseService<
@@ -26,7 +25,7 @@ export class PatientsService extends BaseService<
   }
 
   public override async create(dto: PatientDto): Promise<PatientDto> {
-    const [ pacient, user ] = this.mapper.toEntityAndUser(dto);
+    const [pacient, user] = this.mapper.toEntityAndUser(dto);
 
     pacient.clearId();
 
@@ -35,9 +34,15 @@ export class PatientsService extends BaseService<
     pacient.user = {
       id: savedUser.id,
     } as any;
-    
+
     const savedPatient = await this.repository.save(pacient);
 
     return this.mapper.toDtoWithUser(savedPatient, savedUser);
+  }
+
+  public async findPatientIdByUserId(userId: string): Promise<string> {
+    return Optional.ofNullable(
+      await this.repository.findPatientIdByUserId(userId),
+    ).orElseThrow(() => new NotFoundException(this.ENTITY_NOT_FOUND));
   }
 }

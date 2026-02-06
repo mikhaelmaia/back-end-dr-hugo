@@ -126,10 +126,15 @@ export abstract class BaseService<
     entityReceived: Partial<TDto>,
     entityFound: TEntity,
   ): TEntity {
-    return {
-      ...entityFound,
-      ...this.mapper.toEntity(entityReceived),
-    };
+    const entityFromDto = this.mapper.toEntity(entityReceived);
+
+    Object.keys(entityFromDto).forEach((key) => {
+      if (entityFromDto[key] !== undefined && entityFromDto[key] !== null) {
+        entityFound[key] = entityFromDto[key];
+      }
+    });
+
+    return entityFound;
   }
 
   protected beforeDelete(entity: TEntity): Promise<void> {

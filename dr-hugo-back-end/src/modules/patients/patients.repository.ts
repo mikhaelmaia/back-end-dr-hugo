@@ -14,4 +14,13 @@ export class PatientsRepository extends BaseRepository<Patient> {
   ) {
     super(patientRepository);
   }
+
+  public findPatientIdByUserId(userId: string): Promise<string | null> {
+    return this.createBaseQuery()
+      .innerJoin('patient.user', 'user')
+      .select('patient.id', 'patientId')
+      .where('user.id = :userId', { userId })
+      .getRawOne<{ patientId: string }>()
+      .then((result) => result?.patientId ?? null);
+  }
 }

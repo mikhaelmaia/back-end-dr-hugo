@@ -132,3 +132,7 @@ export class DoctorPaths extends BasePaths {
   public static readonly CREATE_FULL = `${this.BASE}${this.CREATE}`;
   public static readonly LOOKUP_FULL = `${this.BASE}${this.LOOKUP}`;
 }
+
+export class MedicalRecordPaths extends BasePaths {
+  public static readonly BASE = '/patient-medical-records';
+}
