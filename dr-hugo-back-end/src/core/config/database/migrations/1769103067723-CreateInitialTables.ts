@@ -7,7 +7,7 @@ export class CreateInitialTables1769103067723 implements MigrationInterface {
         `);
 
     await queryRunner.query(`
-            CREATE TYPE "token_type_enum" AS ENUM('PASSWORD_RESET', 'EMAIL_CONFIRMATION')
+            CREATE TYPE "token_type_enum" AS ENUM('PASSWORD_RESET', 'EMAIL_CONFIRMATION', 'USER_REQUEST_CHANGE')
         `);
 
     await queryRunner.query(`
@@ -260,7 +260,7 @@ export class CreateInitialTables1769103067723 implements MigrationInterface {
                 "created_at" TIMESTAMP NOT NULL DEFAULT now(),
                 "updated_at" TIMESTAMP,
                 "deleted_at" TIMESTAMP,
-                "fingerprint_hash" character varying(64) NOT NULL,
+                "fingerprint_hash" text NOT NULL,
                 "ip_address" character varying(45) NOT NULL,
                 "user_agent" text NOT NULL,
                 "session_id" character varying,

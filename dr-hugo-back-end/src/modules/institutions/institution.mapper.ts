@@ -31,6 +31,7 @@ export class InstitutionMapper extends BaseMapper<Institution, InstitutionDto> {
     dto.id = entity.id;
     dto.cnes = entity.cnes;
     dto.medicalInstitutionType = entity.medicalInstitutionType;
+    dto.name = entity.user?.name || null;
     dto.taxId = entity.user?.taxId || null;
     dto.role = entity.user?.role || null;
     dto.email = entity.user?.email || null;

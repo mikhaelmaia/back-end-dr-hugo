@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { BaseService } from 'src/core/base/base.service';
 import { Institution } from './entities/institution.entity';
 import { InstitutionDto } from './dtos/institution.dto';
@@ -10,6 +14,7 @@ import { InstitutionValidationDto } from './dtos/institution-validation.dto';
 import { CreateInstitutionDto } from './dtos/create-institution.dto';
 import { UserService } from '../users/user.service';
 import { whenNullThrows } from 'src/core/utils/functions';
+import { Optional } from 'src/core/utils/optional';
 
 @Injectable()
 export class InstitutionService extends BaseService<
@@ -18,6 +23,7 @@ export class InstitutionService extends BaseService<
   InstitutionRepository,
   InstitutionMapper
 > {
+  protected override ENTITY_NOT_FOUND: string = 'Instituição não encontrada';
   private readonly LOOKUP_VALIDATION_IS_MANDATORY_MESSAGE =
     'Validação do CNPJ da instituição é obrigatória. Por favor, realize a consulta antes de criar o cadastro da instituição.';
 
@@ -81,5 +87,18 @@ export class InstitutionService extends BaseService<
     const savedInstitution = await this.repository.save(institution);
 
     return this.mapper.toDto(savedInstitution);
+  }
+
+  public async findInstitutionIdByUserId(userId: string): Promise<string> {
+    return Optional.ofNullable(
+      await this.repository.findInstitutionIdByUserId(userId),
+    ).orElseThrow(() => new NotFoundException(this.ENTITY_NOT_FOUND));
+  }
+
+  public async findInstitutionByUserId(
+    userId: string,
+  ): Promise<InstitutionDto> {
+    const institutionId = await this.findInstitutionIdByUserId(userId);
+    return await this.findById(institutionId);
   }
 }

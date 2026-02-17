@@ -9,6 +9,10 @@ export default () => ({
     loginPath: process.env.DV_WEB_LOGIN_PATH,
     forgotPasswordPath: process.env.DV_WEB_FORGOT_PASSWORD_PATH,
     emailConfirmationPath: process.env.DV_WEB_EMAIL_CONFIRMATION_PATH,
+    emailChangeConfirmationPath:
+      process.env.DV_WEB_EMAIL_CHANGE_CONFIRMATION_PATH,
+    profileChangeConfirmationPath:
+      process.env.DV_WEB_PROFILE_CHANGE_CONFIRMATION_PATH,
   },
   database: {
     host: process.env.DATABASE_HOST,
@@ -44,7 +48,12 @@ export default () => ({
   receitaWs: {
     apiUrl: process.env.RECEITAWS_API_URL,
     apiTimeout: Number.parseInt(process.env.RECEITAWS_API_TIMEOUT, 10) || 30000,
-    companyDataPath: process.env.RECEITAWS_COMPANY_DATA_PATH
+    companyDataPath: process.env.RECEITAWS_COMPANY_DATA_PATH,
+  },
+  cfm: {
+    apiUrl: process.env.CFM_API_URL,
+    apiKey: process.env.CFM_API_KEY,
+    apiTimeout: Number.parseInt(process.env.CFM_API_TIMEOUT, 10) || 5000,
   },
   viaCep: {
     apiUrl: process.env.VIA_CEP_API_URL,

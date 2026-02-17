@@ -1,61 +1,88 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
-import { BaseService } from "src/core/base/base.service";
-import { DoctorRepository } from "./doctor.repository";
-import { DoctorMapper } from "./doctor.mapper";
-import { DoctorAdapter } from "./doctor.adapter";
-import { DoctorDto } from "./dtos/doctor.dto";
-import { Doctor } from "./entities/doctor.entity";
-import { DoctorRegistrationValidatedDto } from "./dtos/doctor-registration-validated.dto";
-import { DoctorRegistrationValidationDto } from "./dtos/doctor-registration-validation.dto";
-import { CreateDoctorDto } from "./dtos/create-doctor.dto";
-import { UserService } from "../users/user.service";
-import {  whenNullThrows } from "src/core/utils/functions";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { BaseService } from 'src/core/base/base.service';
+import { DoctorRepository } from './doctor.repository';
+import { DoctorMapper } from './doctor.mapper';
+import { DoctorAdapter } from './doctor.adapter';
+import { DoctorDto } from './dtos/doctor.dto';
+import { Doctor } from './entities/doctor.entity';
+import { DoctorRegistrationValidatedDto } from './dtos/doctor-registration-validated.dto';
+import { DoctorRegistrationValidationDto } from './dtos/doctor-registration-validation.dto';
+import { CreateDoctorDto } from './dtos/create-doctor.dto';
+import { UserService } from '../users/user.service';
+import { whenNullThrows } from 'src/core/utils/functions';
+import { Optional } from 'src/core/utils/optional';
 
 @Injectable()
-export class DoctorService extends BaseService<Doctor, DoctorDto, DoctorRepository, DoctorMapper> {
+export class DoctorService extends BaseService<
+  Doctor,
+  DoctorDto,
+  DoctorRepository,
+  DoctorMapper
+> {
+  protected override ENTITY_NOT_FOUND: string = 'Médico não encontrado';
+  private readonly LOOKUP_REGISTRATION_IS_MANDATORY_MESSAGE =
+    'Validação do registro do médico é obrigatória. Por favor, realize a consulta antes de criar o cadastro do médico.';
 
-    private readonly LOOKUP_REGISTRATION_IS_MANDATORY_MESSAGE = 'Validação do registro do médico é obrigatória. Por favor, realize a consulta antes de criar o cadastro do médico.';
+  public constructor(
+    doctorRepository: DoctorRepository,
+    doctorMapper: DoctorMapper,
+    private readonly doctorAdapter: DoctorAdapter,
+    private readonly userService: UserService,
+  ) {
+    super(doctorRepository, doctorMapper);
+  }
 
-    public constructor(
-        doctorRepository: DoctorRepository,
-        doctorMapper: DoctorMapper,
-        private readonly doctorAdapter: DoctorAdapter,
-        private readonly userService: UserService
-    ) {
-        super(doctorRepository, doctorMapper);
-    }
+  public async lookupRegistration(
+    doctorRegistrationValidation: DoctorRegistrationValidationDto,
+  ): Promise<DoctorRegistrationValidatedDto> {
+    return this.doctorAdapter.lookupRegistration(doctorRegistrationValidation);
+  }
 
-    public async lookupRegistration(doctorRegistrationValidation: DoctorRegistrationValidationDto): Promise<DoctorRegistrationValidatedDto> {
-        return this.doctorAdapter.lookupRegistration(doctorRegistrationValidation);
-    }
+  public async createDoctor(doctorDto: CreateDoctorDto): Promise<DoctorDto> {
+    const lookedUpRegistration = await this.doctorAdapter.getLookedRegistration(
+      doctorDto.taxId,
+    );
 
-    public async createDoctor(doctorDto: CreateDoctorDto): Promise<DoctorDto> {
-        const lookedUpRegistration = await this.doctorAdapter.getLookedRegistration(doctorDto.taxId);
+    whenNullThrows(
+      lookedUpRegistration,
+      () =>
+        new BadRequestException(this.LOOKUP_REGISTRATION_IS_MANDATORY_MESSAGE),
+    );
 
-        whenNullThrows(
-            lookedUpRegistration,
-            () => new BadRequestException(this.LOOKUP_REGISTRATION_IS_MANDATORY_MESSAGE)
-        );
+    const doctor = this.mapper.mapValidatedToDoctor(lookedUpRegistration);
 
-        const doctor = this.mapper.mapValidatedToDoctor(lookedUpRegistration);
+    const [doctorToCreate, user] =
+      this.mapper.mapCreationDtoToEntityAndUser(doctorDto);
 
-        const [ doctorToCreate, user ] = this.mapper.mapCreationDtoToEntityAndUser(doctorDto);
+    user.name = lookedUpRegistration.data.name;
+    doctor.birthDate = doctorToCreate.birthDate;
 
-        user.name = lookedUpRegistration.data.name;
-        doctor.birthDate = doctorToCreate.birthDate;
+    doctor.clearId();
 
-        doctor.clearId();
+    const savedUser = await this.userService.create(user);
 
-        const savedUser = await this.userService.create(user);
+    doctor.user = {
+      id: savedUser.id,
+      isValid: lookedUpRegistration.valid,
+    } as any;
 
-        doctor.user = {
-            id: savedUser.id,
-            isValid: lookedUpRegistration.valid
-        } as any;
-        
-        const savedDoctor = await this.repository.save(doctor);
+    const savedDoctor = await this.repository.save(doctor);
 
-        return this.mapper.toDto(savedDoctor);
-    }
+    return this.mapper.toDto(savedDoctor);
+  }
 
+  public async findDoctorIdByUserId(userId: string): Promise<string> {
+    return Optional.ofNullable(
+      await this.repository.findDoctorIdByUserId(userId),
+    ).orElseThrow(() => new NotFoundException(this.ENTITY_NOT_FOUND));
+  }
+
+  public async findDoctorByUserId(userId: string): Promise<DoctorDto> {
+    const doctorId = await this.findDoctorIdByUserId(userId);
+    return await this.findById(doctorId);
+  }
 }

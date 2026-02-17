@@ -68,4 +68,36 @@ export class UserRepository extends BaseRepository<User> {
   public async activateUser(userId: string): Promise<void> {
     await this.repository.update({ id: userId }, { isActive: true });
   }
+
+  public async findEmailById(userId: string): Promise<string | null> {
+    return this.createBaseQuery()
+      .select(`${this.alias}.email`, 'email')
+      .where(`${this.alias}.id = :userId`, { userId })
+      .getRawOne()
+      .then((result) => result?.email ?? null);
+  }
+
+  public async findPhoneById(userId: string): Promise<string | null> {
+    return this.createBaseQuery()
+      .select(`${this.alias}.phone`, 'phone')
+      .where(`${this.alias}.id = :userId`, { userId })
+      .getRawOne()
+      .then((result) => result?.phone ?? null);
+  }
+
+  public async updateEmail(userId: string, email: string): Promise<void> {
+    await this.repository.update({ id: userId }, { email });
+  }
+
+  public async updatePhone(userId: string, phone: string): Promise<void> {
+    await this.repository.update({ id: userId }, { phone });
+  }
+
+  public async updateCountryCode(userId: string, countryCode: string): Promise<void> {
+    await this.repository.update({ id: userId }, { countryCode });
+  }
+
+  public async updateCountryIdd(userId: string, countryIdd: string): Promise<void> {
+    await this.repository.update({ id: userId }, { countryIdd });
+  }
 }

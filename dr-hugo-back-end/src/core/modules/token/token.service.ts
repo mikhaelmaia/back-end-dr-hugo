@@ -127,10 +127,10 @@ export class TokenService extends BaseService<
     newToken.type = type;
     newToken.identification = identification;
     newToken.renewalTime = new Date(
-      now.getTime() + TokenConstants.getRenewalTimeMinutes(type) * 60 * 1000,
+      now.getTime() + TokenConstants.getRenewalTimeSeconds(type) * 1000,
     );
     newToken.expirationTime = new Date(
-      now.getTime() + TokenConstants.getExpirationTimeMinutes(type) * 60 * 1000,
+      now.getTime() + TokenConstants.getExpirationTimeSeconds(type) * 1000,
     );
 
     return this.mapper.toDto(await this.repository.save(newToken));

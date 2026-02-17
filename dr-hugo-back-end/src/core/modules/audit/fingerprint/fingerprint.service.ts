@@ -1,9 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { ClientFingerprintDto } from './dtos/client-fingerprint.dto';
 import { Fingerprint } from './entities/fingerprint.entity';
+import { CryptoService } from '../../crypto/crypto.service';
 
 @Injectable()
 export class FingerprintService {
+  constructor(private readonly cryptoService: CryptoService) {}
+
   public process(data: {
     fingerprint: ClientFingerprintDto;
     ip: string;
@@ -20,7 +23,9 @@ export class FingerprintService {
     sessionId: string | null;
   }): Fingerprint {
     const entity = new Fingerprint();
-    entity.fingerprint = JSON.stringify(data.fingerprint);
+    entity.fingerprint = this.cryptoService.encrypt(
+      JSON.stringify(data.fingerprint),
+    );
     entity.ip = data.ip;
     entity.userAgent = data.userAgent;
     entity.sessionId = data.sessionId;

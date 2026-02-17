@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <title>Confirmação de Alteração de E-mail - Doutor Viu</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      .email-body {
+        margin: 0 auto;
+        padding: 4px 20px;
+        max-width: 600px;
+        min-height: 720px;
+        background-color: #f3f4f6;
+      }
+      .container {
+        width: 100%;
+        min-height: 672px;
+        background-color: white;
+        border-radius: 8px;
+      }
+      .email-text {
+        padding: 16px;
+      }
+      h3 {
+        width: 100%;
+        padding: 16px 0;
+        text-align: center;
+        font-family: 'League Spartan', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 24px;
+        font-weight: 600;
+        color: #fff;
+        background-color: #00b0bb;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+        margin: 0;
+      }
+      p {
+        margin: 0 0 16px 0;
+        color: #111827;
+        font-family: 'League Spartan', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 1.5;
+      }
+      .token-display {
+        display: block;
+        margin: 20px auto;
+        padding: 16px;
+        font-family: 'League Spartan', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 20px;
+        font-weight: 600;
+        font-style: normal;
+        letter-spacing: 1px;
+        color: #00b0bb;
+        text-align: center;
+        background-color: #f3f4f6;
+        border-radius: 8px;
+        border: 2px solid #e5e7eb;
+      }
+      .confirmation-button {
+        display: inline-block;
+        margin: 24px 0;
+        padding: 16px 32px;
+        background-color: #00b0bb;
+        color: #ffffff !important;
+        text-decoration: none;
+        font-family: 'League Spartan', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+      .confirmation-button:hover {
+        background-color: #00828bff;
+      }
+      .confirmation-button:visited {
+        color: #ffffff !important;
+      }
+      .button-container {
+        text-align: center;
+        margin: 32px 0;
+      }
+      .warning-box {
+        margin: 24px 0;
+        padding: 20px;
+        background-color: #fbbf24;
+        border: 2px solid #f59e0b;
+        border-left: 6px solid #d97706;
+        border-radius: 8px;
+      }
+      .warning-box h4 {
+        margin: 0 0 12px 0;
+        color: #ffffff;
+        font-family: 'League Spartan', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+      }
+      .warning-box p {
+        margin: 8px 0;
+        color: #ffffff;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="email-body">
+      <div class="container">
+        <h3>Confirmação de Alteração de E-mail - Doutor Viu</h3>
+        <div class="email-text">
+          <p>Olá,</p>
+          <p>
+            Você solicitou a alteração do seu e-mail no Doutor Viu para:
+            <strong><%= newEmail %></strong>
+          </p>
+          <p>Para confirmar esta alteração, utilize o código abaixo:</p>
+          <div class="token-display"><%= token %></div>
+
+          <div class="warning-box">
+            <h4>⚠️ Importante</h4>
+            <p>
+              Esta alteração afetará sua forma de acesso ao sistema.
+              Certifique-se de que este novo e-mail é de sua propriedade.
+            </p>
+          </div>
+
+          <div class="button-container">
+            <a
+              href="<%= confirmationUrl %>"
+              class="confirmation-button"
+              target="_blank"
+            >
+              Confirmar Alteração
+            </a>
+          </div>
+
+          <p>
+            Se você não solicitou esta alteração, ignore este e-mail e sua conta
+            permanecerá segura.
+          </p>
+          <p>Atenciosamente, Equipe Doutor Viu</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

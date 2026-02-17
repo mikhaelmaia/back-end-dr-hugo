@@ -1,6 +1,5 @@
 import { Module, Global } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { APP_INTERCEPTOR } from '@nestjs/core';
 import { Audit } from './entities/audit.entity';
 import { Fingerprint } from './fingerprint/entities/fingerprint.entity';
 import { AuditController } from './audit.controller';
@@ -8,21 +7,17 @@ import { AuditService } from './audit.service';
 import { AuditRepository } from './audit.repository';
 import { AuditMapper } from './audit.mapper';
 import { FingerprintModule } from './fingerprint/fingerprint.module';
-import { AuditInterceptor } from '../../config/interceptors/audit.interceptor';
+import { CryptoModule } from '../crypto/crypto.module';
 
 @Global()
 @Module({
-  imports: [TypeOrmModule.forFeature([Audit, Fingerprint]), FingerprintModule],
-  controllers: [AuditController],
-  providers: [
-    AuditService,
-    AuditRepository,
-    AuditMapper,
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: AuditInterceptor,
-    },
+  imports: [
+    TypeOrmModule.forFeature([Audit, Fingerprint]),
+    FingerprintModule,
+    CryptoModule,
   ],
+  controllers: [AuditController],
+  providers: [AuditService, AuditRepository, AuditMapper],
   exports: [FingerprintModule, AuditService, AuditRepository, AuditMapper],
 })
 export class AuditModule {}

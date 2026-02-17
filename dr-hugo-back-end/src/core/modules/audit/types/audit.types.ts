@@ -6,5 +6,5 @@ export interface AuditDataPayload {
   userAgent: string;
   sessionId?: string;
   fingerprint?: ClientFingerprintDto;
-  author?: UserDto;
+  author?: Partial<UserDto>;
 }

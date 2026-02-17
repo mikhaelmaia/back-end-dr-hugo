@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      .email-body {
+        margin: 0 auto;
+        padding: 20px;
+        max-width: 600px;
+        min-height: 720px;
+        background-color: #f3f4f6;
+      }
+      .container {
+        width: 100%;
+        min-height: 720px;
+        background-color: white;
+        border-radius: 8px;
+      }
+      .email-text {
+        padding: 16px;
+      }
+      h3 {
+        width: 100%;
+        margin: 0;
+        padding: 16px 0;
+        text-align: center;
+        font-family: 'League Spartan', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 24px;
+        font-weight: 600;
+        color: #fff;
+        background-color: #00b0bb;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+      }
+      p {
+        display: block;
+        margin-bottom: 16px;
+        color: #111827;
+        font-family: 'League Spartan', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 1.5;
+      }
+      em {
+        display: block;
+        margin: 20px auto;
+        padding: 16px;
+        font-family: 'League Spartan', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 18px;
+        font-weight: 600;
+        font-style: normal;
+        color: #00b0bb;
+        text-align: center;
+        background-color: #f3f4f6;
+        border-radius: 8px;
+        border: 2px solid #e5e7eb;
+      }
+      .success-box {
+        margin: 24px 0;
+        padding: 20px;
+        background-color: #60a5fa;
+        border: 2px solid #3b82f6;
+        border-left: 6px solid #2563eb;
+        border-radius: 8px;
+      }
+      .success-box h4 {
+        margin: 0 0 12px 0;
+        color: #ffffff;
+        font-family: 'League Spartan', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+      }
+      .success-box p {
+        margin: 8px 0;
+        color: #ffffff;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      .info-box {
+        margin: 24px 0;
+        padding: 20px;
+        background-color: #3b82f6;
+        border: 2px solid #2563eb;
+        border-left: 6px solid #1d4ed8;
+        border-radius: 8px;
+      }
+      .info-box h4 {
+        margin: 0 0 12px 0;
+        color: #ffffff;
+        font-family: 'League Spartan', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+      }
+      .info-box p {
+        margin: 8px 0;
+        color: #ffffff;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="email-body">
+      <div class="container">
+        <h3>E-mail Alterado com Sucesso - Doutor Viu</h3>
+        <div class="email-text">
+          <p>Olá, <%= name %></p>
+          <p>
+            Bem-vindo ao seu novo endereço de e-mail! A alteração foi concluída
+            com sucesso.
+          </p>
+          <p><strong>E-mail anterior:</strong> <%= oldEmail %></p>
+          <p><strong>Novo e-mail (este):</strong> <%= newEmail %></p>
+          <p>Data e horário da confirmação:</p>
+          <em><%= changedAt %></em>
+
+          <div class="success-box">
+            <h4>✅ Alteração Confirmada</h4>
+            <p>
+              Agora você deve usar este endereço de e-mail para acessar sua
+              conta no Doutor Viu.
+            </p>
+            <p>
+              Todas as futuras comunicações serão enviadas para este e-mail.
+            </p>
+          </div>
+
+          <div class="info-box">
+            <h4>📝 Próximos Passos</h4>
+            <p>
+              • Atualize este endereço em seus aplicativos e navegadores salvos
+            </p>
+            <p>• Verifique suas configurações de segurança se necessário</p>
+            <p>• Entre em contato conosco se tiver alguma dúvida</p>
+          </div>
+
+          <p>Obrigado por manter seus dados atualizados no Doutor Viu!</p>
+          <p>Atenciosamente, Equipe Doutor Viu</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

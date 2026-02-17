@@ -115,10 +115,10 @@ export class UserService extends BaseService<
       `${entity.email}:${entity.role}`,
       TokenType.EMAIL_CONFIRMATION,
     );
-    this.emailHelper.sendUserRegisteredEmail(
+    await this.emailHelper.sendUserRegisteredEmail(
       entity.name,
       entity.email,
-      UserRole.PATIENT,
+      entity.role,
       token.token,
     );
   }

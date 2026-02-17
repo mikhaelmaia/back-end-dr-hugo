@@ -37,10 +37,12 @@ export class UserPaths extends BasePaths {
 export class PatientsPaths extends BasePaths {
   public static readonly BASE = '/patients';
   public static readonly BY_USER = '/by-user/:userId';
+  public static readonly CURRENT = '/current';
 
   public static readonly CREATE_FULL = `${this.BASE}${this.CREATE}`;
   public static readonly FIND_BY_ID_FULL = `${this.BASE}${this.FIND_BY_ID}`;
   public static readonly BY_USER_FULL = `${this.BASE}${this.BY_USER}`;
+  public static readonly CURRENT_FULL = `${this.BASE}${this.CURRENT}`;
   public static readonly UPDATE_FULL = `${this.BASE}${this.UPDATE}`;
   public static readonly DELETE_FULL = `${this.BASE}${this.DELETE}`;
   public static readonly FIND_ALL_FULL = `${this.BASE}${this.FIND_ALL}`;
@@ -55,11 +57,11 @@ export class AuditPaths extends BasePaths {
 
 export class MediaPaths extends BasePaths {
   public static readonly BASE = '/media';
+  public static readonly SAVE_TEMP = '/temp';
+  public static readonly SAVE_TEMP_MULTIPLE = '/temp/multiple';
 
-  public static readonly CREATE_FULL = `${this.BASE}${this.CREATE}`;
-  public static readonly FIND_BY_ID_FULL = `${this.BASE}${this.FIND_BY_ID}`;
-  public static readonly UPDATE_FULL = `${this.BASE}${this.UPDATE}`;
-  public static readonly DELETE_FULL = `${this.BASE}${this.DELETE}`;
+  public static readonly SAVE_TEMP_FULL = `${this.BASE}${this.SAVE_TEMP}`;
+  public static readonly SAVE_TEMP_MULTIPLE_FULL = `${this.BASE}${this.SAVE_TEMP_MULTIPLE}`;
 }
 
 export class TokenPaths extends BasePaths {
@@ -115,10 +117,12 @@ export class InstitutionPaths extends BasePaths {
   public static readonly BASE = '/institutions';
   public static readonly LOOKUP = '/lookup';
   public static readonly BY_USER = '/by-user/:userId';
+  public static readonly CURRENT = '/current';
 
   public static readonly CREATE_FULL = `${this.BASE}${this.CREATE}`;
   public static readonly FIND_BY_ID_FULL = `${this.BASE}${this.FIND_BY_ID}`;
   public static readonly BY_USER_FULL = `${this.BASE}${this.BY_USER}`;
+  public static readonly CURRENT_FULL = `${this.BASE}${this.CURRENT}`;
   public static readonly UPDATE_FULL = `${this.BASE}${this.UPDATE}`;
   public static readonly DELETE_FULL = `${this.BASE}${this.DELETE}`;
   public static readonly FIND_ALL_FULL = `${this.BASE}${this.FIND_ALL}`;
@@ -128,11 +132,38 @@ export class InstitutionPaths extends BasePaths {
 export class DoctorPaths extends BasePaths {
   public static readonly BASE = '/doctors';
   public static readonly LOOKUP = '/lookup';
+  public static readonly CURRENT = '/current';
 
   public static readonly CREATE_FULL = `${this.BASE}${this.CREATE}`;
   public static readonly LOOKUP_FULL = `${this.BASE}${this.LOOKUP}`;
+  public static readonly CURRENT_FULL = `${this.BASE}${this.CURRENT}`;
 }
 
 export class MedicalRecordPaths extends BasePaths {
   public static readonly BASE = '/patient-medical-records';
+}
+
+export class ResolutionKeyPaths extends BasePaths {
+  public static readonly BASE = '/resolution-keys';
+  public static readonly RESOLVE = '/resolve';
+
+  public static readonly CREATE_FULL = `${this.BASE}${this.CREATE}`;
+  public static readonly RESOLVE_FULL = `${this.BASE}${this.RESOLVE}`;
+}
+
+export class UserChangeRequestPaths extends BasePaths {
+  public static readonly BASE = '/user-change-requests';
+  public static readonly REQUEST = '/request';
+  public static readonly CONFIRM = '/confirm';
+
+  public static readonly REQUEST_FULL = `${this.BASE}${this.REQUEST}`;
+  public static readonly CONFIRM_FULL = `${this.BASE}${this.CONFIRM}`;
+}
+
+export class PatientAccessCodePaths extends BasePaths {
+  public static readonly BASE = '/patients-access-code';
+}
+
+export class PatientDocumentPaths extends BasePaths {
+  public static readonly BASE = '/patient-documents';
 }

@@ -2,10 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { BaseMapper } from '../../base/base.mapper';
 import { Audit } from './entities/audit.entity';
 import { AuditDto } from './dtos/audit.dto';
+import { CryptoService } from '../crypto/crypto.service';
 
 @Injectable()
 export class AuditMapper extends BaseMapper<Audit, AuditDto> {
-  toDto(entity: Audit): AuditDto {
+  constructor(private readonly cryptoService: CryptoService) {
+    super();
+  }
+
+  public toDto(entity: Audit): AuditDto {
     const dto = new AuditDto();
     dto.id = entity.id;
     dto.eventType = entity.eventType;
@@ -34,7 +39,7 @@ export class AuditMapper extends BaseMapper<Audit, AuditDto> {
     return dto;
   }
 
-  toEntity(dto: Partial<AuditDto>): Audit {
+  public toEntity(dto: Partial<AuditDto>): Audit {
     const entity = new Audit();
     entity.id = dto.id;
     entity.eventType = dto.eventType;
@@ -42,5 +47,13 @@ export class AuditMapper extends BaseMapper<Audit, AuditDto> {
     entity.entityId = dto.entityId;
     entity.data = dto.data;
     return entity;
+  }
+
+  public handleAuditFingerprintEncryption(audit: Audit): void {
+    if (audit.fingerprint) {
+      audit.fingerprint.fingerprint = this.cryptoService.encrypt(
+        audit.fingerprint.fingerprint,
+      );
+    }
   }
 }

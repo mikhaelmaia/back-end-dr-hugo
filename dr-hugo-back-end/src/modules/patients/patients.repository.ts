@@ -15,6 +15,13 @@ export class PatientsRepository extends BaseRepository<Patient> {
     super(patientRepository);
   }
 
+  public override findById(id: string): Promise<Patient> {
+    return this.createBaseQuery()
+      .where('patient.id = :id', { id })
+      .leftJoinAndSelect('patient.user', 'user')
+      .getOne();
+  }
+
   public findPatientIdByUserId(userId: string): Promise<string | null> {
     return this.createBaseQuery()
       .innerJoin('patient.user', 'user')

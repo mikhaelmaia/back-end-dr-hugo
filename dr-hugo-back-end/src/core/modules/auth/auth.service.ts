@@ -11,7 +11,11 @@ import { EmailHelper } from '../email/email.helper';
 import { UserDto } from 'src/modules/users/dtos/user.dto';
 import { TokenType } from 'src/core/vo/consts/enums';
 import { compare } from 'bcrypt';
-import { acceptFalseThrows, acceptTrueThrows, whenNullThrows } from 'src/core/utils/functions';
+import {
+  acceptFalseThrows,
+  acceptTrueThrows,
+  whenNullThrows,
+} from 'src/core/utils/functions';
 import { JwtPayload } from 'src/core/vo/types/types';
 import { UserService } from 'src/modules/users/user.service';
 import { toHttpException } from 'src/core/utils/errors.utils';
@@ -30,21 +34,16 @@ export class AuthService {
 
   public async login(authRequest: AuthRequest): Promise<AuthResponse> {
     const { login, password, role } = authRequest;
-    const user: UserDto = await this.userService.findByEmailOrTaxId(login, role);
-    whenNullThrows(
-      user, () => toHttpException('E030')
+    const user: UserDto = await this.userService.findByEmailOrTaxId(
+      login,
+      role,
     );
+    whenNullThrows(user, () => toHttpException('E030'));
 
-    acceptFalseThrows(
-      user.isActive,
-      () => toHttpException('E031'),
-    );
+    acceptFalseThrows(user.isActive, () => toHttpException('E031'));
 
     const matches: boolean = await compare(password, user.password);
-    acceptFalseThrows(
-      matches,
-      () => toHttpException('E029'),
-    );
+    acceptFalseThrows(matches, () => toHttpException('E029'));
     return this.jwtProviderService.signTokens(user);
   }
 
@@ -61,25 +60,26 @@ export class AuthService {
     );
   }
 
-  public async startPasswordRecovery(recoveryData: StartPasswordRecoveryDto): Promise<void> {
-    const user: UserDto = await this.userService.findByEmailOrTaxId(recoveryData.login, recoveryData.role);
-    whenNullThrows(
-      user, () => toHttpException('E030')
+  public async startPasswordRecovery(
+    recoveryData: StartPasswordRecoveryDto,
+  ): Promise<void> {
+    const user: UserDto = await this.userService.findByEmailOrTaxId(
+      recoveryData.login,
+      recoveryData.role,
     );
+    whenNullThrows(user, () => toHttpException('E030'));
 
-    acceptFalseThrows(
-      user.isActive,
-      () => toHttpException('E031'),
-    );
+    acceptFalseThrows(user.isActive, () => toHttpException('E031'));
 
     const token = await this.tokenService.generateToken(
       `${recoveryData.login}:${recoveryData.role}`,
       TokenType.PASSWORD_RESET,
     );
-    this.emailhelper.sendPasswordResetRequestEmail(
+    await this.emailhelper.sendPasswordResetRequestEmail(
       user.name,
       user.email,
       token.token,
+      recoveryData.role,
     );
   }
 
@@ -102,43 +102,43 @@ export class AuthService {
     );
   }
 
-  public async resendEmailConfirmation(resendData: ResendEmailConfirmationDto): Promise<void> {
-    const user = await this.userService.findByEmail(resendData.email, resendData.role);
-    whenNullThrows(
-      user,
-      () => toHttpException('E033')
+  public async resendEmailConfirmation(
+    resendData: ResendEmailConfirmationDto,
+  ): Promise<void> {
+    const user = await this.userService.findByEmail(
+      resendData.email,
+      resendData.role,
     );
-    acceptTrueThrows(
-      user.isValid,
-      () => toHttpException('E036')
-    );
+    whenNullThrows(user, () => toHttpException('E033'));
+    acceptTrueThrows(user.isValid, () => toHttpException('E036'));
 
     const token = await this.tokenService.renewToken(
       `${user.email}:${user.role}`,
-      TokenType.EMAIL_CONFIRMATION
+      TokenType.EMAIL_CONFIRMATION,
     );
-    this.emailhelper.sendEmailConfirmationEmail(user.name, user.email, token.token);
+    await this.emailhelper.sendEmailConfirmationEmail(
+      user.name,
+      user.email,
+      token.token,
+      user.role,
+    );
   }
 
-  public async confirmUserEmail(userEmailConfirm: EmailConfirmDto): Promise<void> {
+  public async confirmUserEmail(
+    userEmailConfirm: EmailConfirmDto,
+  ): Promise<void> {
     const userEmail = userEmailConfirm.email;
     const userRole = userEmailConfirm.role;
     const user = await this.userService.findByEmail(userEmail, userRole);
-    whenNullThrows(
-      user,
-      () => toHttpException('E033')
-    );
-    acceptTrueThrows(
-      user.isValid,
-      () => toHttpException('E036')
-    );
-    
+    whenNullThrows(user, () => toHttpException('E033'));
+    acceptTrueThrows(user.isValid, () => toHttpException('E036'));
+
     await this.tokenService.concludeToken(
-      userEmailConfirm.tokenIdentification, 
-      `${userEmail}:${userRole}`, 
-      TokenType.EMAIL_CONFIRMATION
+      userEmailConfirm.tokenIdentification,
+      `${userEmail}:${userRole}`,
+      TokenType.EMAIL_CONFIRMATION,
     );
-    
+
     await this.userService.validateUserEmail(user.id);
     this.emailhelper.sendEmailConfirmedEmail(user.name, user.email, user.role);
   }

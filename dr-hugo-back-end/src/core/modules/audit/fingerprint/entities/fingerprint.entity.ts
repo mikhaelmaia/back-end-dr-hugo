@@ -1,16 +1,12 @@
 import { Entity, Column } from 'typeorm';
 import { BaseEntity } from '../../../../base/base.entity';
-import { CryptoTransformerFactory } from 'src/core/modules/crypto/crypto-transformer.factory';
-import { CryptoBridge } from 'src/core/modules/crypto/crypto.bridge';
 
 @Entity('dv_audit_fingerprint')
 export class Fingerprint extends BaseEntity {
   @Column({
     name: 'fingerprint_hash',
-    type: 'varchar',
-    length: 64,
+    type: 'text',
     unique: true,
-    transformer: CryptoTransformerFactory.createEncrypted(CryptoBridge.get()),
   })
   public fingerprint: string;
 
