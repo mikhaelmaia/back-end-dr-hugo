@@ -6,6 +6,7 @@ import { ExistsInValidator } from './core/vo/validators/exists-in.validator';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { TimeoutInterceptor } from './core/config/interceptors/timeout.interceptor';
 import { TransformInterceptor } from './core/config/interceptors/transform.interceptor';
+import { AuditInterceptor } from './core/config/interceptors/audit.interceptor';
 import { AuthGuard } from './core/config/security/auth.guard';
 import { ConfigModule } from '@nestjs/config';
 import configuration from './core/config/environment/configuration';
@@ -39,6 +40,10 @@ import { IsUniqueCompositeConstraint } from './core/vo/validators/is-unique-comp
     {
       provide: APP_INTERCEPTOR,
       useClass: TransformInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: AuditInterceptor,
     },
   ],
 })

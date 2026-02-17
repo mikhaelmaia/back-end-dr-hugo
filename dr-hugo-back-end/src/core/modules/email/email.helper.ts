@@ -5,19 +5,27 @@ import { EmailSend } from './dtos/email-send.dto';
 import { ConfigService } from '@nestjs/config';
 import { getCurrentLocalDateTimeFormatted } from 'src/core/utils/date-time.utils';
 import { UserRole } from 'src/core/vo/consts/enums';
+import { ResolutionKeyService } from '../resolution-key/resolution-key.service';
 
 @Injectable()
 export class EmailHelper {
   constructor(
     private readonly emailQueueService: EmailQueueService,
     private readonly configService: ConfigService,
+    private readonly resolutionKeyService: ResolutionKeyService,
   ) {}
 
-  public sendPasswordResetRequestEmail(
+  public async sendPasswordResetRequestEmail(
     name: string,
     email: string,
     token: string,
-  ): void {
+    role: UserRole,
+  ): Promise<void> {
+    const encryptedParams = await this.createEncryptedQueryParam({
+      email,
+      token,
+      role,
+    });
     this.emailQueueService.enqueueEmail(
       EmailSend.builder()
         .to(email)
@@ -27,16 +35,13 @@ export class EmailHelper {
         .addParameter('token', token)
         .addParameter(
           'resetPasswordUrl',
-          `${this.configService.get('web.baseUrl')}${this.configService.get('web.forgotPasswordPath')}?email=${email}&token=${token}`,
+          `${this.configService.get('web.baseUrl')}${this.configService.get('web.forgotPasswordPath')}?t=${encryptedParams}`,
         )
         .build(),
     );
   }
 
-  public sendPasswordResetEmail(
-    name: string,
-    email: string,
-  ): void {
+  public sendPasswordResetEmail(name: string, email: string): void {
     this.emailQueueService.enqueueEmail(
       EmailSend.builder()
         .to(email)
@@ -47,12 +52,17 @@ export class EmailHelper {
     );
   }
 
-  public sendUserRegisteredEmail(
+  public async sendUserRegisteredEmail(
     name: string,
     email: string,
     userRole: UserRole,
     token: string,
-  ): void {
+  ): Promise<void> {
+    const encryptedParams = await this.createEncryptedQueryParam({
+      email,
+      token,
+      role: userRole,
+    });
     this.emailQueueService.enqueueEmail(
       EmailSend.builder()
         .to(email)
@@ -67,17 +77,23 @@ export class EmailHelper {
         )
         .addParameter(
           'confirmationUrl',
-          `${this.configService.get('web.baseUrl')}${this.configService.get('web.emailConfirmationPath')}?email=${email}&token=${token}`,
+          `${this.configService.get('web.baseUrl')}${this.configService.get('web.emailConfirmationPath')}?t=${encryptedParams}`,
         )
         .build(),
     );
   }
 
-  public sendEmailConfirmationEmail(
+  public async sendEmailConfirmationEmail(
     name: string,
     email: string,
     token: string,
-  ): void {
+    role: UserRole,
+  ): Promise<void> {
+    const encryptedParams = await this.createEncryptedQueryParam({
+      email,
+      token,
+      role,
+    });
     this.emailQueueService.enqueueEmail(
       EmailSend.builder()
         .to(email)
@@ -87,7 +103,7 @@ export class EmailHelper {
         .addParameter('token', token)
         .addParameter(
           'confirmationUrl',
-          `${this.configService.get('web.baseUrl')}${this.configService.get('web.emailConfirmationPath')}?email=${email}&token=${token}`,
+          `${this.configService.get('web.baseUrl')}${this.configService.get('web.emailConfirmationPath')}?t=${encryptedParams}`,
         )
         .build(),
     );
@@ -115,5 +131,75 @@ export class EmailHelper {
         )
         .build(),
     );
+  }
+
+  public async sendEmailChangeConfirmation(
+    userId: string,
+    newEmail: string,
+    token: string,
+    role: UserRole,
+    requestId: string,
+  ): Promise<void> {
+    const encryptedParams = await this.createEncryptedQueryParam({
+      userId,
+      email: newEmail,
+      token,
+      role,
+      requestId,
+    });
+    this.emailQueueService.enqueueEmail(
+      EmailSend.builder()
+        .to(newEmail)
+        .reference(EmailReference.EMAIL_CHANGE_CONFIRMATION)
+        .addParameter('userId', userId)
+        .addParameter('newEmail', newEmail)
+        .addParameter('token', token)
+        .addParameter(
+          'confirmationUrl',
+          `${this.configService.get('web.baseUrl')}${this.configService.get('web.profileChangeConfirmationPath')}?t=${encryptedParams}`,
+        )
+        .build(),
+    );
+  }
+
+  public async sendEmailChangedWarningToOldEmail(
+    name: string,
+    oldEmail: string,
+    newEmail: string,
+  ): Promise<void> {
+    this.emailQueueService.enqueueEmail(
+      EmailSend.builder()
+        .to(oldEmail)
+        .reference(EmailReference.EMAIL_CHANGED_WARNING)
+        .addParameter('name', name)
+        .addParameter('oldEmail', oldEmail)
+        .addParameter('newEmail', newEmail)
+        .addParameter('changedAt', getCurrentLocalDateTimeFormatted())
+        .build(),
+    );
+  }
+
+  public async sendEmailChangedConfirmationToNewEmail(
+    name: string,
+    oldEmail: string,
+    newEmail: string,
+  ): Promise<void> {
+    this.emailQueueService.enqueueEmail(
+      EmailSend.builder()
+        .to(newEmail)
+        .reference(EmailReference.EMAIL_CHANGED_CONFIRMATION)
+        .addParameter('name', name)
+        .addParameter('oldEmail', oldEmail)
+        .addParameter('newEmail', newEmail)
+        .addParameter('changedAt', getCurrentLocalDateTimeFormatted())
+        .build(),
+    );
+  }
+
+  private async createEncryptedQueryParam(
+    params: Record<string, string | UserRole>,
+  ): Promise<string> {
+    const ttlSeconds = 24 * 60 * 60;
+    return this.resolutionKeyService.create(params, ttlSeconds);
   }
 }

@@ -20,6 +20,6 @@ import { InternalHttpModule } from 'src/core/modules/http/http.module';
   ],
   controllers: [UserController],
   providers: [UserService, UserMapper, UserRepository],
-  exports: [UserService],
+  exports: [UserService, UserRepository],
 })
 export class UserModule {}

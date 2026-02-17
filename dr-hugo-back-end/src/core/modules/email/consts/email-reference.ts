@@ -24,4 +24,16 @@ export class EmailReference {
     'Senha Redefinida',
     'password-reset',
   );
+  public static readonly EMAIL_CHANGE_CONFIRMATION = new EmailReference(
+    'Confirmação de Alteração de E-mail',
+    'email-change-confirmation',
+  );
+  public static readonly EMAIL_CHANGED_WARNING = new EmailReference(
+    'Aviso de Alteração de E-mail',
+    'email-changed-warning',
+  );
+  public static readonly EMAIL_CHANGED_CONFIRMATION = new EmailReference(
+    'E-mail Alterado com Sucesso',
+    'email-changed-confirmation',
+  );
 }

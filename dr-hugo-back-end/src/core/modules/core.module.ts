@@ -10,6 +10,8 @@ import { DomainModule } from './domain/domain.module';
 import { ExternalModule } from './external/external.module';
 import { HealthModule } from './health/health.module';
 import { AddressModule } from './address/address.module';
+import { ResolutionKeyModule } from './resolution-key/resolution-key.module';
+import { QrCodeModule } from './qr-code/qr-code.module';
 
 @Module({
   imports: [
@@ -23,6 +25,8 @@ import { AddressModule } from './address/address.module';
     ExternalModule,
     HealthModule,
     MediaModule,
+    QrCodeModule,
+    ResolutionKeyModule,
     TokenModule,
   ],
   exports: [
@@ -36,6 +40,8 @@ import { AddressModule } from './address/address.module';
     ExternalModule,
     HealthModule,
     MediaModule,
+    QrCodeModule,
+    ResolutionKeyModule,
     TokenModule,
   ],
 })

@@ -45,4 +45,9 @@ export class PatientsService extends BaseService<
       await this.repository.findPatientIdByUserId(userId),
     ).orElseThrow(() => new NotFoundException(this.ENTITY_NOT_FOUND));
   }
+
+  public async findPatientByUserId(userId: string): Promise<PatientDto> {
+    const patientId = await this.findPatientIdByUserId(userId);
+    return await this.findById(patientId);
+  }
 }

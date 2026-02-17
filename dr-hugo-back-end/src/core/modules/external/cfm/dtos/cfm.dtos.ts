@@ -1,7 +1,6 @@
 export interface CfmConsultRequest {
   crm: number;
   uf: string;
-  chave: string;
 }
 
 export interface CfmValidateRequest {

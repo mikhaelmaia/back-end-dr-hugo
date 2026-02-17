@@ -1,10 +1,14 @@
 import { SetMetadata } from '@nestjs/common';
 import { AuditEventType } from '../consts/enums';
 
+export type AuditMode = 'success' | 'error' | 'always';
+
 export interface AuditableOptions {
   eventType: AuditEventType;
 
-  entityName?: string;
+  entityName: string;
+
+  mode?: AuditMode;
 
   entityIdExtractor?: (context: {
     params?: any;
@@ -12,11 +16,12 @@ export interface AuditableOptions {
     result?: any;
   }) => string | null;
 
-  dataExtractor?: (context: { params?: any; body?: any; result?: any }) => any;
-
-  auditOnSuccessOnly?: boolean;
-
-  includeSensitiveData?: boolean;
+  dataExtractor?: (context: {
+    params?: any;
+    body?: any;
+    result?: any;
+    error?: any;
+  }) => any;
 }
 
 export const AUDITABLE_METADATA_KEY = 'auditable';

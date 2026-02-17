@@ -8,12 +8,26 @@ export interface ApplicationResponse<T> {
 
 export type SortOrder = 'ASC' | 'DESC';
 
-export type PaginationParams<T> = {
+export type FilterOperators<T> = {
+  eq?: T;
+  like?: string;
+  ilike?: string;
+  in?: T[];
+  gte?: T;
+  lte?: T;
+  between?: [T, T];
+};
+
+export type FilterParams<TEntity> = {
+  [K in keyof TEntity]?: TEntity[K] | FilterOperators<TEntity[K]>;
+};
+
+export type PaginationParams<TEntity, TFilter = FilterParams<TEntity>> = {
   page: number;
   limit: number;
-  sortBy?: string;
+  sortBy?: keyof TEntity;
   sortOrder?: SortOrder;
-  filter: T;
+  filter?: TFilter;
 };
 
 export type Page<T> = {

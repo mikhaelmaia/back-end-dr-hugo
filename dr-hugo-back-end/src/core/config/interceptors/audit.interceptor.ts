@@ -5,19 +5,14 @@ import {
   CallHandler,
   Logger,
 } from '@nestjs/common';
-import {
-  Observable,
-  defer,
-  from,
-  mergeMap,
-  catchError,
-  throwError,
-} from 'rxjs';
+import { Observable, tap, catchError, throwError } from 'rxjs';
 import { Reflector } from '@nestjs/core';
+
 import { AuditService } from '../../modules/audit/audit.service';
 import {
   AuditableOptions,
   AUDITABLE_METADATA_KEY,
+  AuditMode,
 } from '../../vo/decorators/auditable.decorator';
 import { CreateAuditDto } from '../../modules/audit/dtos/create-audit.dto';
 import { AuditDataPayload } from '../../modules/audit/types/audit.types';
@@ -33,50 +28,103 @@ export class AuditInterceptor implements NestInterceptor {
     private readonly auditService: AuditService,
   ) {}
 
-  public intercept(
-    context: ExecutionContext,
-    next: CallHandler,
-  ): Observable<any> {
-    const auditOptions = this.reflector.getAllAndOverride<AuditableOptions>(
+  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    const options = this.reflector.getAllAndOverride<AuditableOptions>(
       AUDITABLE_METADATA_KEY,
       [context.getHandler(), context.getClass()],
     );
 
-    if (!auditOptions) {
+    this.logger.log(`Interceptor executado. Options encontradas: ${!!options}`);
+
+    if (!options) {
       return next.handle();
     }
 
+    this.logger.log(`Processando auditoria para: ${options.entityName} - ${options.eventType}`);
+
     const request = context.switchToHttp().getRequest();
-    const { method, url, params, body, route } = request;
-    const auditDataPayload = this.extractAuditDataPayload(request);
+    const requestSnapshot = this.extractRequestSnapshot(request);
+    const payload = this.extractAuditPayload(request);
+
+    const mode: AuditMode = options.mode ?? 'success';
 
     return next.handle().pipe(
-      mergeMap((result) =>
-        defer(() => {
-          if (auditOptions.auditOnSuccessOnly !== false) {
-            this.processAudit(
-              auditOptions,
-              { method, url, params, body, result, route },
-              auditDataPayload,
-            );
-          }
-          return from([result]);
-        }),
-      ),
+      tap((result) => {
+        if (mode === 'success' || mode === 'always') {
+          this.processAudit(options, requestSnapshot, payload, result);
+        }
+      }),
       catchError((error) => {
-        if (auditOptions.auditOnSuccessOnly === false) {
-          this.processAudit(
-            auditOptions,
-            { method, url, params, body, result: null, route, error },
-            auditDataPayload,
-          );
+        if (mode === 'error' || mode === 'always') {
+          this.processAudit(options, requestSnapshot, payload, null, error);
         }
         return throwError(() => error);
       }),
     );
   }
 
-  private extractAuditDataPayload(request: any): AuditDataPayload {
+  private processAudit(
+    options: AuditableOptions,
+    requestSnapshot: RequestSnapshot,
+    payload: AuditDataPayload,
+    result?: any,
+    error?: any,
+  ): void {
+    this.logger.log(`Iniciando processamento de auditoria para ${options.entityName}`);
+    try {
+      const entityId = options.entityIdExtractor
+        ? options.entityIdExtractor({
+            params: requestSnapshot.params,
+            body: requestSnapshot.body,
+            result,
+          })
+        : this.defaultEntityIdExtractor({
+            params: requestSnapshot.params,
+            body: requestSnapshot.body,
+            result,
+          });
+
+      const data = options.dataExtractor
+        ? options.dataExtractor({
+            params: requestSnapshot.params,
+            body: requestSnapshot.body,
+            result,
+            error,
+          })
+        : this.defaultDataExtractor({
+            params: requestSnapshot.params,
+            body: requestSnapshot.body,
+            result,
+            error,
+          });
+
+      const dto: CreateAuditDto = {
+        eventType: options.eventType,
+        entityName: options.entityName,
+        entityId,
+        data,
+      };
+
+      this.logger.log(`Enviando para AuditService: ${JSON.stringify(dto)}`);
+      this.auditService.process(dto, payload).catch((err) => {
+        this.logger.error('Erro ao persistir auditoria', err);
+      });
+    } catch (err) {
+      this.logger.error('Falha ao montar auditoria', err);
+    }
+  }
+
+  private extractRequestSnapshot(request: any): RequestSnapshot {
+    return {
+      method: request.method,
+      url: request.originalUrl ?? request.url,
+      params: request.params,
+      body: request.body,
+      route: request.route?.path,
+    };
+  }
+
+  private extractAuditPayload(request: any): AuditDataPayload {
     const forwardedFor = request.headers[HttpHeaders.ForwardFor];
     const ip =
       request.ip ||
@@ -93,66 +141,20 @@ export class AuditInterceptor implements NestInterceptor {
       fingerprint:
         request.headers[HttpHeaders.ClientFingerprint] ??
         new ClientFingerprintDto(),
-      author: request.currentUser,
+      author: this.extractActor(request),
     };
   }
 
-  private processAudit(
-    options: AuditableOptions,
-    requestContext: {
-      method: string;
-      url: string;
-      params: any;
-      body: any;
-      result: any;
-      route: any;
-      error?: any;
-    },
-    auditDataPayload: AuditDataPayload,
-  ): void {
-    try {
-      const { params, body, result, route, error } = requestContext;
-
-      const entityName =
-        options.entityName || this.extractEntityNameFromRoute(route);
-
-      const entityId = options.entityIdExtractor
-        ? options.entityIdExtractor({ params, body, result })
-        : this.defaultEntityIdExtractor({ params, body, result });
-
-      const auditData = options.dataExtractor
-        ? options.dataExtractor({ params, body, result })
-        : this.defaultDataExtractor(
-            { params, body, result, error },
-            options.includeSensitiveData,
-          );
-
-      const dto: CreateAuditDto = {
-        eventType: options.eventType,
-        entityName,
-        entityId: entityId ?? null,
-        data: auditData,
-      };
-
-      this.auditService.process(dto, auditDataPayload).catch((err) => {
-        this.logger.error('Erro ao processar auditoria', err);
-      });
-    } catch (err) {
-      this.logger.error('Falha ao montar auditoria', err);
+  private extractActor(request: any) {
+    if (!request.currentUser) {
+      return { type: 'system' };
     }
-  }
 
-  private extractEntityNameFromRoute(route: any): string {
-    if (!route?.path) return 'unknown';
-
-    const segments = route.path
-      .split('/')
-      .find(
-        (segment: string) =>
-          segment && !segment.startsWith(':') && segment !== 'api',
-      );
-
-    return segments[0] || 'unknown';
+    return {
+      type: 'user',
+      id: request.currentUser.id,
+      role: request.currentUser.role,
+    };
   }
 
   private defaultEntityIdExtractor(context: {
@@ -160,58 +162,43 @@ export class AuditInterceptor implements NestInterceptor {
     body?: any;
     result?: any;
   }): string | null {
-    const { params, body, result } = context;
-
     return (
-      params?.id ||
-      params?.userId ||
-      params?.patientId ||
-      result?.id ||
-      body?.id ||
+      context.params?.id ||
+      context.params?.userId ||
+      context.result?.id ||
+      context.body?.id ||
       null
     );
   }
 
-  private defaultDataExtractor(
-    context: {
-      params?: any;
-      body?: any;
-      result?: any;
-      error?: any;
-    },
-    includeSensitiveData = false,
-  ): any {
-    const data: any = { params: context.params ?? {} };
-
-    if (context.body) {
-      data.body = includeSensitiveData
-        ? context.body
-        : this.sanitizeSensitiveData(context.body);
-    }
-
-    if (context.result) {
-      data.result = includeSensitiveData
-        ? context.result
-        : this.sanitizeSensitiveData(context.result);
-    }
-
-    if (context.error) {
-      data.error = {
-        message: context.error.message,
-        name: context.error.name,
-        status: context.error.status ?? context.error.statusCode,
-      };
-    }
-
-    return data;
+  private defaultDataExtractor(context: {
+    params?: any;
+    body?: any;
+    result?: any;
+    error?: any;
+  }) {
+    return {
+      request: {
+        params: context.params ?? {},
+        body: this.sanitize(context.body),
+      },
+      response: context.result
+        ? { result: this.sanitize(context.result) }
+        : undefined,
+      error: context.error
+        ? {
+            name: context.error.name,
+            message: context.error.message,
+            status:
+              context.error.status ?? context.error.statusCode ?? undefined,
+          }
+        : undefined,
+    };
   }
 
-  private sanitizeSensitiveData(
-    obj: any,
-    seen: WeakSet<object> = new WeakSet(),
-  ): any {
+  private sanitize(obj: any, seen = new WeakSet<object>()): any {
     if (!obj || typeof obj !== 'object') return obj;
-    if (seen.has(obj)) return obj;
+    if (seen.has(obj)) return '[Circular]';
 
     seen.add(obj);
 
@@ -225,21 +212,28 @@ export class AuditInterceptor implements NestInterceptor {
       'accessToken',
       'refreshToken',
       'authorization',
-      'auth',
     ]);
 
-    const sanitized: any = Array.isArray(obj) ? [] : { ...obj };
+    const output: any = Array.isArray(obj) ? [] : {};
 
     for (const [key, value] of Object.entries(obj)) {
       if (sensitiveFields.has(key)) {
-        sanitized[key] = '[REDACTED]';
+        output[key] = '[REDACTED]';
       } else if (typeof value === 'object') {
-        sanitized[key] = this.sanitizeSensitiveData(value, seen);
+        output[key] = this.sanitize(value, seen);
       } else {
-        sanitized[key] = value;
+        output[key] = value;
       }
     }
 
-    return sanitized;
+    return output;
   }
+}
+
+interface RequestSnapshot {
+  method: string;
+  url: string;
+  route?: string;
+  params?: any;
+  body?: any;
 }

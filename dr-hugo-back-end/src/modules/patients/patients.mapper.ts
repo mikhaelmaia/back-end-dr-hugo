@@ -8,10 +8,17 @@ import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class PatientsMapper extends BaseMapper<Patient, PatientDto> {
-
   public toDto(entity: Patient): PatientDto {
     const dto = new PatientDto();
     dto.id = entity.id;
+    dto.name = entity.user?.name;
+    dto.email = entity.user?.email;
+    dto.taxId = entity.user?.taxId;
+    dto.phone = entity.user?.phone;
+    dto.countryCode = entity.user?.countryCode;
+    dto.countryIdd = entity.user?.countryIdd;
+    dto.profilePictureId = entity.user?.profilePicture?.id;
+    dto.acceptedTerms = entity.user?.acceptedTerms;
     dto.birthDate = entity.birthDate;
     dto.createdAt = entity.createdAt;
     dto.updatedAt = entity.updatedAt;
@@ -33,7 +40,8 @@ export class PatientsMapper extends BaseMapper<Patient, PatientDto> {
     dto.phone = user.phone;
     dto.countryCode = user.countryCode;
     dto.countryIdd = user.countryIdd;
-    dto.profilePictureId = user instanceof User ? user.profilePicture?.id : user.profilePictureId;
+    dto.profilePictureId =
+      user instanceof User ? user.profilePicture?.id : user.profilePictureId;
     dto.acceptedTerms = user.acceptedTerms;
     return dto;
   }

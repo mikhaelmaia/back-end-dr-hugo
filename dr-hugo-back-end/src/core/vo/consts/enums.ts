@@ -9,11 +9,12 @@ export enum EnumType {
   BRAZILIAN_STATE = 'BRAZILIAN_STATE',
   DOCTOR_SPECIALIZATION_TYPE = 'DOCTOR_SPECIALIZATION_TYPE',
   MEDICAL_INSTITUTION_TYPE = 'MEDICAL_INSTITUTION_TYPE',
+  PATIENT_DOCUMENT_TYPE = 'PATIENT_DOCUMENT_TYPE',
 }
 
 /**
  * Tipos de tokens disponíveis no sistema
- * 
+ *
  * @swagger
  * @enum {string}
  */
@@ -22,6 +23,8 @@ export enum TokenType {
   PASSWORD_RESET = 'PASSWORD_RESET',
   /** Token para confirmação de endereço de e-mail */
   EMAIL_CONFIRMATION = 'EMAIL_CONFIRMATION',
+  /** Token para solicitação de alteração de dados do usuário */
+  USER_REQUEST_CHANGE = 'USER_REQUEST_CHANGE',
 }
 
 export enum MediaType {
@@ -55,7 +58,7 @@ export enum HttpHeaders {
 
 /**
  * Tipos de termos disponíveis na plataforma
- * 
+ *
  * @swagger
  * @enum {string}
  */
@@ -66,8 +69,23 @@ export enum TermsType {
   TERMS_OF_SERVICE = 'terms_of_service',
 }
 
+/**
+ * Status de solicitações de alteração de dados do usuário
+ *
+ * @swagger
+ * @enum {string}
+ */
+export enum UserChangeRequestStatus {
+  /** Solicitação pendente de confirmação */
+  PENDING = 'PENDING',
+  /** Solicitação confirmada e efetivada */
+  CONFIRMED = 'CONFIRMED',
+  /** Solicitação expirada */
+  EXPIRED = 'EXPIRED',
+}
+
 /** Especializações médicas reconhecidas pelo Conselho Federal de Medicina (CFM)
- * 
+ *
  * @swagger
  * @enum {string}
  */
@@ -189,7 +207,7 @@ export enum BrazilianState {
 
 /**
  * Tipos de instituições médicas
- * 
+ *
  * @swagger
  * @enum {string}
  */
@@ -210,8 +228,24 @@ export enum MedicalInstitutionType {
 }
 
 export enum CompanyType {
-
   HEADQUARTERS = 'Matriz',
   BRANCH = 'Filial',
+}
 
+/**
+ * Tipos de documento do paciente
+ *
+ * @swagger
+ * @enum {string}
+ */
+export enum PatientDocumentType {
+  LABORATORY_EXAM = 'Exame Laboratorial',
+  IMAGING_EXAM = 'Exame de Imagem',
+  PRESCRIPTION = 'Receituário Médico / Prescrição',
+  MEDICAL_CERTIFICATE = 'Atestado / Declaração',
+  MEDICAL_REPORT = 'Laudo / Relatório Médico',
+  EXAM_REQUEST = 'Pedido de Exame / Encaminhamento',
+  MEDICAL_RECORD = 'Prontuário / Ficha Clínica',
+  VACCINATION_CARD = 'Carteira de Vacinação',
+  OTHER = 'Outros Documentos',
 }

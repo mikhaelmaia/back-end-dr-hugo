@@ -10,12 +10,12 @@ import {
   CfmValidationResult,
   CfmServiceResponse,
 } from './dtos/cfm.dtos';
-import { DoctorRegistrationType, DoctorSituation } from 'src/core/vo/consts/enums';
 
 @Injectable()
 export class CfmService {
   private readonly logger = new Logger(CfmService.name);
   private readonly apiUrl: string;
+  private readonly apiKey: string;
   private readonly apiTimeout: number;
   private readonly appName: string;
   private readonly appVersion: string;
@@ -25,38 +25,26 @@ export class CfmService {
     private readonly httpService: HttpService,
   ) {
     this.apiUrl = this.configService.get<string>('cfm.apiUrl');
+    this.apiKey = this.configService.get<string>('cfm.apiKey');
     this.apiTimeout = this.configService.get<number>('cfm.apiTimeout') ?? 5000;
     this.appName = this.configService.get<string>('application.name');
     this.appVersion = this.configService.get<string>('application.version');
 
     if (!this.apiUrl) {
-      this.logger.error(
-        'Configuração CFM ausente. Verifique CFM_API_URL.',
-      );
+      this.logger.error('Configuração CFM ausente. Verifique CFM_API_URL.');
+    }
+    if (!this.apiKey) {
+      this.logger.error('Configuração CFM ausente. Verifique CFM_API_KEY.');
     }
   }
 
   public async consultDoctor(
     request: CfmConsultRequest,
   ): Promise<CfmServiceResponse<CfmDoctorData>> {
-    return {
-      success: true,
-      doctorData: {
-        nome: 'Dr. João Silva',
-        crm: 123456,
-        uf: 'SP',
-        situacao: 'A',
-        tipoInscricao: 'P',
-        especialidades: ['Cardiologia', 'Pediatria'],
-        dataAtualizacao: '2023-06-01',
-      }
-    };
     const soapEnvelope = this.buildConsultSoapEnvelope(request);
 
     try {
-      this.logger.log(
-        `Consultando médico CRM ${request.crm}/${request.uf}`,
-      );
+      this.logger.log(`Consultando médico CRM ${request.crm}/${request.uf}`);
 
       const response: AxiosResponse<string> = await firstValueFrom(
         this.httpService.post(this.apiUrl, soapEnvelope, {
@@ -96,9 +84,7 @@ export class CfmService {
     const soapEnvelope = this.buildValidateSoapEnvelope(request);
 
     try {
-      this.logger.log(
-        `Validando médico CRM ${request.crm}/${request.uf}`,
-      );
+      this.logger.log(`Validando médico CRM ${request.crm}/${request.uf}`);
 
       const response: AxiosResponse<string> = await firstValueFrom(
         this.httpService.post(this.apiUrl, soapEnvelope, {
@@ -123,11 +109,7 @@ export class CfmService {
     }
   }
 
-  private buildConsultSoapEnvelope({
-    crm,
-    uf,
-    chave,
-  }: CfmConsultRequest): string {
+  private buildConsultSoapEnvelope({ crm, uf }: CfmConsultRequest): string {
     return `
       <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
                         xmlns:ser="http://servico.cfm.org.br/">
@@ -136,7 +118,7 @@ export class CfmService {
           <ser:Consultar>
             <crm>${crm}</crm>
             <uf>${uf}</uf>
-            <chave>${chave}</chave>
+            <chave>${this.apiKey}</chave>
           </ser:Consultar>
         </soapenv:Body>
       </soapenv:Envelope>
@@ -181,9 +163,9 @@ export class CfmService {
       if (!nome || !crm || !uf) return null;
 
       const especialidades =
-        xml.match(/<especialidade>(.*?)<\/especialidade>/g)?.map(
-          (e) => e.replace(/<\/?especialidade>/g, ''),
-        ) ?? [];
+        xml
+          .match(/<especialidade>(.*?)<\/especialidade>/g)
+          ?.map((e) => e.replace(/<\/?especialidade>/g, '')) ?? [];
 
       return {
         nome,
