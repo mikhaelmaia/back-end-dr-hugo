@@ -52,10 +52,11 @@ export class PatientMedicalRecordMapper extends BaseMapper<
         description: 'alcoholDescription',
       }),
 
-      physicalActivity: this.conditionToDto(entity, {
-        has: 'hasPhysicalActivity',
-        description: 'physicalActivityDescription',
-      }),
+      physicalActivity: {
+        hasPhysicalActivity: entity.hasPhysicalActivity,
+        physicalActivityTypes: entity.physicalActivityTypes,
+        weeklyFrequency: entity.weeklyFrequency,
+      },
 
       bloodPressure: { description: entity.bloodPressure },
 
@@ -107,10 +108,9 @@ export class PatientMedicalRecordMapper extends BaseMapper<
       description: 'alcoholDescription',
     });
 
-    this.conditionToEntity(dto.physicalActivity, entity, {
-      has: 'hasPhysicalActivity',
-      description: 'physicalActivityDescription',
-    });
+    entity.hasPhysicalActivity = dto.physicalActivity?.hasPhysicalActivity ?? false;
+    entity.physicalActivityTypes = dto.physicalActivity?.physicalActivityTypes ?? null;
+    entity.weeklyFrequency = dto.physicalActivity?.weeklyFrequency ?? null;
 
     entity.bloodPressure = dto.bloodPressure?.description ?? null;
 
