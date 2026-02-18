@@ -70,11 +70,19 @@ export class PatientMedicalRecord extends BaseEntity {
   public hasPhysicalActivity: boolean;
 
   @Column({
-    name: 'physical_activity_description',
+    name: 'physical_activity_types',
     type: 'text',
     nullable: true,
   })
-  public physicalActivityDescription?: string;
+  public physicalActivityTypes?: string;
+
+  @Column({
+    name: 'weekly_frequency',
+    type: 'varchar',
+    length: 50,
+    nullable: true,
+  })
+  public weeklyFrequency?: string;
 
   /* ---------- Blood pressure ---------- */
   @Column({
@@ -89,11 +97,11 @@ export class PatientMedicalRecord extends BaseEntity {
   @Column({ name: 'is_smoker', type: 'boolean', default: false })
   public isSmoker: boolean;
 
-  @Column({ name: 'cigarettes_per_day', type: 'int', nullable: true })
-  public cigarettesPerDay?: number;
+  @Column({ name: 'cigarettes_per_day', type: 'varchar', length: 50, nullable: true })
+  public cigarettesPerDay?: string;
 
-  @Column({ name: 'years_smoking', type: 'int', nullable: true })
-  public yearsSmoking?: number;
+  @Column({ name: 'years_smoking', type: 'varchar', length: 50, nullable: true })
+  public yearsSmoking?: string;
 
   /* ---------- Terms ---------- */
   @Column({ name: 'accepted_terms', type: 'jsonb', nullable: false })

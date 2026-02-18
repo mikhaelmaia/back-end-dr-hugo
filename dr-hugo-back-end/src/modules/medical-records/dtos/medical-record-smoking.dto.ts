@@ -1,10 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsNumber, ValidateIf, Max } from 'class-validator';
+import { IsBoolean, IsString, ValidateIf, MaxLength } from 'class-validator';
 import { Expose } from 'class-transformer';
 import {
   provideIsBooleanValidationMessage,
-  provideIsNumberValidationMessage,
-  provideMaxValidationMessage,
+  provideIsStringValidationMessage,
+  provideMaxLengthValidationMessage,
 } from 'src/core/vo/consts/validation-messages';
 
 export class MedicalRecordSmokingDto {
@@ -21,36 +21,36 @@ export class MedicalRecordSmokingDto {
 
   @ApiProperty({
     description:
-      'Quantidade de cigarros fumados por dia (máximo 999)',
-    example: 20,
+      'Quantidade de cigarros fumados por dia (máximo 50 caracteres)',
+    example: '20 cigarros',
     required: false,
-    maximum: 999,
-    type: Number,
+    maxLength: 50,
+    type: String,
   })
   @ValidateIf((o) => o.isSmoker === true)
-  @IsNumber({}, {
-    message: provideIsNumberValidationMessage('Cigarros por Dia'),
+  @IsString({
+    message: provideIsStringValidationMessage('Cigarros por Dia'),
   })
-  @Max(999, {
-    message: provideMaxValidationMessage('Cigarros por Dia', 999),
+  @MaxLength(50, {
+    message: provideMaxLengthValidationMessage('Cigarros por Dia'),
   })
   @Expose()
-  cigarettesPerDay?: number;
+  cigarettesPerDay?: string;
 
   @ApiProperty({
-    description: 'Há quantos anos o paciente fuma (máximo 150)',
-    example: 10,
+    description: 'Há quantos anos o paciente fuma (máximo 50 caracteres)',
+    example: '10 anos',
     required: false,
-    maximum: 150, 
-    type: Number,
+    maxLength: 50,
+    type: String,
   })
   @ValidateIf((o) => o.isSmoker === true)
-  @IsNumber({}, {
-    message: provideIsNumberValidationMessage('Anos Fumando'),
+  @IsString({
+    message: provideIsStringValidationMessage('Anos Fumando'),
   })
-  @Max(150, {
-    message: provideMaxValidationMessage('Anos Fumando', 150),
+  @MaxLength(50, {
+    message: provideMaxLengthValidationMessage('Anos Fumando'),
   })
   @Expose()
-  yearsSmoking?: number;
+  yearsSmoking?: string;
 }

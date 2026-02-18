@@ -98,7 +98,6 @@ export class UserChangeRequestService {
 
     request.status = UserChangeRequestStatus.CONFIRMED;
     await this.repository.save(request);
-    await this.repository.softDelete(request.id);
   }
 
   @Cron(CronExpression.EVERY_MINUTE)
@@ -129,7 +128,7 @@ export class UserChangeRequestService {
     );
 
     const token = await this.tokenService.generateToken(
-      userId,
+      `${userId}:${request.id}`,
       TokenType.USER_REQUEST_CHANGE,
     );
 
@@ -155,7 +154,7 @@ export class UserChangeRequestService {
     );
 
     await this.tokenService.generateToken(
-      userId,
+      `${userId}:${request.id}`,
       TokenType.USER_REQUEST_CHANGE,
     );
     // TODO: Implementar envio de WhatsApp para confirmação de alteração de telefone

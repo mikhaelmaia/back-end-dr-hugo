@@ -6,6 +6,7 @@ import { PatientMedicalRecord } from '../entities/medical-record.entity';
 import { MedicalRecordConditionDto } from './medical-record-condition.dto';
 import { MedicalRecordBloodPressureDto } from './medical-record-blood-pressure.dto';
 import { MedicalRecordSmokingDto } from './medical-record-smoking.dto';
+import { MedicalRecordPhysicalActivityDto } from './medical-record-physical-activity.dto';
 import { TermsType } from 'src/core/vo/consts/enums';
 import { provideIsNotEmptyValidationMessage } from 'src/core/vo/consts/validation-messages';
 import { ContainsRequiredTerms } from 'src/core/vo/validators/contains-required-terms.validator';
@@ -122,15 +123,15 @@ export class PatientMedicalRecordDto extends BaseEntityDto<PatientMedicalRecord>
 
   @ApiProperty({
     description: 'Informações sobre prática de atividades físicas regulares',
-    type: MedicalRecordConditionDto,
+    type: MedicalRecordPhysicalActivityDto,
   })
   @IsNotEmpty({
     message: provideIsNotEmptyValidationMessage('Atividade Física'),
   })
   @ValidateNested()
-  @Type(() => MedicalRecordConditionDto)
+  @Type(() => MedicalRecordPhysicalActivityDto)
   @Expose()
-  physicalActivity: MedicalRecordConditionDto;
+  physicalActivity: MedicalRecordPhysicalActivityDto;
 
   @IsNotEmpty({
     message: provideIsNotEmptyValidationMessage('Termos Aceitos'),
