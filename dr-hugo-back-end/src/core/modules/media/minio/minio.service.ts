@@ -25,7 +25,7 @@ export class MinioService {
     });
 
     this.logger.log(
-      `MinIO client criado (${useSSL ? 'https' : 'http'}://${endPoint}:${port})`,
+      `MinIO client criado (${useSSL ? 'https' : 'http'}://${endPoint}:${port}) - accessKey=${this.configService.get<string>('MINIO_ACCESS_KEY')} - secretKey=${'*'.repeat(this.configService.get<string>('MINIO_SECRET_KEY')?.length || 0)}`,
     );
   }
 
