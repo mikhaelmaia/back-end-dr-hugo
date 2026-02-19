@@ -14,7 +14,7 @@ export class MinioService {
   constructor(private readonly configService: ConfigService) {
     const endPoint = this.configService.get<string>('MINIO_ENDPOINT');
     const port = Number(this.configService.get<number>('MINIO_PORT'));
-    const useSSL = this.configService.get<boolean>('MINIO_USE_SSL');
+    const useSSL = this.configService.get<string>('MINIO_USE_SSL') === 'true';
 
     this.client = new Client({
       endPoint,
