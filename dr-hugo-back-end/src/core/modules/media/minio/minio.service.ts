@@ -21,6 +21,7 @@ export class MinioService {
       useSSL,
       accessKey: this.configService.get<string>('MINIO_ACCESS_KEY'),
       secretKey: this.configService.get<string>('MINIO_SECRET_KEY'),
+      pathStyle: true,
     });
 
     this.logger.log(
