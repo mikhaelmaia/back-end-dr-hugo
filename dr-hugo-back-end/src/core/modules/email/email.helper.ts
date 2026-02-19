@@ -146,6 +146,7 @@ export class EmailHelper {
       token,
       role,
       requestId,
+      type: 'email',
     });
     this.emailQueueService.enqueueEmail(
       EmailSend.builder()

@@ -15,10 +15,12 @@ export class ConfirmUserChangeRequestDto {
     description: 'ID da solicitação de alteração a ser confirmada',
     example: '550e8400-e29b-41d4-a716-446655440000',
     type: String,
-    format: 'uuid'
+    format: 'uuid',
   })
   @IsString({ message: provideIsStringValidationMessage('ID da Solicitação') })
-  @IsNotEmpty({ message: provideIsNotEmptyValidationMessage('ID da Solicitação') })
+  @IsNotEmpty({
+    message: provideIsNotEmptyValidationMessage('ID da Solicitação'),
+  })
   @IsUUID(4, { message: 'ID da solicitação deve ser um UUID válido' })
   public id: string;
 
@@ -28,12 +30,13 @@ export class ConfirmUserChangeRequestDto {
     type: String,
     minLength: 64,
     maxLength: 64,
-    pattern: '^[a-f0-9]{64}$'
+    pattern: '^[a-f0-9]{64}$',
   })
-  @IsString({ message: provideIsStringValidationMessage('Hash de Validação') })
-  @IsNotEmpty({ message: provideIsNotEmptyValidationMessage('Hash de Validação') })
-  @IsNotEmptyString({ message: 'Hash de validação não pode ser uma string vazia' })
-  @Length(64, 64, { message: 'Hash de validação deve ter exatamente 64 caracteres' })
-  @Matches(/^[a-f0-9]{64}$/, { message: 'Hash de validação deve conter apenas caracteres hexadecimais' })
+  @IsNotEmpty({
+    message: provideIsNotEmptyValidationMessage('Identificação do Token'),
+  })
+  @IsString({
+    message: provideIsStringValidationMessage('Identificação do Token'),
+  })
   public hash: string;
 }

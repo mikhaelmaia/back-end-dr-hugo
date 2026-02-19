@@ -143,6 +143,14 @@ export const provideIsObjectValidationMessage = (
   return `${getPropertyFromParameter(validationArguments)} deve ser um objeto válido`;
 };
 
+export const provideIsNotFutureDateValidationMessage = (): string => {
+  return 'A data de nascimento não pode ser superior à data atual';
+};
+
+export const provideIsWithinValidAgeValidationMessage = (): string => {
+  return 'Data inválida';
+};
+
 const getPropertyFromParameter = (
   validationArguments: ValidationArguments | string,
 ): string => {

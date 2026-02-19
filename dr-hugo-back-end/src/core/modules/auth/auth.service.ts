@@ -63,43 +63,55 @@ export class AuthService {
   public async startPasswordRecovery(
     recoveryData: StartPasswordRecoveryDto,
   ): Promise<void> {
+    const login = recoveryData.login;
+    const role = recoveryData.role;
+
     const user: UserDto = await this.userService.findByEmailOrTaxId(
-      recoveryData.login,
-      recoveryData.role,
+      login,
+      role,
     );
-    whenNullThrows(user, () => toHttpException('E030'));
+
+    if (!user) {
+      return;
+    }
 
     acceptFalseThrows(user.isActive, () => toHttpException('E031'));
 
-    const token = await this.tokenService.generateToken(
-      `${recoveryData.login}:${recoveryData.role}`,
+    const token = await this.tokenService.generateOrRenewToken(
+      `${login}:${role}`,
       TokenType.PASSWORD_RESET,
     );
     await this.emailhelper.sendPasswordResetRequestEmail(
       user.name,
       user.email,
       token.token,
-      recoveryData.role,
+      role,
     );
   }
 
   public async performPasswordReset(
     passwordReset: PasswordResetDto,
   ): Promise<void> {
+    const email = passwordReset.email;
+    const role = passwordReset.role;
+
+    const user = await this.userService.findByEmail(email, role);
+
+    if (!user || !user.isActive) {
+      return;
+    }
+
     await this.tokenService.concludeToken(
       passwordReset.tokenIdentification,
-      `${passwordReset.email}:${passwordReset.role}`,
+      `${email}:${role}`,
       TokenType.PASSWORD_RESET,
     );
     await this.userService.updateUserPassword(
-      passwordReset.email,
+      email,
       passwordReset.password,
-      passwordReset.role,
+      role,
     );
-    this.emailhelper.sendPasswordResetEmail(
-      passwordReset.email,
-      passwordReset.email,
-    );
+    this.emailhelper.sendPasswordResetEmail(user.name, user.email);
   }
 
   public async resendEmailConfirmation(
@@ -109,8 +121,10 @@ export class AuthService {
       resendData.email,
       resendData.role,
     );
-    whenNullThrows(user, () => toHttpException('E033'));
-    acceptTrueThrows(user.isValid, () => toHttpException('E036'));
+
+    if (!user || user.isActive) {
+      return;
+    }
 
     const token = await this.tokenService.renewToken(
       `${user.email}:${user.role}`,
@@ -130,8 +144,10 @@ export class AuthService {
     const userEmail = userEmailConfirm.email;
     const userRole = userEmailConfirm.role;
     const user = await this.userService.findByEmail(userEmail, userRole);
-    whenNullThrows(user, () => toHttpException('E033'));
-    acceptTrueThrows(user.isValid, () => toHttpException('E036'));
+
+    if (!user || user.isActive) {
+      return;
+    }
 
     await this.tokenService.concludeToken(
       userEmailConfirm.tokenIdentification,
