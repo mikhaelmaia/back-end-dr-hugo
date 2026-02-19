@@ -1,10 +1,5 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBody
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { AuthRequest } from './dto/auth-request.dto';
 import { AuthResponse } from './dto/auth-response.dto';
@@ -23,36 +18,37 @@ export class AuthController {
 
   @ApiOperation({
     summary: 'Autenticar usuário',
-    description: 'Realiza a autenticação do usuário no sistema usando email/CPF/CNPJ e senha, retornando tokens de acesso e renovação.'
+    description:
+      'Realiza a autenticação do usuário no sistema usando email/CPF/CNPJ e senha, retornando tokens de acesso e renovação.',
   })
   @ApiBody({
     description: 'Credenciais de autenticação do usuário',
-    type: AuthRequest
+    type: AuthRequest,
   })
   @ApiResponse({
     status: 200,
     description: 'Autenticação realizada com sucesso',
-    type: AuthResponse
+    type: AuthResponse,
   })
   @ApiResponse({
     status: 400,
     description: 'Dados de autenticação inválidos ou malformados',
-    type: ExceptionResponse
+    type: ExceptionResponse,
   })
   @ApiResponse({
     status: 401,
     description: 'Credenciais incorretas ou usuário não encontrado',
-    type: ExceptionResponse
+    type: ExceptionResponse,
   })
   @ApiResponse({
     status: 422,
     description: 'Dados não atendem aos critérios de validação',
-    type: ExceptionResponse
+    type: ExceptionResponse,
   })
   @ApiResponse({
     status: 500,
     description: 'Erro interno do servidor',
-    type: ExceptionResponse
+    type: ExceptionResponse,
   })
   @Post(AuthPaths.LOGIN)
   @HttpCode(HttpStatus.OK)
@@ -63,7 +59,8 @@ export class AuthController {
 
   @ApiOperation({
     summary: 'Renovar token de acesso',
-    description: 'Gera um novo par de tokens (acesso e renovação) usando um refresh token válido, mantendo a sessão do usuário ativa.'
+    description:
+      'Gera um novo par de tokens (acesso e renovação) usando um refresh token válido, mantendo a sessão do usuário ativa.',
   })
   @ApiBody({
     description: 'Token de renovação para gerar novos tokens',
@@ -73,31 +70,31 @@ export class AuthController {
         refreshToken: {
           type: 'string',
           description: 'Token de renovação válido obtido no login',
-          example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
-        }
+          example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+        },
       },
-      required: ['refreshToken']
-    }
+      required: ['refreshToken'],
+    },
   })
   @ApiResponse({
     status: 200,
     description: 'Tokens renovados com sucesso',
-    type: AuthResponse
+    type: AuthResponse,
   })
   @ApiResponse({
     status: 400,
     description: 'Refresh token ausente ou malformado',
-    type: ExceptionResponse
+    type: ExceptionResponse,
   })
   @ApiResponse({
     status: 401,
     description: 'Refresh token inválido, expirado ou revogado',
-    type: ExceptionResponse
+    type: ExceptionResponse,
   })
   @ApiResponse({
     status: 500,
     description: 'Erro interno do servidor',
-    type: ExceptionResponse
+    type: ExceptionResponse,
   })
   @Post(AuthPaths.REFRESH_TOKEN)
   @HttpCode(HttpStatus.OK)
@@ -110,30 +107,37 @@ export class AuthController {
 
   @ApiOperation({
     summary: 'Iniciar recuperação de senha',
-    description: 'Envia um email com token para recuperação de senha para o endereço especificado, caso o usuário exista no sistema.'
+    description:
+      'Processa solicitação de recuperação de senha. Por motivos de segurança, sempre retorna sucesso independente de o usuário existir. Se o usuário existir e estiver ativo, um email será enviado com instruções.',
   })
   @ApiBody({
     description: 'Dados para início da recuperação de senha',
-    type: StartPasswordRecoveryDto
+    type: StartPasswordRecoveryDto,
   })
   @ApiResponse({
     status: 200,
-    description: 'Solicitação processada com sucesso (email enviado se o usuário existir)'
+    description:
+      'Solicitação processada com sucesso. Email enviado apenas se o usuário existir e estiver ativo.',
   })
   @ApiResponse({
     status: 400,
     description: 'Dados ausentes ou formato inválido',
-    type: ExceptionResponse
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Conta aguardando verificação de email',
+    type: ExceptionResponse,
   })
   @ApiResponse({
     status: 422,
     description: 'Dados não atendem aos critérios de validação',
-    type: ExceptionResponse
+    type: ExceptionResponse,
   })
   @ApiResponse({
     status: 500,
     description: 'Erro interno do servidor',
-    type: ExceptionResponse
+    type: ExceptionResponse,
   })
   @Post(AuthPaths.PASSWORD_RECOVERY)
   @HttpCode(HttpStatus.OK)
@@ -141,45 +145,48 @@ export class AuthController {
   public async startPasswordRecovery(
     @Body() startPasswordRecoveryDto: StartPasswordRecoveryDto,
   ): Promise<void> {
-    return await this.authService.startPasswordRecovery(startPasswordRecoveryDto);
+    return await this.authService.startPasswordRecovery(
+      startPasswordRecoveryDto,
+    );
   }
 
   @ApiOperation({
     summary: 'Redefinir senha do usuário',
-    description: 'Realiza a redefinição da senha usando o token de recuperação enviado por email. Invalida todos os tokens existentes do usuário.'
+    description:
+      'Realiza a redefinição da senha usando o token de recuperação enviado por email. Invalida todos os tokens existentes do usuário.',
   })
   @ApiBody({
     description: 'Dados para redefinição da senha',
-    type: PasswordResetDto
+    type: PasswordResetDto,
   })
   @ApiResponse({
     status: 200,
-    description: 'Senha redefinida com sucesso'
+    description: 'Senha redefinida com sucesso',
   })
   @ApiResponse({
     status: 400,
     description: 'Dados inválidos ou malformados',
-    type: ExceptionResponse
+    type: ExceptionResponse,
   })
   @ApiResponse({
     status: 401,
     description: 'Token de recuperação inválido ou expirado',
-    type: ExceptionResponse
+    type: ExceptionResponse,
   })
   @ApiResponse({
     status: 404,
     description: 'Usuário não encontrado',
-    type: ExceptionResponse
+    type: ExceptionResponse,
   })
   @ApiResponse({
     status: 422,
     description: 'Dados não atendem aos critérios de validação',
-    type: ExceptionResponse
+    type: ExceptionResponse,
   })
   @ApiResponse({
     status: 500,
     description: 'Erro interno do servidor',
-    type: ExceptionResponse
+    type: ExceptionResponse,
   })
   @Post(AuthPaths.PASSWORD_RESET)
   @HttpCode(HttpStatus.OK)
@@ -192,49 +199,59 @@ export class AuthController {
 
   @ApiOperation({
     summary: 'Reenviar confirmação de email',
-    description: 'Reenvia o email de confirmação para um usuário que ainda não confirmou seu email. Se o usuário já estiver ativo, a operação será ignorada silenciosamente.'
+    description:
+      'Processa solicitação de reenvio de confirmação de email. Por motivos de segurança, sempre retorna sucesso independente de o usuário existir ou já estar validado.',
   })
   @ApiResponse({
     status: 200,
-    description: 'Email de confirmação reenviado com sucesso (ou usuário já ativo)',
+    description:
+      'Solicitação processada com sucesso. Email reenviado apenas se usuário existir e ainda não estiver validado.',
   })
   @ApiResponse({
     status: 400,
     description: 'Dados de entrada inválidos',
-    type: ExceptionResponse
+    type: ExceptionResponse,
   })
   @ApiResponse({
     status: 500,
     description: 'Erro interno do servidor',
-    type: ExceptionResponse
+    type: ExceptionResponse,
   })
   @Public()
   @Post(AuthPaths.RESEND_EMAIL_CONFIRMATION)
-  public async resendEmailConfirmation(@Body() resendEmailConfirmationDto: ResendEmailConfirmationDto): Promise<void> {
+  @HttpCode(HttpStatus.OK)
+  public async resendEmailConfirmation(
+    @Body() resendEmailConfirmationDto: ResendEmailConfirmationDto,
+  ): Promise<void> {
     await this.authService.resendEmailConfirmation(resendEmailConfirmationDto);
   }
 
   @ApiOperation({
     summary: 'Confirmar email do usuário',
-    description: 'Confirma o email de um usuário, ativando sua conta. Se o usuário já estiver ativo, a operação será ignorada silenciosamente.'
+    description:
+      'Processa confirmação de email do usuário. Por motivos de segurança, sempre retorna sucesso independente de o usuário existir ou do token ser válido.',
   })
   @ApiResponse({
     status: 200,
-    description: 'Email confirmado com sucesso (ou usuário já ativo)',
+    description:
+      'Solicitação processada com sucesso. Email confirmado apenas se usuário existir, não estiver validado e token for válido.',
   })
   @ApiResponse({
     status: 400,
-    description: 'Dados de entrada inválidos',
-    type: ExceptionResponse
+    description: 'Dados de entrada inválidos ou token inválido/expirado',
+    type: ExceptionResponse,
   })
   @ApiResponse({
     status: 500,
     description: 'Erro interno do servidor',
-    type: ExceptionResponse
+    type: ExceptionResponse,
   })
   @Public()
   @Post(AuthPaths.CONFIRM_EMAIL)
-  public async confirmUserEmail(@Body() emailConfirmDto: EmailConfirmDto): Promise<void> {
+  @HttpCode(HttpStatus.OK)
+  public async confirmUserEmail(
+    @Body() emailConfirmDto: EmailConfirmDto,
+  ): Promise<void> {
     await this.authService.confirmUserEmail(emailConfirmDto);
   }
 }

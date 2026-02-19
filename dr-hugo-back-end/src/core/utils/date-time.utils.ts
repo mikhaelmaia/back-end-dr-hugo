@@ -33,12 +33,12 @@ export const stringToLocalDateTime = (dateString: string): Date | null => {
     if (dateString.includes('/')) {
       const [datePart, timePart] = dateString.split(' ');
       const [day, month, year] = datePart.split('/').map(Number);
-      
+
       if (timePart) {
         const [hour, minute, second] = timePart.split(':').map(Number);
         return new Date(year, month - 1, day, hour, minute, second || 0);
       }
-      
+
       return new Date(year, month - 1, day);
     }
 
@@ -46,12 +46,12 @@ export const stringToLocalDateTime = (dateString: string): Date | null => {
     if (dateString.includes('-')) {
       const [datePart, timePart] = dateString.split(' ');
       const [year, month, day] = datePart.split('-').map(Number);
-      
+
       if (timePart) {
         const [hour, minute, second] = timePart.split(':').map(Number);
         return new Date(year, month - 1, day, hour, minute, second || 0);
       }
-      
+
       return new Date(year, month - 1, day);
     }
 
@@ -93,7 +93,10 @@ export const localDateTimeToString = (date: Date): string | null => {
  * @param includeTime Se deve incluir horário (padrão: true)
  * @returns String formatada ou null se data inválida
  */
-export const localDateTimeToBrazilianString = (date: Date, includeTime: boolean = true): string | null => {
+export const localDateTimeToBrazilianString = (
+  date: Date,
+  includeTime: boolean = true,
+): string | null => {
   if (!date || Number.isNaN(date.getTime())) return null;
 
   const day = date.getDate().toString().padStart(2, '0');
@@ -192,6 +195,10 @@ export const isPastDate = (date: Date): boolean => {
   return date.getTime() < Date.now();
 };
 
+export const isPastOrCurrentDate = (date: Date): boolean => {
+  return date.getTime() <= Date.now();
+};
+
 /**
  * Verifica se uma data está no futuro
  * @param date Data a ser verificada
@@ -241,7 +248,7 @@ export const endOfDay = (date: Date): Date => {
  */
 export const formatToBrazilianTimezone = (
   date: Date,
-  options?: Intl.DateTimeFormatOptions
+  options?: Intl.DateTimeFormatOptions,
 ): string => {
   const defaultOptions: Intl.DateTimeFormatOptions = {
     timeZone: 'America/Sao_Paulo',

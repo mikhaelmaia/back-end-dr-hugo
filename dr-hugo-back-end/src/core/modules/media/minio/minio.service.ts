@@ -36,14 +36,11 @@ export class MinioService {
 
   public getObjectUrl(bucket: string, objectName: string): string {
     const endpoint = this.configService.get<string>('MINIO_ENDPOINT');
-    const port = Number(this.configService.get<number>('MINIO_PORT'));
     const useSSL = this.configService.get<string>('MINIO_USE_SSL') === 'true';
 
     const protocol = useSSL ? 'https' : 'http';
-    const portSuffix =
-      (useSSL && port === 443) || (!useSSL && port === 80) ? '' : `:${port}`;
 
-    return `${protocol}://${endpoint}${portSuffix}/${bucket}/${objectName}`;
+    return `${protocol}://${endpoint}/${bucket}/${objectName}`;
   }
 
   private async ensureInitialized(): Promise<void> {

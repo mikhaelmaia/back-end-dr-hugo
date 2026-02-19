@@ -84,7 +84,7 @@ export class UserChangeRequestService {
 
     await this.tokenService.concludeToken(
       dto.hash,
-      userId,
+      `${userId}:${request.id}`,
       TokenType.USER_REQUEST_CHANGE,
     );
 

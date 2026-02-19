@@ -31,6 +31,9 @@ import { ExistsIn } from 'src/core/vo/validators/exists-in.validator';
 import { IsNotEmptyString } from 'src/core/vo/validators/is-not-empty-string.validator';
 import { IsUniqueComposite } from 'src/core/vo/validators/is-unique-composite.validator';
 import { IsValidTaxId } from 'src/core/vo/validators/is-valid-tax-id.validator';
+import { ToLocalDate } from 'src/core/vo/transformers/to-local-date.transformer';
+import { IsNotFutureDate } from 'src/core/vo/validators/is-not-future-date.validator';
+import { IsWithinValidAge } from 'src/core/vo/validators/is-within-valid-age.validator';
 import { User } from 'src/modules/users/entities/user.entity';
 
 export class PatientDto extends BaseEntityDto<Patient> {
@@ -42,16 +45,20 @@ export class PatientDto extends BaseEntityDto<Patient> {
     message: provideIsNotEmptyStringValidationMessage('Nome Completo'),
   })
   @IsOnlyLetters({
-    message: 'Nome Completo deve conter apenas letras, espaços e caracteres básicos de pontuação',
+    message:
+      'Nome Completo deve conter apenas letras, espaços e caracteres básicos de pontuação',
   })
   @IsNotBlacklisted()
-  @MaxLength(100, { message: provideMaxLengthValidationMessage('Nome Completo') })
+  @MaxLength(100, {
+    message: provideMaxLengthValidationMessage('Nome Completo'),
+  })
   @Expose()
-  @ApiProperty({ 
-    description: 'Nome completo do paciente (apenas letras, espaços e pontuação básica)',
+  @ApiProperty({
+    description:
+      'Nome completo do paciente (apenas letras, espaços e pontuação básica)',
     example: 'Maria Silva Santos',
     maxLength: 100,
-    type: String
+    type: String,
   })
   public name: string;
 
@@ -59,25 +66,25 @@ export class PatientDto extends BaseEntityDto<Patient> {
     message: provideIsNotEmptyValidationMessage('E-mail'),
   })
   @IsString({ message: provideIsStringValidationMessage('E-mail') })
-  @IsEmail(
-    {},
-    { message: provideIsEmailValidationMessage() },
-  )
+  @IsEmail({}, { message: provideIsEmailValidationMessage() })
   @IsNotBlacklisted()
   @MaxLength(50, { message: provideMaxLengthValidationMessage('E-mail') })
-  @IsUniqueComposite({
-    tableName: 'dv_user',
-    column: 'email',
-    additionalField: { column: 'role', value: 'PATIENT' }
-  }, {
-    message: 'Já existe paciente com este e-mail cadastrado',
-  })
-  @ApiProperty({ 
+  @IsUniqueComposite(
+    {
+      tableName: 'dv_user',
+      column: 'email',
+      additionalField: { column: 'role', value: 'PATIENT' },
+    },
+    {
+      message: 'Já existe paciente com este e-mail cadastrado',
+    },
+  )
+  @ApiProperty({
     description: 'Endereço de e-mail do paciente (deve ser único no sistema)',
     example: 'maria.silva@email.com',
     maxLength: 50,
     format: 'email',
-    type: String
+    type: String,
   })
   public email: string;
 
@@ -91,12 +98,13 @@ export class PatientDto extends BaseEntityDto<Patient> {
   })
   @IsStrongPassword()
   @Exclude({ toPlainOnly: true })
-  @ApiProperty({ 
-    description: 'Senha de acesso do paciente (deve ser forte: minúscula, maiúscula, número e caractere especial)',
+  @ApiProperty({
+    description:
+      'Senha de acesso do paciente (deve ser forte: minúscula, maiúscula, número e caractere especial)',
     example: 'MinhaSenh@123',
     minLength: 8,
     type: String,
-    writeOnly: true
+    writeOnly: true,
   })
   public password: string;
 
@@ -113,19 +121,22 @@ export class PatientDto extends BaseEntityDto<Patient> {
   @IsValidTaxId({
     message: provideIsValidTaxIdValidationMessage('CPF'),
   })
-  @IsUniqueComposite({
-    tableName: 'dv_user',
-    column: 'taxId',
-    additionalField: { column: 'role', value: 'PATIENT' }
-  }, {
-    message: 'Já existe paciente com este CPF cadastrado',
-  })
+  @IsUniqueComposite(
+    {
+      tableName: 'dv_user',
+      column: 'taxId',
+      additionalField: { column: 'role', value: 'PATIENT' },
+    },
+    {
+      message: 'Já existe paciente com este CPF cadastrado',
+    },
+  )
   @ApiProperty({
     description: 'CPF do paciente (apenas números, deve ser único)',
     example: '12345678901',
     minLength: 11,
     maxLength: 14,
-    type: String
+    type: String,
   })
   public taxId: string;
 
@@ -136,19 +147,23 @@ export class PatientDto extends BaseEntityDto<Patient> {
     message: provideIsNotEmptyValidationMessage('Telefone'),
   })
   @Length(10, 15, { message: provideLengthValidationMessage('Telefone') })
-  @IsUniqueComposite({
-    tableName: 'dv_user',
-    column: 'phone',
-    additionalField: { column: 'role', value: 'PATIENT' }
-  }, {
-    message: 'Já existe paciente com este telefone/celular cadastrado',
-  })
+  @IsUniqueComposite(
+    {
+      tableName: 'dv_user',
+      column: 'phone',
+      additionalField: { column: 'role', value: 'PATIENT' },
+    },
+    {
+      message: 'Já existe paciente com este telefone/celular cadastrado',
+    },
+  )
   @ApiProperty({
-    description: 'Número de telefone ou celular do paciente (apenas números, deve ser único)',
+    description:
+      'Número de telefone ou celular do paciente (apenas números, deve ser único)',
     example: '11987654321',
     minLength: 10,
     maxLength: 15,
-    type: String
+    type: String,
   })
   public phone: string;
 
@@ -164,7 +179,7 @@ export class PatientDto extends BaseEntityDto<Patient> {
     example: 'BRA',
     minLength: 1,
     maxLength: 3,
-    type: String
+    type: String,
   })
   public countryCode: string;
 
@@ -180,16 +195,17 @@ export class PatientDto extends BaseEntityDto<Patient> {
     example: '+55',
     minLength: 1,
     maxLength: 5,
-    type: String
+    type: String,
   })
   public countryIdd: string;
 
   @ApiProperty({
-    description: 'Perfil de acesso do paciente no sistema (sempre PATIENT para pacientes)',
+    description:
+      'Perfil de acesso do paciente no sistema (sempre PATIENT para pacientes)',
     example: 'PATIENT',
     enum: UserRole,
     enumName: 'UserRole',
-    required: false
+    required: false,
   })
   public role: UserRole;
 
@@ -198,7 +214,7 @@ export class PatientDto extends BaseEntityDto<Patient> {
     example: '550e8400-e29b-41d4-a716-446655440000',
     format: 'uuid',
     required: false,
-    type: String
+    type: String,
   })
   @Expose()
   @IsOptional()
@@ -209,12 +225,14 @@ export class PatientDto extends BaseEntityDto<Patient> {
     message: provideIsNotEmptyValidationMessage('Data de Nascimento'),
   })
   @IsDate({ message: 'Data de nascimento deve estar no formato DD/MM/AAAA' })
-  @Type(() => Date)
-  @ApiProperty({ 
+  @ToLocalDate()
+  @IsWithinValidAge()
+  @IsNotFutureDate()
+  @ApiProperty({
     description: 'Data de nascimento do paciente',
     example: '1990-05-15',
-    type: String, 
-    format: 'date'
+    type: String,
+    format: 'date',
   })
   public birthDate: Date;
 
@@ -222,17 +240,22 @@ export class PatientDto extends BaseEntityDto<Patient> {
     message: provideIsNotEmptyValidationMessage('Termos Aceitos'),
   })
   @IsArray({ message: 'Termos aceitos deve ser um array' })
-  @ContainsRequiredTerms([TermsType.PRIVACY_POLICY, TermsType.TERMS_OF_SERVICE], {
-    message: 'Você deve aceitar os Termos de Uso e a Política de Privacidade para continuar',
-  })
+  @ContainsRequiredTerms(
+    [TermsType.PRIVACY_POLICY, TermsType.TERMS_OF_SERVICE],
+    {
+      message:
+        'Você deve aceitar os Termos de Uso e a Política de Privacidade para continuar',
+    },
+  )
   @ApiProperty({
-    description: 'Lista dos tipos de termos aceitos pelo paciente (obrigatórios: privacy_policy, terms_of_service)',
+    description:
+      'Lista dos tipos de termos aceitos pelo paciente (obrigatórios: privacy_policy, terms_of_service)',
     type: [String],
     example: ['privacy_policy', 'terms_of_service'],
     items: {
       type: 'string',
-      enum: ['privacy_policy', 'terms_of_service']
-    }
+      enum: ['privacy_policy', 'terms_of_service'],
+    },
   })
   public acceptedTerms: string[];
 }

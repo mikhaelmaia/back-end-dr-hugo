@@ -11,6 +11,7 @@ import { TokenType } from 'src/core/vo/consts/enums';
 import { Optional } from 'src/core/utils/optional';
 import { TokenValidationDto } from './dtos/token-validation.dto';
 import { TokenConstants } from 'src/core/vo/consts/token.constants';
+import { isPastOrCurrentDate } from 'src/core/utils/date-time.utils';
 
 @Injectable()
 export class TokenService extends BaseService<
@@ -105,6 +106,32 @@ export class TokenService extends BaseService<
     await this.repository.delete(existingToken.id);
 
     return this.createAndSaveToken(tokenIdentification, type);
+  }
+
+  public async generateOrRenewToken(
+    identification: string,
+    type: TokenType,
+  ): Promise<TokenDto> {
+    const existingToken =
+      await this.repository.findActiveTokenByIdentificationAndType(
+        identification,
+        type,
+      );
+
+    if (!existingToken) {
+      return this.createAndSaveToken(identification, type);
+    }
+
+    const isRenewable = isPastOrCurrentDate(existingToken.renewalTime);
+
+    if (isRenewable) {
+      await this.repository.delete(existingToken.id);
+      return this.createAndSaveToken(identification, type);
+    }
+
+    throw new BadRequestException(
+      TokenConstants.ERROR_MESSAGES.TOKEN_RENEWAL_TIME_NOT_REACHED(type),
+    );
   }
 
   private async createAndSaveToken(
