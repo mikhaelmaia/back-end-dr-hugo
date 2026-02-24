@@ -8,7 +8,7 @@ import {
   IsDate,
   IsArray,
 } from 'class-validator';
-import { Exclude, Type } from 'class-transformer';
+import { Exclude } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import {
   provideIsStringValidationMessage,

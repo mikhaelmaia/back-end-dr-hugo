@@ -1,4 +1,10 @@
-import { IsString, IsEnum, IsNotEmpty } from 'class-validator';
+import {
+  IsString,
+  IsEnum,
+  IsNotEmpty,
+  IsBoolean,
+  IsOptional,
+} from 'class-validator';
 import { Expose, Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { BaseEntityDto } from 'src/core/base/base.entity.dto';
@@ -7,9 +13,9 @@ import {
   provideIsStringValidationMessage,
   provideIsEnumValidationMessage,
   provideIsNotEmptyValidationMessage,
+  provideIsBooleanValidationMessage,
 } from 'src/core/vo/consts/validation-messages';
 import { DoctorSpecializationType } from 'src/core/vo/consts/enums';
-import { findEnumStringValueByKey } from 'src/core/utils/enum.utils';
 
 export class DoctorSpecializationDto extends BaseEntityDto<DoctorSpecialization> {
   @IsNotEmpty({
@@ -48,4 +54,18 @@ export class DoctorSpecializationDto extends BaseEntityDto<DoctorSpecialization>
     type: String,
   })
   public rqe: string;
+
+  @IsOptional()
+  @IsBoolean({
+    message: provideIsBooleanValidationMessage('Status da especialização'),
+  })
+  @Expose()
+  @ApiProperty({
+    description:
+      'Indica se a especialização está ativa (informada pelo médico) ou inativa (apenas no CFM)',
+    example: true,
+    default: true,
+    type: Boolean,
+  })
+  public isActive?: boolean = true;
 }
