@@ -69,12 +69,25 @@ export const stringToLocalDateTime = (dateString: string): Date | null => {
  * @returns Date object com horário zerado ou null se inválida
  */
 export const stringToLocalDate = (dateString: string): Date | null => {
-  const date = stringToLocalDateTime(dateString);
-  if (!date) return null;
+  if (!dateString) return null;
 
-  // Zera o horário para ter apenas a data
-  date.setHours(0, 0, 0, 0);
-  return date;
+  try {
+    if (dateString.includes('T') || dateString.includes('Z')) {
+      const isoMatch = dateString.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (isoMatch) {
+        const [, year, month, day] = isoMatch;
+        return new Date(Number(year), Number(month) - 1, Number(day));
+      }
+    }
+
+    const date = stringToLocalDateTime(dateString);
+    if (!date) return null;
+
+    date.setHours(0, 0, 0, 0);
+    return date;
+  } catch {
+    return null;
+  }
 };
 
 /**

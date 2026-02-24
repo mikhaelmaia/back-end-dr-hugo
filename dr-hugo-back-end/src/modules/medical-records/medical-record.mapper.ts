@@ -65,8 +65,6 @@ export class PatientMedicalRecordMapper extends BaseMapper<
         cigarettesPerDay: entity.cigarettesPerDay,
         yearsSmoking: entity.yearsSmoking,
       },
-
-      acceptedTerms: entity.acceptedTerms,
     };
   }
 
@@ -117,8 +115,6 @@ export class PatientMedicalRecordMapper extends BaseMapper<
     entity.isSmoker = dto.smoking?.isSmoker ?? false;
     entity.cigarettesPerDay = dto.smoking?.cigarettesPerDay ?? null;
     entity.yearsSmoking = dto.smoking?.yearsSmoking ?? null;
-
-    entity.acceptedTerms = dto.acceptedTerms ?? [];
 
     return entity;
   }

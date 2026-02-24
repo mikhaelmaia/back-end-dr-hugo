@@ -26,9 +26,19 @@ export class AlterPatientMedicalRecordTable1771422582449 implements MigrationInt
             ALTER TABLE "dv_patient_medical_record" 
             DROP COLUMN "physical_activity_description"
         `);
+
+    await queryRunner.query(`
+            ALTER TABLE "dv_patient_medical_record" 
+            DROP COLUMN "accepted_terms"
+        `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`
+            ALTER TABLE "dv_patient_medical_record" 
+            ADD COLUMN "accepted_terms" jsonb NOT NULL DEFAULT '[]'
+        `);
+
     await queryRunner.query(`
             ALTER TABLE "dv_patient_medical_record" 
             ADD COLUMN "physical_activity_description" text

@@ -118,6 +118,7 @@ export class InstitutionPaths extends BasePaths {
   public static readonly LOOKUP = '/lookup';
   public static readonly BY_USER = '/by-user/:userId';
   public static readonly CURRENT = '/current';
+  public static readonly UPDATE_ADDRESS = '/current/address';
 
   public static readonly CREATE_FULL = `${this.BASE}${this.CREATE}`;
   public static readonly FIND_BY_ID_FULL = `${this.BASE}${this.FIND_BY_ID}`;
@@ -125,6 +126,7 @@ export class InstitutionPaths extends BasePaths {
   public static readonly CURRENT_FULL = `${this.BASE}${this.CURRENT}`;
   public static readonly UPDATE_FULL = `${this.BASE}${this.UPDATE}`;
   public static readonly DELETE_FULL = `${this.BASE}${this.DELETE}`;
+  public static readonly UPDATE_ADDRESS_FULL = `${this.BASE}${this.UPDATE_ADDRESS}`;
   public static readonly FIND_ALL_FULL = `${this.BASE}${this.FIND_ALL}`;
   public static readonly LOOKUP_FULL = `${this.BASE}${this.LOOKUP}`;
 }

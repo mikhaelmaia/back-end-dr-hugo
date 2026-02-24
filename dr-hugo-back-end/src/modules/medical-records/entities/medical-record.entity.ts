@@ -102,8 +102,4 @@ export class PatientMedicalRecord extends BaseEntity {
 
   @Column({ name: 'years_smoking', type: 'varchar', length: 50, nullable: true })
   public yearsSmoking?: string;
-
-  /* ---------- Terms ---------- */
-  @Column({ name: 'accepted_terms', type: 'jsonb', nullable: false })
-  public acceptedTerms: string[];
 }

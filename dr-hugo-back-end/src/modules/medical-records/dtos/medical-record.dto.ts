@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ValidateNested, IsNotEmpty, IsArray } from 'class-validator';
+import { ValidateNested, IsNotEmpty } from 'class-validator';
 import { Expose, Type } from 'class-transformer';
 import { BaseEntityDto } from 'src/core/base/base.entity.dto';
 import { PatientMedicalRecord } from '../entities/medical-record.entity';
@@ -7,9 +7,7 @@ import { MedicalRecordConditionDto } from './medical-record-condition.dto';
 import { MedicalRecordBloodPressureDto } from './medical-record-blood-pressure.dto';
 import { MedicalRecordSmokingDto } from './medical-record-smoking.dto';
 import { MedicalRecordPhysicalActivityDto } from './medical-record-physical-activity.dto';
-import { TermsType } from 'src/core/vo/consts/enums';
 import { provideIsNotEmptyValidationMessage } from 'src/core/vo/consts/validation-messages';
-import { ContainsRequiredTerms } from 'src/core/vo/validators/contains-required-terms.validator';
 
 export class PatientMedicalRecordDto extends BaseEntityDto<PatientMedicalRecord> {
   @ApiProperty({
@@ -132,27 +130,4 @@ export class PatientMedicalRecordDto extends BaseEntityDto<PatientMedicalRecord>
   @Type(() => MedicalRecordPhysicalActivityDto)
   @Expose()
   physicalActivity: MedicalRecordPhysicalActivityDto;
-
-  @IsNotEmpty({
-    message: provideIsNotEmptyValidationMessage('Termos Aceitos'),
-  })
-  @IsArray({ message: 'Termos aceitos deve ser um array' })
-  @ContainsRequiredTerms(
-    [TermsType.PRIVACY_POLICY, TermsType.TERMS_OF_SERVICE],
-    {
-      message:
-        'Você deve aceitar os Termos de Uso e a Política de Privacidade para continuar',
-    },
-  )
-  @ApiProperty({
-    description:
-      'Lista dos tipos de termos aceitos pelo paciente (obrigatórios: privacy_policy, terms_of_service)',
-    type: [String],
-    example: ['privacy_policy', 'terms_of_service'],
-    items: {
-      type: 'string',
-      enum: ['privacy_policy', 'terms_of_service'],
-    },
-  })
-  public acceptedTerms: string[];
 }
