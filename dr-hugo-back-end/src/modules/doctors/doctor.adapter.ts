@@ -58,7 +58,7 @@ export class DoctorAdapter {
 
     const data = {
       ...validated.data,
-      specialties: validated.data.specialties.filter((s) => s.isActive),
+      specialties: validated.data?.specialties?.filter((s) => s.isActive),
     };
 
     validated = {
