@@ -270,6 +270,21 @@ export class InstitutionDto extends BaseEntityDto<Institution> {
   })
   public medicalInstitutionType: MedicalInstitutionType;
 
+  @IsOptional()
+  @IsString({
+    message: provideIsStringValidationMessage('Outro Tipo de Instituição Médica'),
+  })
+  @MaxLength(255, {
+    message: provideMaxLengthValidationMessage('Outro Tipo de Instituição Médica'),
+  })
+  @ApiPropertyOptional({
+    description: 'Descrição de outro tipo de instituição médica (quando medicalInstitutionType = OTHER)',
+    example: 'Centro de Reabilitação',
+    maxLength: 255,
+    type: String
+  })
+  public otherMedicalInstitutionType?: string;
+
   @ValidateNested()
   @Type(() => AddressDto)
   @ApiProperty({

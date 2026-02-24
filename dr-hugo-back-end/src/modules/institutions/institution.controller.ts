@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Get,
+  Patch,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -26,6 +27,7 @@ import { Public } from 'src/core/vo/decorators/public.decorator';
 import { Auditable } from 'src/core/vo/decorators/auditable.decorator';
 import { AuditEventType } from 'src/core/vo/consts/enums';
 import { CurrentUser } from 'src/core/vo/decorators/current-user.decorator';
+import { AddressDto } from 'src/core/modules/address/dtos/address.dto';
 
 @ApiTags('Gerenciamento de Instituições')
 @ApiBearerAuth()
@@ -175,5 +177,67 @@ export class InstitutionController extends BaseController<
     @CurrentUser('id') userId: string,
   ): Promise<InstitutionDto> {
     return this.service.findInstitutionByUserId(userId);
+  }
+
+  @ApiOperation({
+    summary: 'Atualizar endereço da instituição atual',
+    description:
+      'Atualiza o endereço da instituição logada utilizando uma operação atômica. Requer autenticação.',
+  })
+  @ApiBody({
+    description: 'Novos dados do endereço da instituição',
+    type: AddressDto,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Endereço da instituição atualizado com sucesso',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Dados de endereço inválidos ou malformados',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Não autenticado',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Instituição não encontrada para o usuário logado',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 422,
+    description: 'Dados do endereço não atendem aos critérios de validação',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Erro interno do servidor',
+    type: ExceptionResponse,
+  })
+  @Auditable({
+    eventType: AuditEventType.UPDATE,
+    entityName: 'Institution',
+    mode: 'success',
+    entityIdExtractor: ({ result }) => result?.id ?? null,
+    dataExtractor: ({ body, result }) => ({
+      request: {
+        address: body,
+      },
+      result: {
+        id: result?.id,
+        updatedAt: result?.updatedAt,
+      },
+    }),
+  })
+  @Patch(InstitutionPaths.UPDATE_ADDRESS)
+  @HttpCode(HttpStatus.OK)
+  public async updateCurrentAddress(
+    @CurrentUser('id') userId: string,
+    @Body() addressDto: AddressDto,
+  ): Promise<void> {
+    await this.service.updateCurrentUserAddress(userId, addressDto);
   }
 }

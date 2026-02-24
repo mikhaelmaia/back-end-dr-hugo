@@ -15,6 +15,8 @@ import { CreateInstitutionDto } from './dtos/create-institution.dto';
 import { UserService } from '../users/user.service';
 import { whenNullThrows } from 'src/core/utils/functions';
 import { Optional } from 'src/core/utils/optional';
+import { AddressDto } from 'src/core/modules/address/dtos/address.dto';
+import { isNullOrEmpty } from 'src/core/utils/string.utils';
 
 @Injectable()
 export class InstitutionService extends BaseService<
@@ -61,8 +63,9 @@ export class InstitutionService extends BaseService<
     const [institutionToCreate, user] =
       this.mapper.mapCreationDtoToEntityAndUser(institutionDto);
 
-    user.name =
-      lookedUpValidation.data.fantasyName ?? lookedUpValidation.data.name;
+    user.name = isNullOrEmpty(lookedUpValidation.data.fantasyName)
+      ? lookedUpValidation.data.name
+      : lookedUpValidation.data.fantasyName;
     institution.address = institutionToCreate.address;
     institution.cnes = institutionToCreate.cnes;
     institution.medicalInstitutionType =
@@ -100,5 +103,27 @@ export class InstitutionService extends BaseService<
   ): Promise<InstitutionDto> {
     const institutionId = await this.findInstitutionIdByUserId(userId);
     return await this.findById(institutionId);
+  }
+
+  public async updateCurrentUserAddress(
+    userId: string,
+    addressDto: AddressDto,
+  ): Promise<void> {
+    await this.findInstitutionIdByUserId(userId);
+
+    const addressEntity = this.mapper.mapAddressDtoToEntity(addressDto);
+
+    const addressData = {
+      street: addressEntity.street,
+      number: addressEntity.number,
+      complement: addressEntity.complement,
+      neighborhood: addressEntity.neighborhood,
+      city: addressEntity.city,
+      state: addressEntity.state,
+      zipCode: addressEntity.zipCode,
+      country: addressEntity.country,
+    };
+
+    await this.repository.updateCurrentUserAddress(userId, addressData);
   }
 }

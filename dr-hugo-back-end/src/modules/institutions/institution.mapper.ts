@@ -22,6 +22,8 @@ import {
   findEnumValueByKeyOrValue,
 } from 'src/core/utils/enum.utils';
 import { CreateInstitutionCompanyRepresentativeDto } from './aggregates/representative/dtos/create-representative.dto';
+import { CompanyDto } from './aggregates/company/dtos/company.dto';
+import { RepresentativeDto } from './aggregates/representative/dtos/representative.dto';
 
 @Injectable()
 export class InstitutionMapper extends BaseMapper<Institution, InstitutionDto> {
@@ -31,13 +33,27 @@ export class InstitutionMapper extends BaseMapper<Institution, InstitutionDto> {
     dto.id = entity.id;
     dto.cnes = entity.cnes;
     dto.medicalInstitutionType = entity.medicalInstitutionType;
-    dto.name = entity.user?.name || null;
-    dto.taxId = entity.user?.taxId || null;
-    dto.role = entity.user?.role || null;
-    dto.email = entity.user?.email || null;
-    dto.countryCode = entity.user?.countryCode || null;
-    dto.countryIdd = entity.user?.countryIdd || null;
-    dto.phone = entity.user?.phone || null;
+    dto.otherMedicalInstitutionType = entity.otherMedicalInstitutionType;
+
+    if (entity.user) {
+      dto.name = entity.user.name;
+      dto.taxId = entity.user.taxId;
+      dto.role = entity.user.role;
+      dto.email = entity.user.email;
+      dto.countryCode = entity.user.countryCode;
+      dto.countryIdd = entity.user.countryIdd;
+      dto.phone = entity.user.phone;
+      dto.acceptedTerms = entity.user.acceptedTerms;
+      dto.profilePictureId = entity.user.profilePicture?.id || null;
+    }
+
+    if (entity.address) {
+      dto.address = this.mapAddressEntityToDto(entity.address);
+    }
+
+    if (entity.company) {
+      dto.company = this.mapCompanyEntityToDto(entity.company);
+    }
 
     return dto;
   }
@@ -155,5 +171,59 @@ export class InstitutionMapper extends BaseMapper<Institution, InstitutionDto> {
     representative.state = representativeDto.state;
 
     return representative;
+  }
+
+  public mapAddressEntityToDto(entity: Address): AddressDto {
+    const dto = new AddressDto();
+
+    dto.id = entity.id;
+    dto.street = entity.street;
+    dto.number = entity.number;
+    dto.complement = entity.complement;
+    dto.neighborhood = entity.neighborhood;
+    dto.city = entity.city;
+    dto.state = entity.state;
+    dto.zipCode = entity.zipCode;
+    dto.country = entity.country;
+
+    return dto;
+  }
+
+  public mapCompanyEntityToDto(entity: InstitutionCompany): CompanyDto {
+    const dto = new CompanyDto();
+
+    dto.id = entity.id;
+    dto.name = entity.name;
+    dto.type = entity.type;
+    dto.fantasyName = entity.fantasyName;
+    dto.size = entity.size;
+    dto.mainActivities = entity.mainActivities;
+    dto.secondaryActivities = entity.secondaryActivities;
+    dto.legalNature = entity.legalNature;
+    dto.legalRepresentativeName = entity.legalRepresentativeName;
+    dto.legalRepresentativeQualification =
+      entity.legalRepresentativeQualification;
+
+    if (entity.representative) {
+      dto.representative = this.mapRepresentativeEntityToDto(
+        entity.representative,
+      );
+    }
+
+    return dto;
+  }
+
+  public mapRepresentativeEntityToDto(
+    entity: InstitutionCompanyRepresentative,
+  ): RepresentativeDto {
+    const dto = new RepresentativeDto();
+
+    dto.id = entity.id;
+    dto.name = entity.name;
+    dto.taxId = entity.taxId;
+    dto.crm = entity.crm;
+    dto.state = entity.state;
+
+    return dto;
   }
 }

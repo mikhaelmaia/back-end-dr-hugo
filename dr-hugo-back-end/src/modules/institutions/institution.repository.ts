@@ -19,6 +19,10 @@ export class InstitutionRepository extends BaseRepository<Institution> {
     return this.createBaseQuery()
       .where('institution.id = :id', { id })
       .leftJoinAndSelect('institution.user', 'user')
+      .leftJoinAndSelect('user.profilePicture', 'profilePicture')
+      .leftJoinAndSelect('institution.address', 'address')
+      .leftJoinAndSelect('institution.company', 'company')
+      .leftJoinAndSelect('company.representative', 'representative')
       .getOne();
   }
 
@@ -29,5 +33,29 @@ export class InstitutionRepository extends BaseRepository<Institution> {
       .where('user.id = :userId', { userId })
       .getRawOne<{ institutionId: string }>()
       .then((result) => result?.institutionId ?? null);
+  }
+
+  public async updateCurrentUserAddress(
+    userId: string,
+    addressData: Partial<{
+      street: string;
+      number: string;
+      complement: string;
+      neighborhood: string;
+      city: string;
+      state: string;
+      zipCode: string;
+      country: string;
+    }>,
+  ): Promise<void> {
+    await this.repository
+      .createQueryBuilder()
+      .update('dv_address')
+      .set(addressData)
+      .where(
+        'id = (SELECT address_id FROM dv_institution WHERE user_id = :userId)',
+        { userId },
+      )
+      .execute();
   }
 }
