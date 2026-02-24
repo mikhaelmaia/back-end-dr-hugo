@@ -16,51 +16,35 @@ export class PatientDocumentRepository extends BaseRepository<PatientDocument> {
     super(repository);
   }
 
-  public async findMonthlyDocuments(
+  public async findPaginatedGroupedByMonth(
     patientId: string,
     params: PaginationParams<PatientDocument>,
   ): Promise<{
     grouped: Record<string, PatientDocument[]>;
-    totalMonths: number;
+    totalItems: number;
+    totalPages: number;
+    page: number;
   }> {
-    const limit = 2;
-    const offset = (params.page - 1) * limit;
+    const page = params.page ?? 1;
+    const limit = params.limit ?? 10;
+    const offset = (page - 1) * limit;
 
-    const monthsRaw = await this.createBaseQuery()
-      .select('document.examMonth', 'month')
-      .where('document.patient.id = :patientId', { patientId })
-      .groupBy('document.examMonth')
-      .orderBy('document.examMonth', 'DESC')
-      .offset(offset)
-      .limit(limit)
-      .getRawMany();
-
-    const months: Date[] = monthsRaw.map((m) => m.month);
-
-    if (!months.length) {
-      return { grouped: {}, totalMonths: 0 };
-    }
-
-    const totalRaw = await this.createBaseQuery()
-      .select('COUNT(DISTINCT document.examMonth)', 'count')
-      .where('document.patient.id = :patientId', { patientId })
-      .getRawOne();
-
-    const totalMonths = Number(totalRaw.count);
-
-    const docsQb = this.createBaseQuery()
+    const qb = this.createBaseQuery()
       .leftJoinAndSelect('document.media', 'media')
-      .where('document.patient.id = :patientId', { patientId })
-      .andWhere('document.examMonth IN (:...months)', { months });
+      .where('document.patient.id = :patientId', { patientId });
 
-    this.applyFilters(docsQb, params.filter);
-    this.applySorting(docsQb, params.sortBy, params.sortOrder);
+    this.applyFilters(qb, params.filter);
+    this.applySorting(qb, params.sortBy, params.sortOrder);
 
-    const documents = await docsQb.getMany();
+    qb.skip(offset).take(limit);
+
+    const [documents, totalItems] = await qb.getManyAndCount();
+
+    const totalPages = Math.ceil(totalItems / limit);
 
     const grouped: Record<string, PatientDocument[]> = {};
 
-    documents.forEach((doc) => {
+    for (const doc of documents) {
       const key = doc.examMonth.toISOString().slice(0, 7);
 
       if (!grouped[key]) {
@@ -68,11 +52,13 @@ export class PatientDocumentRepository extends BaseRepository<PatientDocument> {
       }
 
       grouped[key].push(doc);
-    });
+    }
 
     return {
       grouped,
-      totalMonths,
+      totalItems,
+      totalPages,
+      page,
     };
   }
 

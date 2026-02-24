@@ -9,7 +9,7 @@ import {
   IsArray,
   IsDate,
 } from 'class-validator';
-import { Expose, Exclude, Type } from 'class-transformer';
+import { Expose, Exclude } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { BaseEntityDto } from 'src/core/base/base.entity.dto';
 import { Patient } from '../entities/patient.entity';

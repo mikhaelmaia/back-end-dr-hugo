@@ -34,10 +34,8 @@ export class PatientDocumentService {
   ) {
     const patientId = await this.patientService.findPatientIdByUserId(userId);
 
-    const { grouped, totalMonths } = await this.repository.findMonthlyDocuments(
-      patientId,
-      params,
-    );
+    const { grouped, totalItems, totalPages, page } =
+      await this.repository.findPaginatedGroupedByMonth(patientId, params);
 
     const mapped: Record<string, PatientDocumentDto[]> = {};
 
@@ -47,9 +45,9 @@ export class PatientDocumentService {
 
     return {
       items: mapped,
-      totalItems: totalMonths,
-      currentPage: params.page,
-      totalPages: Math.ceil(totalMonths / 2),
+      totalItems,
+      currentPage: page,
+      totalPages,
     };
   }
 }
