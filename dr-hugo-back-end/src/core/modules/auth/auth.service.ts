@@ -11,11 +11,7 @@ import { EmailHelper } from '../email/email.helper';
 import { UserDto } from 'src/modules/users/dtos/user.dto';
 import { TokenType } from 'src/core/vo/consts/enums';
 import { compare } from 'bcrypt';
-import {
-  acceptFalseThrows,
-  acceptTrueThrows,
-  whenNullThrows,
-} from 'src/core/utils/functions';
+import { acceptFalseThrows, whenNullThrows } from 'src/core/utils/functions';
 import { JwtPayload } from 'src/core/vo/types/types';
 import { UserService } from 'src/modules/users/user.service';
 import { toHttpException } from 'src/core/utils/errors.utils';
@@ -29,7 +25,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly tokenService: TokenService,
     private readonly jwtProviderService: JwtProviderService,
-    private readonly emailhelper: EmailHelper,
+    private readonly emailHelper: EmailHelper,
   ) {}
 
   public async login(authRequest: AuthRequest): Promise<AuthResponse> {
@@ -81,7 +77,7 @@ export class AuthService {
       `${login}:${role}`,
       TokenType.PASSWORD_RESET,
     );
-    await this.emailhelper.sendPasswordResetRequestEmail(
+    await this.emailHelper.sendPasswordResetRequestEmail(
       user.name,
       user.email,
       token.token,
@@ -97,7 +93,7 @@ export class AuthService {
 
     const user = await this.userService.findByEmail(email, role);
 
-    if (!user || !user.isActive) {
+    if (!user?.isActive) {
       return;
     }
 
@@ -111,7 +107,7 @@ export class AuthService {
       passwordReset.password,
       role,
     );
-    this.emailhelper.sendPasswordResetEmail(user.name, user.email);
+    await this.emailHelper.sendPasswordResetEmail(user.name, user.email);
   }
 
   public async resendEmailConfirmation(
@@ -130,7 +126,7 @@ export class AuthService {
       `${user.email}:${user.role}`,
       TokenType.EMAIL_CONFIRMATION,
     );
-    await this.emailhelper.sendEmailConfirmationEmail(
+    await this.emailHelper.sendEmailConfirmationEmail(
       user.name,
       user.email,
       token.token,
@@ -156,6 +152,10 @@ export class AuthService {
     );
 
     await this.userService.validateUserEmail(user.id);
-    this.emailhelper.sendEmailConfirmedEmail(user.name, user.email, user.role);
+    await this.emailHelper.sendEmailConfirmedEmail(
+      user.name,
+      user.email,
+      user.role,
+    );
   }
 }
