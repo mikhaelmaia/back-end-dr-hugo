@@ -19,6 +19,8 @@ export class DoctorRepository extends BaseRepository<Doctor> {
     return this.createBaseQuery()
       .where('doctor.id = :id', { id })
       .leftJoinAndSelect('doctor.user', 'user')
+      .leftJoinAndSelect('doctor.registration', 'registration')
+      .leftJoinAndSelect('doctor.specializations', 'specializations')
       .getOne();
   }
 

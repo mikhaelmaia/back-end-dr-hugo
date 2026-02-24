@@ -64,6 +64,7 @@ export class DoctorMapper extends BaseMapper<Doctor, DoctorDto> {
         specDto.id = spec.id;
         specDto.name = spec.name;
         specDto.rqe = spec.rqe;
+        specDto.isActive = spec.isActive;
         return specDto;
       });
     }
@@ -173,6 +174,7 @@ export class DoctorMapper extends BaseMapper<Doctor, DoctorDto> {
       DoctorSpecializationType,
       specialtyDto.name,
     );
+    specialty.isActive = specialtyDto.isActive ?? true;
     return specialty;
   }
 }
