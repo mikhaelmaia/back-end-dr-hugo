@@ -13,7 +13,7 @@ import { InstitutionValidatedDto } from './dtos/institution-validated.dto';
 import { InstitutionValidationDto } from './dtos/institution-validation.dto';
 import { CreateInstitutionDto } from './dtos/create-institution.dto';
 import { UserService } from '../users/user.service';
-import { whenNullThrows } from 'src/core/utils/functions';
+import { acceptFalseThrows, whenNullThrows } from 'src/core/utils/functions';
 import { Optional } from 'src/core/utils/optional';
 import { AddressDto } from 'src/core/modules/address/dtos/address.dto';
 import { isNullOrEmpty } from 'src/core/utils/string.utils';
@@ -126,7 +126,66 @@ export class InstitutionService extends BaseService<
 
     await this.repository.updateCurrentUserAddress(userId, addressData);
   }
+
   public async checkCnesExists(cnes: string): Promise<boolean> {
     return this.repository.existsByCnes(cnes);
+  }
+
+  public async refreshCurrentInstitutionData(
+    userId: string,
+  ): Promise<InstitutionDto> {
+    const institutionId = await this.findInstitutionIdByUserId(userId);
+    const taxId = await this.repository.findUserTaxIdByUserId(userId);
+
+    const refreshedData =
+      await this.institutionAdapter.refreshCompanyData(taxId);
+
+    acceptFalseThrows(
+      refreshedData.valid && !!refreshedData.data,
+      () =>
+        new BadRequestException(
+          'Não foi possível atualizar os dados da instituição',
+        ),
+    );
+
+    const companyEntity = this.mapper.mapValidationDataToCompanyEntity(
+      refreshedData.data,
+    );
+    const addressEntity = this.mapper.mapValidationDataToAddressEntity(
+      refreshedData.data,
+    );
+
+    await this.repository.updateCompanyAndAddressData(
+      userId,
+      {
+        type: companyEntity.type,
+        size: companyEntity.size,
+        name: companyEntity.name,
+        fantasyName: companyEntity.fantasyName,
+        mainActivities: companyEntity.mainActivities,
+        secondaryActivities: companyEntity.secondaryActivities,
+        legalNature: companyEntity.legalNature,
+        legalRepresentativeName: companyEntity.legalRepresentativeName,
+        legalRepresentativeQualification:
+          companyEntity.legalRepresentativeQualification,
+      },
+      {
+        street: addressEntity.street,
+        number: addressEntity.number,
+        complement: addressEntity.complement,
+        neighborhood: addressEntity.neighborhood,
+        city: addressEntity.city,
+        state: addressEntity.state,
+        zipCode: addressEntity.zipCode,
+        country: addressEntity.country,
+      },
+    );
+
+    const resultDto = new InstitutionDto();
+    resultDto.id = institutionId;
+    resultDto.company = this.mapper.mapCompanyEntityToDto(companyEntity);
+    resultDto.address = this.mapper.mapAddressEntityToDto(addressEntity);
+
+    return resultDto;
   }
 }

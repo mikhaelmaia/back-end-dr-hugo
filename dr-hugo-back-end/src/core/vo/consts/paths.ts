@@ -119,6 +119,7 @@ export class InstitutionPaths extends BasePaths {
   public static readonly BY_USER = '/by-user/:userId';
   public static readonly CURRENT = '/current';
   public static readonly UPDATE_ADDRESS = '/current/address';
+  public static readonly REFRESH_DATA = '/current/refresh-data';
   public static readonly CHECK_CNES = '/check-cnes';
 
   public static readonly CREATE_FULL = `${this.BASE}${this.CREATE}`;
@@ -128,6 +129,7 @@ export class InstitutionPaths extends BasePaths {
   public static readonly UPDATE_FULL = `${this.BASE}${this.UPDATE}`;
   public static readonly DELETE_FULL = `${this.BASE}${this.DELETE}`;
   public static readonly UPDATE_ADDRESS_FULL = `${this.BASE}${this.UPDATE_ADDRESS}`;
+  public static readonly REFRESH_DATA_FULL = `${this.BASE}${this.REFRESH_DATA}`;
   public static readonly FIND_ALL_FULL = `${this.BASE}${this.FIND_ALL}`;
   public static readonly CHECK_CNES_FULL = `${this.BASE}${this.CHECK_CNES}`;
   public static readonly LOOKUP_FULL = `${this.BASE}${this.LOOKUP}`;

@@ -20,13 +20,16 @@ import { InstitutionDto } from './dtos/institution.dto';
 import { CreateInstitutionDto } from './dtos/create-institution.dto';
 import { InstitutionValidationDto } from './dtos/institution-validation.dto';
 import { InstitutionValidatedDto } from './dtos/institution-validated.dto';
+import { CheckCnesDto } from './dtos/check-cnes.dto';
+import { CnesExistsResponseDto } from './dtos/cnes-exists-response.dto';
 import { InstitutionService } from './institution.service';
 import { InstitutionPaths } from 'src/core/vo/consts/paths';
 import { ExceptionResponse } from 'src/core/config/exceptions/exception-response';
 import { Public } from 'src/core/vo/decorators/public.decorator';
 import { Auditable } from 'src/core/vo/decorators/auditable.decorator';
-import { AuditEventType } from 'src/core/vo/consts/enums';
+import { AuditEventType, UserRole } from 'src/core/vo/consts/enums';
 import { CurrentUser } from 'src/core/vo/decorators/current-user.decorator';
+import { Roles } from 'src/core/vo/decorators/roles.decorator';
 import { AddressDto } from 'src/core/modules/address/dtos/address.dto';
 
 @ApiTags('Gerenciamento de Instituições')
@@ -171,6 +174,7 @@ export class InstitutionController extends BaseController<
     description: 'Erro interno do servidor',
     type: ExceptionResponse,
   })
+  @Roles(UserRole.INSTITUTION)
   @Get(InstitutionPaths.CURRENT)
   @HttpCode(HttpStatus.OK)
   public async findCurrent(
@@ -278,5 +282,65 @@ export class InstitutionController extends BaseController<
   ): Promise<CnesExistsResponseDto> {
     const exists = await this.service.checkCnesExists(dto.cnes);
     return { exists };
+  }
+
+  @ApiOperation({
+    summary: 'Atualizar dados cadastrais da instituição',
+    description:
+      'Atualiza os dados da empresa e endereço da instituição consultando a Receita Federal. Requer autenticação de usuário do tipo Instituição.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Dados da instituição atualizados com sucesso',
+    type: InstitutionDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Erro ao consultar dados na Receita Federal',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Não autenticado',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Acesso negado - apenas instituições podem usar este endpoint',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Instituição não encontrada',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Erro interno do servidor',
+    type: ExceptionResponse,
+  })
+  @Auditable({
+    eventType: AuditEventType.UPDATE,
+    entityName: 'Institution',
+    mode: 'success',
+    entityIdExtractor: ({ result }) => result?.id ?? null,
+    dataExtractor: ({ result }) => ({
+      result: {
+        id: result?.id,
+        updatedAt: new Date(),
+        refreshedData: {
+          company: result?.company,
+          address: result?.address,
+        },
+      },
+    }),
+  })
+  @Roles(UserRole.INSTITUTION)
+  @Post(InstitutionPaths.REFRESH_DATA)
+  @HttpCode(HttpStatus.OK)
+  public async refreshCurrentInstitutionData(
+    @CurrentUser('id') userId: string,
+  ): Promise<InstitutionDto> {
+    return this.service.refreshCurrentInstitutionData(userId);
   }
 }

@@ -49,6 +49,11 @@ export class InstitutionAdapter {
     return cachedData || null;
   }
 
+  public async refreshCompanyData(taxId: string): Promise<InstitutionValidatedDto> {
+    const response = await this.receitaWsService.getCompanyByTaxId(taxId);
+    return this.mapToInstitutionValidatedDto(response);
+  }
+
   private isValidInstitution(situation: string): boolean {
     return this.COMPANY_VALID_SITUATIONS.includes(situation?.toUpperCase());
   }
