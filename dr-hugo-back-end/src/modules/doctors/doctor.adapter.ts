@@ -22,6 +22,7 @@ import {
   findEnumValueByKeyOrValue,
   findEnumKeyByValue,
 } from 'src/core/utils/enum.utils';
+import { DoctorSpecializationDto } from './aggregates/specialization/dtos/doctor-specialization.dto';
 
 @Injectable()
 export class DoctorAdapter {
@@ -73,6 +74,50 @@ export class DoctorAdapter {
     taxId: string,
   ): Promise<DoctorRegistrationValidatedDto | null> {
     return this.cacheService.get(this.buildCacheKey(taxId));
+  }
+
+  public async refreshRegistrationData(
+    request: DoctorRegistrationValidationDto,
+  ): Promise<DoctorRegistrationValidatedDto> {
+    const response = await this.cfmService.consultDoctor({
+      crm: Number(request.crm),
+      uf: request.state,
+    });
+
+    if (!response.success || !response.doctorData) {
+      return this.buildErrorResult(response);
+    }
+
+    const doctor = response.doctorData;
+
+    const cfmSpecialties = this.parseCfmSpecialties(doctor.especialidades);
+
+    return {
+      valid: true,
+      data: {
+        name: doctor.nome,
+        situation: this.mapExternalSituationToInternal(doctor.situacao),
+        type: this.mapExternalTypeToInternal(doctor.tipoInscricao),
+        lastUpdate: doctor.dataAtualizacao,
+        cfmSpecialties: cfmSpecialties.map((s) => s.name),
+
+        taxId: request.taxId,
+        crm: request.crm,
+        state: request.state,
+        isGeneralist: cfmSpecialties.length === 0,
+        specialties: cfmSpecialties.map((s, index) => {
+          const dto = new DoctorSpecializationDto();
+          dto.name = findEnumValueByKeyOrValue(
+            DoctorSpecializationType,
+            s.name,
+          );
+          dto.rqe = s.rqe;
+          dto.isActive = index < 2;
+          return dto;
+        }),
+      },
+      messages: ['Dados sincronizados com sucesso'],
+    };
   }
 
   private mapToValidatedDto(
@@ -145,7 +190,8 @@ export class DoctorAdapter {
       for (const group of groups) {
         const withoutSubs = group.replaceAll(/\([^)]*\)/g, '').trim();
 
-        const nameMatch = withoutSubs.match(/^([^-]+?)(?:\s*-\s*RQE|$)/);
+        const nameRegex = /^([^-]+?)(?:\s*-\s*RQE|$)/;
+        const nameMatch = nameRegex.exec(withoutSubs);
         if (!nameMatch) continue;
 
         const rawName = nameMatch[1].trim();
@@ -158,7 +204,8 @@ export class DoctorAdapter {
 
         if (specialtyName.length === 0) continue;
 
-        const rqeMatch = group.match(/RQE\s*Nº\s*:?\s*(\d+)/i);
+        const rqeRegex = /RQE\s*Nº\s*:?\s*(\d+)/i;
+        const rqeMatch = rqeRegex.exec(group);
         const rqe = rqeMatch ? rqeMatch[1] : undefined;
 
         specialties.push({

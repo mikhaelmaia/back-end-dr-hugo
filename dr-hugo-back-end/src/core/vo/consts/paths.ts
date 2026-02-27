@@ -135,10 +135,14 @@ export class DoctorPaths extends BasePaths {
   public static readonly BASE = '/doctors';
   public static readonly LOOKUP = '/lookup';
   public static readonly CURRENT = '/current';
+  public static readonly REFRESH_DATA = '/current/refresh-data';
+  public static readonly TOGGLE_SPECIALTY = '/current/specialties/:id/toggle';
 
   public static readonly CREATE_FULL = `${this.BASE}${this.CREATE}`;
   public static readonly LOOKUP_FULL = `${this.BASE}${this.LOOKUP}`;
   public static readonly CURRENT_FULL = `${this.BASE}${this.CURRENT}`;
+  public static readonly REFRESH_DATA_FULL = `${this.BASE}${this.REFRESH_DATA}`;
+  public static readonly TOGGLE_SPECIALTY_FULL = `${this.BASE}${this.TOGGLE_SPECIALTY}`;
 }
 
 export class MedicalRecordPaths extends BasePaths {

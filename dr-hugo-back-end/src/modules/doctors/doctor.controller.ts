@@ -1,4 +1,13 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, Get } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+  Get,
+  Patch,
+  Param,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -17,8 +26,9 @@ import { DoctorPaths } from 'src/core/vo/consts/paths';
 import { ExceptionResponse } from 'src/core/config/exceptions/exception-response';
 import { Public } from 'src/core/vo/decorators/public.decorator';
 import { Auditable } from 'src/core/vo/decorators/auditable.decorator';
-import { AuditEventType } from 'src/core/vo/consts/enums';
+import { AuditEventType, UserRole } from 'src/core/vo/consts/enums';
 import { CurrentUser } from 'src/core/vo/decorators/current-user.decorator';
+import { Roles } from 'src/core/vo/decorators/roles.decorator';
 
 @ApiTags('Gerenciamento de Médicos')
 @ApiBearerAuth()
@@ -155,11 +165,115 @@ export class DoctorController extends BaseController<
     description: 'Erro interno do servidor',
     type: ExceptionResponse,
   })
+  @Roles(UserRole.DOCTOR)
   @Get(DoctorPaths.CURRENT)
   @HttpCode(HttpStatus.OK)
   public async findCurrent(
     @CurrentUser('id') userId: string,
   ): Promise<DoctorDto> {
     return this.service.findDoctorByUserId(userId);
+  }
+
+  @ApiOperation({
+    summary: 'Atualizar dados de registro do médico',
+    description:
+      'Atualiza os dados de registro e especializações do médico consultando o CFM. Gerencia especializações conforme regras de negócio. Requer autenticação de usuário do tipo Médico.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Dados do médico atualizados com sucesso',
+    type: DoctorDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Erro ao consultar dados no CFM',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Não autenticado',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Acesso negado - apenas médicos podem usar este endpoint',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Médico não encontrado',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Erro interno do servidor',
+    type: ExceptionResponse,
+  })
+  @Auditable({
+    eventType: AuditEventType.UPDATE,
+    entityName: 'Doctor',
+    mode: 'success',
+    entityIdExtractor: ({ result }) => result?.id ?? null,
+    dataExtractor: ({ result }) => ({
+      result: {
+        id: result?.id,
+        updatedAt: new Date(),
+        refreshedData: {
+          registration: result?.registration,
+        },
+      },
+    }),
+  })
+  @Roles(UserRole.DOCTOR)
+  @Post(DoctorPaths.REFRESH_DATA)
+  @HttpCode(HttpStatus.OK)
+  public async refreshCurrentDoctorData(
+    @CurrentUser('id') userId: string,
+  ): Promise<DoctorDto> {
+    return this.service.refreshCurrentDoctorData(userId);
+  }
+
+  @ApiOperation({
+    summary: 'Alternar status de especialização',
+    description:
+      'Alterna o status ativo/inativo de uma especialização do médico. Aplica regras de negócio para generalistas e limites de especializações ativas.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Status da especialização alternado com sucesso',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Operação não permitida devido às regras de negócio',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Não autenticado',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Acesso negado - apenas médicos podem usar este endpoint',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Médico ou especialização não encontrados',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Erro interno do servidor',
+    type: ExceptionResponse,
+  })
+  @Roles(UserRole.DOCTOR)
+  @Patch('/current/specialties/:id/toggle')
+  @HttpCode(HttpStatus.OK)
+  public async toggleSpecializationStatus(
+    @CurrentUser('id') userId: string,
+    @Param('id') specializationId: string,
+  ): Promise<void> {
+    await this.service.toggleSpecializationStatus(userId, specializationId);
   }
 }
