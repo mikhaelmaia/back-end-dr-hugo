@@ -126,4 +126,7 @@ export class InstitutionService extends BaseService<
 
     await this.repository.updateCurrentUserAddress(userId, addressData);
   }
+  public async checkCnesExists(cnes: string): Promise<boolean> {
+    return this.repository.existsByCnes(cnes);
+  }
 }

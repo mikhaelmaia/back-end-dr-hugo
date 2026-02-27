@@ -58,4 +58,10 @@ export class InstitutionRepository extends BaseRepository<Institution> {
       )
       .execute();
   }
+  public async existsByCnes(cnes: string): Promise<boolean> {
+    const count = await this.createBaseQuery()
+      .where('institution.cnes = :cnes', { cnes })
+      .getCount();
+    return count > 0;
+  }
 }

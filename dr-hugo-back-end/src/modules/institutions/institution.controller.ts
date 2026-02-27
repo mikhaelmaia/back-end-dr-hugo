@@ -240,4 +240,43 @@ export class InstitutionController extends BaseController<
   ): Promise<void> {
     await this.service.updateCurrentUserAddress(userId, addressDto);
   }
+
+  @ApiOperation({
+    summary: 'Verificar se CNES já existe',
+    description:
+      'Verifica se já existe uma instituição cadastrada com o CNES informado. Este endpoint é útil para validação durante o processo de cadastro.',
+  })
+  @ApiBody({
+    description: 'CNES para verificação',
+    type: CheckCnesDto,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Verificação realizada com sucesso',
+    type: CnesExistsResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'CNES inválido ou malformado',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 422,
+    description: 'CNES não atende aos critérios de validação',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Erro interno do servidor',
+    type: ExceptionResponse,
+  })
+  @Public()
+  @Post(InstitutionPaths.CHECK_CNES)
+  @HttpCode(HttpStatus.OK)
+  public async checkCnes(
+    @Body() dto: CheckCnesDto,
+  ): Promise<CnesExistsResponseDto> {
+    const exists = await this.service.checkCnesExists(dto.cnes);
+    return { exists };
+  }
 }
