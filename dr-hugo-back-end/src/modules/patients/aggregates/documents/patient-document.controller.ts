@@ -41,6 +41,7 @@ import { NoCache } from 'src/core/vo/decorators/no-cache.decorator';
 import type { Response } from 'express';
 import { PatientDocumentAvailableFiltersDto } from './dtos/patient-document-available-filters.dto';
 import { PatientDocumentPaginatedDto } from './dtos/patient-document-paginated.dto';
+import { QueryParamsTransformPipe } from './pipes/query-params-transform.pipe';
 
 @ApiTags('Patient Documents')
 @ApiBearerAuth()
@@ -209,7 +210,7 @@ export class PatientDocumentController {
   })
   public async findMonthly(
     @CurrentUser('id') userId: string,
-    @Query()
+    @Query(QueryParamsTransformPipe)
     pagination: PaginationParams<PatientDocument>,
   ): Promise<PatientDocumentPaginatedDto> {
     return await this.service.findMonthly(userId, pagination);

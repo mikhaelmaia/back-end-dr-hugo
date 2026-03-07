@@ -189,7 +189,9 @@ export class PatientDocumentService {
     userId: string,
     patientId?: string,
   ): Promise<string> {
-    return patientId ?? (await this.patientService.findPatientIdByUserId(userId));
+    return (
+      patientId ?? (await this.patientService.findPatientIdByUserId(userId))
+    );
   }
 
   private async validateDocumentExists(exists: boolean): Promise<void> {
