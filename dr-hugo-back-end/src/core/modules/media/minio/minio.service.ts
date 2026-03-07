@@ -18,6 +18,7 @@ export class MinioService {
 
     this.client = new Client({
       endPoint,
+      port,
       useSSL,
       accessKey: this.configService.get<string>('MINIO_ACCESS_KEY'),
       secretKey: this.configService.get<string>('MINIO_SECRET_KEY'),
@@ -36,11 +37,14 @@ export class MinioService {
 
   public getObjectUrl(bucket: string, objectName: string): string {
     const endpoint = this.configService.get<string>('MINIO_ENDPOINT');
+    const port = Number(this.configService.get<number>('MINIO_PORT'));
     const useSSL = this.configService.get<string>('MINIO_USE_SSL') === 'true';
 
     const protocol = useSSL ? 'https' : 'http';
+    const defaultPort = useSSL ? 443 : 80;
+    const urlPort = port !== defaultPort ? `:${port}` : '';
 
-    return `${protocol}://${endpoint}/${bucket}/${objectName}`;
+    return `${protocol}://${endpoint}${urlPort}/${bucket}/${objectName}`;
   }
 
   private async ensureInitialized(): Promise<void> {

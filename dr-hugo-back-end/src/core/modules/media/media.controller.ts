@@ -1,10 +1,14 @@
 import {
   Controller,
   Post,
+  Get,
+  Param,
+  Res,
   UploadedFile,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import {
   ApiTags,
   ApiOperation,
@@ -22,6 +26,7 @@ import {
   multerSingleFileConfig,
   multerMultipleFilesConfig,
 } from '../../config/media/multer.config';
+import { CurrentUser } from 'src/core/vo/decorators/current-user.decorator';
 
 @ApiTags('Gerenciamento de Mídia')
 @ApiBearerAuth()
@@ -79,8 +84,9 @@ export class MediaController {
   @UseInterceptors(FileInterceptor('file', multerSingleFileConfig))
   public async saveTemp(
     @UploadedFile() file: Express.Multer.File,
+    @CurrentUser('id') userId: string,
   ): Promise<MediaDto> {
-    return await this.mediaService.createMedia(file);
+    return await this.mediaService.createMedia(file, userId);
   }
 
   @ApiOperation({
@@ -139,10 +145,62 @@ export class MediaController {
   @UseInterceptors(FilesInterceptor('files', 20, multerMultipleFilesConfig))
   public async saveTempMultiple(
     @UploadedFiles() files: Express.Multer.File[],
+    @CurrentUser('id') userId: string,
   ): Promise<MediaDto[]> {
     const mediaPromises = files.map((file) =>
-      this.mediaService.createMedia(file),
+      this.mediaService.createMedia(file, userId),
     );
     return await Promise.all(mediaPromises);
+  }
+
+  @ApiOperation({
+    summary: 'Obter arquivo temporário',
+    description:
+      'Retorna o stream de um arquivo temporário específico. Apenas o proprietário do arquivo pode acessá-lo e somente arquivos no bucket temporário são permitidos.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Stream do arquivo temporário retornado com sucesso',
+    schema: {
+      type: 'string',
+      format: 'binary',
+    },
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Token de acesso inválido, ausente ou expirado',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 403,
+    description:
+      'Acesso negado - arquivo não é temporário ou não pertence ao usuário',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Arquivo temporário não encontrado',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Erro interno do servidor',
+    type: ExceptionResponse,
+  })
+  @Get('/temp/:id/stream')
+  public async getTempFileStream(
+    @Param('id') mediaId: string,
+    @CurrentUser('id') userId: string,
+    @Res() res: Response,
+  ): Promise<void> {
+    const { stream, contentType, filename } =
+      await this.mediaService.getTempFileStream(mediaId, userId);
+
+    res.set({
+      'Content-Type': contentType,
+      'Content-Disposition': `inline; filename="${filename}"`,
+    });
+
+    stream.pipe(res);
   }
 }

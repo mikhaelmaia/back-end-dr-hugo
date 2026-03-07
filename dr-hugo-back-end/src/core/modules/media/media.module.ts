@@ -16,6 +16,6 @@ import { MinioModule } from './minio/minio.module';
   ],
   controllers: [MediaController],
   providers: [MediaService, MediaRepository, MediaMapper],
-  exports: [MediaService],
+  exports: [MediaService, MediaMapper],
 })
 export class MediaModule {}

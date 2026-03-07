@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
   Logger,
+  ForbiddenException,
 } from '@nestjs/common';
 import { MediaRepository } from './media.repository';
 import { MediaDto } from './dtos/media.dto';
@@ -13,11 +14,18 @@ import { MinioService } from './minio/minio.service';
 import { MinioBuckets } from './minio/minio.buckets';
 import { acceptFalseThrows } from '../../utils/functions';
 import { Optional } from '../../utils/optional';
-import { extractFileTypeFromOriginalName } from '../../utils/utils';
 import { MediaType } from '../../vo/consts/enums';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { randomUUID } from 'node:crypto';
 import * as path from 'node:path';
+import {
+  extractFileTypeFromOriginalName,
+  getMediaContentType,
+  isAllowedMimeType,
+} from 'src/core/utils/media.utils';
+import { PassThrough } from 'node:stream';
+import archiver from 'archiver';
+import { MediaStreamResult } from 'src/core/vo/types/types';
 
 @Injectable()
 export class MediaService extends BaseService<
@@ -27,9 +35,9 @@ export class MediaService extends BaseService<
   MediaMapper
 > {
   private readonly logger = new Logger(MediaService.name);
-  private readonly MEDIA_TYPE_NOT_SUPPORTED: string =
-    'Tipo de mídia não suportado';
-  private readonly MEDIA_NOT_FOUND: string = 'Mídia não encontrada';
+  private readonly MEDIA_TYPE_NOT_SUPPORTED = 'Tipo de mídia não suportado';
+  private readonly MEDIA_NOT_FOUND = 'Mídia não encontrada';
+  private readonly ACCESS_NOT_ALLOWED = 'Acesso negado ao recurso';
 
   constructor(
     repository: MediaRepository,
@@ -41,42 +49,139 @@ export class MediaService extends BaseService<
 
   public async createMedia(
     file: Express.Multer.File,
+    userId: string,
     bucket: MinioBuckets = MinioBuckets.TEMP,
   ): Promise<MediaDto> {
+    acceptFalseThrows(
+      isAllowedMimeType(file.mimetype),
+      () => new BadRequestException(this.MEDIA_TYPE_NOT_SUPPORTED),
+    );
+
     this.validateFileType(file);
 
     const objectName = this.generateObjectName(file);
 
-    await this.uploadToMinio(bucket, objectName, file.buffer, file.mimetype);
+    const { media, buffer, contentType } = await this.mapper.fromFile(
+      file,
+      bucket,
+      objectName,
+      userId,
+    );
 
-    const media = Media.from(file, bucket, objectName);
+    await this.uploadToMinio(bucket, objectName, buffer, contentType);
+
     const savedMedia = await this.repository.save(media);
-    const mediaDto = this.mapper.toDto(savedMedia);
 
-    await this.setMimeTypeAndData(mediaDto);
-
-    return mediaDto;
+    return this.mapper.toDto(savedMedia);
   }
 
-  public async findById(id: string): Promise<MediaDto | null> {
-    const mediaDto = Optional.ofNullable(await this.repository.findById(id))
-      .map((m: Media) => this.mapper.toDto(m))
-      .orElse(null);
+  public async findByIdAndOwnerId(
+    id: string,
+    ownerUserId: string,
+  ): Promise<MediaDto | null> {
+    const media = await this.repository.findByIdAndOwnerId(id, ownerUserId);
+    return media ? this.mapper.toDto(media) : null;
+  }
 
-    if (mediaDto === null) {
-      return null;
+  public async validateOwnership(
+    mediaIds: string[],
+    ownerUserId: string,
+  ): Promise<void> {
+    const owned = await this.repository.existsByIdsAndOwnerId(
+      mediaIds,
+      ownerUserId,
+    );
+
+    acceptFalseThrows(
+      owned,
+      () => new ForbiddenException(this.ACCESS_NOT_ALLOWED),
+    );
+  }
+
+  public async getStream(
+    mediaId: string,
+    ownerUserId: string,
+  ): Promise<MediaStreamResult> {
+    const media = await this.repository.findByIdAndOwnerId(
+      mediaId,
+      ownerUserId,
+    );
+
+    acceptFalseThrows(
+      media !== null,
+      () => new NotFoundException(this.MEDIA_NOT_FOUND),
+    );
+
+    const client = await this.minioService.getClient();
+    const stream = await client.getObject(media.bucket, media.objectName);
+
+    return {
+      stream,
+      contentType: getMediaContentType(media.type),
+      filename: media.filename,
+    };
+  }
+
+  public async getTempFileStream(
+    mediaId: string,
+    ownerUserId: string,
+  ): Promise<MediaStreamResult> {
+    const media = await this.repository.findByIdAndOwnerId(
+      mediaId,
+      ownerUserId,
+    );
+
+    acceptFalseThrows(
+      media !== null,
+      () => new NotFoundException(this.MEDIA_NOT_FOUND),
+    );
+
+    acceptFalseThrows(
+      media.bucket === MinioBuckets.TEMP,
+      () =>
+        new ForbiddenException(
+          'Apenas arquivos temporários podem ser acessados',
+        ),
+    );
+
+    const client = await this.minioService.getClient();
+    const stream = await client.getObject(media.bucket, media.objectName);
+
+    return {
+      stream,
+      contentType: getMediaContentType(media.type),
+      filename: media.filename,
+    };
+  }
+
+  public async downloadMany(
+    mediaIds: string[],
+    ownerUserId: string,
+  ): Promise<MediaStreamResult> {
+    if (mediaIds.length === 1) {
+      return this.getStream(mediaIds[0], ownerUserId);
     }
 
-    await this.setMimeTypeAndData(mediaDto);
+    await this.validateOwnership(mediaIds, ownerUserId);
 
-    return mediaDto;
+    return this.generateZip(mediaIds, ownerUserId);
   }
 
-  public async update(
+  public async updateMedia(
     id: string,
     file: Express.Multer.File,
+    ownerUserId: string,
   ): Promise<MediaDto> {
-    const existingMedia = await this.repository.findById(id);
+    acceptFalseThrows(
+      isAllowedMimeType(file.mimetype),
+      () => new BadRequestException(this.MEDIA_TYPE_NOT_SUPPORTED),
+    );
+
+    const existingMedia = await this.repository.findByIdAndOwnerId(
+      id,
+      ownerUserId,
+    );
+
     acceptFalseThrows(
       existingMedia !== null,
       () => new NotFoundException(this.MEDIA_NOT_FOUND),
@@ -89,32 +194,53 @@ export class MediaService extends BaseService<
     const objectName = this.generateObjectName(file);
     const bucket = MinioBuckets.TEMP;
 
-    await this.uploadToMinio(bucket, objectName, file.buffer, file.mimetype);
+    const {
+      media: updatedMedia,
+      buffer: updatedBuffer,
+      contentType: updatedContentType,
+    } = await this.mapper.fromFile(
+      file,
+      bucket,
+      objectName,
+      existingMedia.ownerUserId,
+    );
 
-    const updatedMedia = Media.from(file, bucket, objectName);
+    await this.uploadToMinio(
+      bucket,
+      objectName,
+      updatedBuffer,
+      updatedContentType,
+    );
+
     updatedMedia.id = id;
+
     const savedMedia = await this.repository.save(updatedMedia);
 
     return this.mapper.toDto(savedMedia);
   }
 
-  public async deleteById(id: string): Promise<void> {
-    const media = await this.repository.findById(id);
+  public async deleteByIdAndOwnerId(
+    id: string,
+    ownerUserId: string,
+  ): Promise<void> {
+    const media = await this.repository.findByIdAndOwnerId(id, ownerUserId);
+
     acceptFalseThrows(
       media !== null,
       () => new NotFoundException(this.MEDIA_NOT_FOUND),
     );
 
     await this.removeFromMinio(media.bucket, media.objectName);
-
     await this.repository.delete(id);
   }
 
   public async persistMedia(
     mediaId: string,
+    userId: string,
     targetBucket: string,
   ): Promise<MediaDto> {
-    const media = await this.repository.findById(mediaId);
+    const media = await this.repository.findByIdAndOwnerId(mediaId, userId);
+
     acceptFalseThrows(
       media !== null,
       () => new NotFoundException(this.MEDIA_NOT_FOUND),
@@ -134,63 +260,29 @@ export class MediaService extends BaseService<
     await this.removeFromMinio(media.bucket, media.objectName);
 
     media.bucket = targetBucket;
+
     const updatedMedia = await this.repository.save(media);
 
     return this.mapper.toDto(updatedMedia);
   }
 
-  public async getFileStream(mediaId: string): Promise<{
-    stream: NodeJS.ReadableStream;
-    contentType: string;
-    filename: string;
-  }> {
-    const media = await this.repository.findById(mediaId);
-    acceptFalseThrows(
-      media !== null,
-      () => new NotFoundException(this.MEDIA_NOT_FOUND),
-    );
-
-    const client = await this.minioService.getClient();
-    const stream = await client.getObject(media.bucket, media.objectName);
-
-    return {
-      stream,
-      contentType: this.getContentType(media.type),
-      filename: media.filename,
-    };
-  }
-
   @Cron(CronExpression.EVERY_HOUR)
   public async cleanupTempFiles(): Promise<void> {
-    try {
-      this.logger.log('Iniciando limpeza de arquivos temporários...');
+    const oneDayAgo = new Date();
+    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
 
-      const oneDayAgo = new Date();
-      oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+    const tempMedias = await this.repository.findTempMediasOlderThan(oneDayAgo);
 
-      const tempMedias =
-        await this.repository.findTempMediasOlderThan(oneDayAgo);
-
-      for (const media of tempMedias) {
-        try {
-          await this.removeFromMinio(media.bucket, media.objectName);
-
-          await this.repository.delete(media.id);
-
-          this.logger.log(`Arquivo temporário removido: ${media.objectName}`);
-        } catch (error) {
-          this.logger.error(
-            `Erro ao remover arquivo temporário ${media.objectName}:`,
-            error,
-          );
-        }
+    for (const media of tempMedias) {
+      try {
+        await this.removeFromMinio(media.bucket, media.objectName);
+        await this.repository.delete(media.id);
+      } catch (error) {
+        this.logger.error(
+          `Erro ao remover arquivo temporário ${media.objectName}`,
+          error,
+        );
       }
-
-      this.logger.log(
-        `Limpeza concluída. ${tempMedias.length} arquivos removidos.`,
-      );
-    } catch (error) {
-      this.logger.error('Erro durante limpeza de arquivos temporários:', error);
     }
   }
 
@@ -211,14 +303,7 @@ export class MediaService extends BaseService<
     objectName: string,
   ): Promise<void> {
     const client = await this.minioService.getClient();
-    try {
-      await client.removeObject(bucket, objectName);
-    } catch (error) {
-      this.logger.warn(
-        `Erro ao remover objeto do MinIO: ${bucket}/${objectName}`,
-        error,
-      );
-    }
+    await client.removeObject(bucket, objectName);
   }
 
   private async copyObjectBetweenBuckets(
@@ -245,45 +330,37 @@ export class MediaService extends BaseService<
     Optional.ofNullable(file)
       .map((f) => f.originalname)
       .map(extractFileTypeFromOriginalName)
-      .map((type) => type.toUpperCase())
+      .map((type) => type?.toUpperCase())
       .map((type) => MediaType[type])
       .orElseThrow(
         () => new BadRequestException(this.MEDIA_TYPE_NOT_SUPPORTED),
       );
   }
 
-  private getContentType(mediaType: MediaType): string {
-    const mimeTypeMap = {
-      [MediaType.JPG]: 'image/jpeg',
-      [MediaType.JPEG]: 'image/jpeg',
-      [MediaType.PNG]: 'image/png',
-      [MediaType.GIF]: 'image/gif',
-      [MediaType.PDF]: 'application/pdf',
-      [MediaType.DOC]: 'application/msword',
-      [MediaType.DOCX]:
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      [MediaType.XLS]: 'application/vnd.ms-excel',
-      [MediaType.XLSX]:
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      [MediaType.TXT]: 'text/plain',
-    };
-    return mimeTypeMap[mediaType] || 'application/octet-stream';
-  }
+  private async generateZip(mediaIds: string[], ownerUserId: string) {
+    const archive = archiver('zip', { zlib: { level: 9 } });
+    const stream = new PassThrough();
 
-  private async setMimeTypeAndData(mediaDto: MediaDto): Promise<void> {
-    const client = await this.minioService.getClient();
-    const objectStream = await client.getObject(
-      mediaDto.bucket,
-      mediaDto.objectName,
-    );
-    const chunks: Buffer[] = [];
+    archive.pipe(stream);
 
-    for await (const chunk of objectStream) {
-      chunks.push(chunk);
+    for (const mediaId of mediaIds) {
+      const media = await this.repository.findByIdAndOwnerId(
+        mediaId,
+        ownerUserId,
+      );
+
+      const client = await this.minioService.getClient();
+      const fileStream = await client.getObject(media.bucket, media.objectName);
+
+      archive.append(fileStream, { name: media.filename });
     }
 
-    const fileBuffer = Buffer.concat(chunks);
-    mediaDto.data = fileBuffer.toString('base64');
-    mediaDto.mimeType = this.getContentType(mediaDto.type);
+    archive.finalize();
+
+    return {
+      stream,
+      contentType: 'application/zip',
+      filename: 'documentos.zip',
+    };
   }
 }
