@@ -18,6 +18,7 @@ import { TokenType, UserRole } from 'src/core/vo/consts/enums';
 import { MediaService } from 'src/core/modules/media/media.service';
 import { MinioBuckets } from 'src/core/modules/media/minio/minio.buckets';
 import { MediaDto } from 'src/core/modules/media/dtos/media.dto';
+import { MediaStreamResult } from 'src/core/vo/types/types';
 
 @Injectable()
 export class UserService extends BaseService<
@@ -71,11 +72,15 @@ export class UserService extends BaseService<
       await this.repository.findUserProfilePictureId(userId);
 
     if (currentUserProfilePictureId) {
-      await this.mediaService.deleteById(currentUserProfilePictureId);
+      await this.mediaService.deleteByIdAndOwnerId(
+        currentUserProfilePictureId,
+        userId,
+      );
     }
 
     const mediaDto = await this.mediaService.createMedia(
       file,
+      userId,
       MinioBuckets.USERS,
     );
     await this.repository.updateProfilePicture(userId, mediaDto.id);
@@ -97,12 +102,15 @@ export class UserService extends BaseService<
     await this.repository.save(user);
   }
 
-  public async findUserProfilePicture(
+  public async getProfilePictureStream(
     userId: string,
-  ): Promise<MediaDto | null> {
+  ): Promise<MediaStreamResult | null> {
     const profilePictureId =
       await this.repository.findUserProfilePictureId(userId);
-    return this.mediaService.findById(profilePictureId);
+
+    return profilePictureId
+      ? await this.mediaService.getStream(profilePictureId, userId)
+      : null;
   }
 
   protected override async beforeCreate(entity: User): Promise<void> {

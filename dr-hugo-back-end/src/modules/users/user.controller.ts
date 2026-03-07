@@ -4,6 +4,7 @@ import {
   UploadedFile,
   UseInterceptors,
   Patch,
+  Res,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -11,6 +12,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
   ApiBody,
+  ApiProduces,
 } from '@nestjs/swagger';
 import { BaseController } from 'src/core/base/base.controller';
 import { User } from './entities/user.entity';
@@ -23,6 +25,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { multerSingleFileConfig } from 'src/core/config/media/multer.config';
 import { MediaDto } from 'src/core/modules/media/dtos/media.dto';
 import { NoCache } from 'src/core/vo/decorators/no-cache.decorator';
+import { type Response } from 'express';
 
 @ApiTags('Gerenciamento de Usuários')
 @ApiBearerAuth()
@@ -114,12 +117,16 @@ export class UserController extends BaseController<User, UserDto, UserService> {
   @ApiOperation({
     summary: 'Obter foto de perfil do usuário',
     description:
-      'Retorna a foto de perfil do usuário autenticado atualmente na sessão.',
+      'Retorna a foto de perfil do usuário autenticado atualmente. O conteúdo é retornado como stream binário com o Content-Type apropriado.',
   })
+  @ApiProduces('image/jpeg', 'image/png', 'image/gif')
   @ApiResponse({
     status: 200,
-    description: 'Foto de perfil retornada com sucesso',
-    type: MediaDto,
+    description: 'Imagem retornada com sucesso (stream binário).',
+    schema: {
+      type: 'string',
+      format: 'binary',
+    },
   })
   @ApiResponse({
     status: 401,
@@ -140,7 +147,25 @@ export class UserController extends BaseController<User, UserDto, UserService> {
   @Get(UserPaths.FIND_PROFILE_PICTURE)
   public async getUserProfilePicture(
     @CurrentUser('id') userId: string,
-  ): Promise<MediaDto> {
-    return await this.service.findUserProfilePicture(userId);
+    @Res({ passthrough: false }) res: Response,
+  ): Promise<void> {
+    const mediaStreamResult =
+      await this.service.getProfilePictureStream(userId);
+
+    if (mediaStreamResult) {
+      const { stream, contentType, filename } = mediaStreamResult;
+      res.set({
+        'Content-Type': contentType,
+        'Content-Disposition': `inline; filename="${filename}"`,
+      });
+
+      stream.pipe(res);
+    } else {
+      res.status(200).send({
+        statusCode: 200,
+        data: null,
+        message: 'Usuário não possui foto de perfil',
+      });
+    }
   }
 }

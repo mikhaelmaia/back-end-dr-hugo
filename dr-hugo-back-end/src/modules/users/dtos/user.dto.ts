@@ -44,11 +44,11 @@ export class UserDto extends BaseEntityDto<User> {
   @IsNotBlacklisted()
   @MaxLength(100, { message: provideMaxLengthValidationMessage })
   @Expose()
-  @ApiProperty({ 
+  @ApiProperty({
     description: 'Nome completo do usuário',
     example: 'Dr. João Silva',
     maxLength: 100,
-    type: String
+    type: String,
   })
   public name: string;
 
@@ -56,21 +56,18 @@ export class UserDto extends BaseEntityDto<User> {
     message: provideIsNotEmptyValidationMessage('E-mail do Usuário'),
   })
   @IsString({ message: provideIsStringValidationMessage('E-mail do Usuário') })
-  @IsEmail(
-    {},
-    { message: provideIsEmailValidationMessage() },
-  )
+  @IsEmail({}, { message: provideIsEmailValidationMessage() })
   @IsNotBlacklisted()
   @MaxLength(50, { message: provideMaxLengthValidationMessage })
   @IsUnique('dv_user', 'email', {
     message: 'Já existe usuário com este e-mail cadastrado',
   })
-  @ApiProperty({ 
+  @ApiProperty({
     description: 'Endereço de e-mail do usuário (deve ser único)',
     example: 'joao.silva@email.com',
     maxLength: 50,
     format: 'email',
-    type: String
+    type: String,
   })
   public email: string;
 
@@ -86,12 +83,12 @@ export class UserDto extends BaseEntityDto<User> {
     message: provideMinLengthValidationMessage('Senha do Usuário', 6),
   })
   @Exclude({ toPlainOnly: true })
-  @ApiProperty({ 
+  @ApiProperty({
     description: 'Senha do usuário (mínimo 6 caracteres)',
     example: 'senhaSegura123',
     minLength: 6,
     type: String,
-    writeOnly: true
+    writeOnly: true,
   })
   public password: string;
 
@@ -116,7 +113,7 @@ export class UserDto extends BaseEntityDto<User> {
     example: '12345678901',
     minLength: 11,
     maxLength: 14,
-    type: String
+    type: String,
   })
   public taxId: string;
 
@@ -132,7 +129,7 @@ export class UserDto extends BaseEntityDto<User> {
     example: '11987654321',
     minLength: 10,
     maxLength: 15,
-    type: String
+    type: String,
   })
   public phone: string;
 
@@ -148,7 +145,7 @@ export class UserDto extends BaseEntityDto<User> {
     example: 'BR',
     minLength: 1,
     maxLength: 3,
-    type: String
+    type: String,
   })
   public countryCode: string;
 
@@ -164,7 +161,7 @@ export class UserDto extends BaseEntityDto<User> {
     example: '+55',
     minLength: 1,
     maxLength: 5,
-    type: String
+    type: String,
   })
   public countryIdd: string;
 
@@ -173,7 +170,7 @@ export class UserDto extends BaseEntityDto<User> {
     example: 'DOCTOR',
     required: false,
     enum: UserRole,
-    enumName: 'UserRole'
+    enumName: 'UserRole',
   })
   public role: UserRole;
 
@@ -182,16 +179,18 @@ export class UserDto extends BaseEntityDto<User> {
   })
   @IsArray({ message: 'Termos aceitos deve ser um array' })
   @ContainsRequiredTerms(['privacy_policy', 'terms_of_service'], {
-    message: 'Os termos obrigatórios devem ser aceitos: política de privacidade e termos de serviço',
+    message:
+      'Os termos obrigatórios devem ser aceitos: política de privacidade e termos de serviço',
   })
   @ApiProperty({
-    description: 'Lista dos tipos de termos aceitos pelo usuário (obrigatórios: privacy_policy, terms_of_service)',
+    description:
+      'Lista dos tipos de termos aceitos pelo usuário (obrigatórios: privacy_policy, terms_of_service)',
     type: [String],
     example: ['privacy_policy', 'terms_of_service'],
     items: {
       type: 'string',
-      enum: ['privacy_policy', 'terms_of_service']
-    }
+      enum: ['privacy_policy', 'terms_of_service'],
+    },
   })
   public acceptedTerms: string[];
 
@@ -200,7 +199,7 @@ export class UserDto extends BaseEntityDto<User> {
     example: '550e8400-e29b-41d4-a716-446655440000',
     format: 'uuid',
     required: false,
-    type: String
+    type: String,
   })
   @Expose()
   @IsOptional()
@@ -211,7 +210,7 @@ export class UserDto extends BaseEntityDto<User> {
   @ApiProperty({
     description: 'Indica se o usuário está ativo no sistema',
     example: true,
-    type: Boolean
+    type: Boolean,
   })
   public isActive: boolean;
 
@@ -219,7 +218,7 @@ export class UserDto extends BaseEntityDto<User> {
   @ApiProperty({
     description: 'Indica se o email do usuário foi validado',
     example: true,
-    type: Boolean
+    type: Boolean,
   })
   public isValid: boolean;
 }
