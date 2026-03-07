@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { join } from 'path';
+import { join } from 'node:path';
 import { DataSourceOptions } from 'typeorm';
 
 export const provideDataSource = async (
@@ -14,9 +14,12 @@ export const provideDataSource = async (
     database: configService.get<string>('database.database'),
     entities: [join(__dirname, '../../../', '**/*.entity{.ts,.js}')],
     synchronize: false,
-    ssl: process.env.NODE_ENV === 'production' ? {
-      rejectUnauthorized: false,
-    } : false,
+    ssl:
+      process.env.NODE_ENV === 'production'
+        ? {
+            rejectUnauthorized: false,
+          }
+        : false,
     logging: process.env.NODE_ENV === 'development' ? ['error'] : false,
   };
 
