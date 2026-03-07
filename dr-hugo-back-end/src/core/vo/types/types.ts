@@ -42,3 +42,9 @@ export type JwtPayload = {
   email: string;
   role: UserRole;
 };
+
+export type MediaStreamResult = {
+  stream: NodeJS.ReadableStream;
+  contentType: string;
+  filename: string;
+};

@@ -41,6 +41,10 @@ export enum MediaType {
   PPT = 'PPT',
   TXT = 'TXT',
   HTML = 'HTML',
+  CSV = 'CSV',
+  ODS = 'ODS',
+  ZIP = 'ZIP',
+  RAR = 'RAR',
 }
 
 export enum AuditEventType {
@@ -239,8 +243,7 @@ export enum CompanyType {
  * @enum {string}
  */
 export enum PatientDocumentType {
-  LABORATORY_EXAM = 'Exame Laboratorial',
-  IMAGING_EXAM = 'Exame de Imagem',
+  LABORATORY_EXAM = 'Exame Laboratorial/Imagem',
   PRESCRIPTION = 'Receituário Médico / Prescrição',
   MEDICAL_CERTIFICATE = 'Atestado / Declaração',
   MEDICAL_REPORT = 'Laudo / Relatório Médico',
@@ -248,4 +251,56 @@ export enum PatientDocumentType {
   MEDICAL_RECORD = 'Prontuário / Ficha Clínica',
   VACCINATION_CARD = 'Carteira de Vacinação',
   OTHER = 'Outros Documentos',
+}
+
+export enum PrescriptionDescription {
+  MEDICATION = 'Receita de Remédios',
+  GLASSES = 'Receita de Óculos',
+  THERAPY_REQUEST = 'Pedido de Terapia / Fisioterapia',
+  COMPOUND = 'Receita de Manipulação',
+  OTHER = 'Outros',
+}
+
+export enum MedicalReportDescription {
+  HOSPITAL_DISCHARGE = 'Relatório de Alta Hospitalar',
+  SURGERY_REPORT = 'Laudo de Cirurgia',
+  BIOPSY = 'Laudo de Biópsia / Patologia',
+  GENERAL_REPORT = 'Relatório Médico (Geral)',
+  REFERRAL = 'Encaminhamento Médico',
+}
+
+export enum MedicalRecordDescription {
+  COMPLETE = 'Prontuário Completo',
+  ER_VISIT = 'Ficha de Atendimento (PS/Ambulatório)',
+  HOSPITALIZATION_HISTORY = 'Histórico de Internação',
+}
+
+export enum VaccinationDescription {
+  BCG = 'BCG (Tuberculose)',
+  COVID19 = 'COVID-19',
+  DENGUE = 'Dengue (Qdenga)',
+  DT = 'Dupla Adulto (Antitetânica / Tétano / dT)',
+  YELLOW_FEVER = 'Febre Amarela',
+  TYPHOID = 'Febre Tifoide',
+  HIB = 'Haemophilus influenzae b (Hib)',
+  HEPATITIS_A = 'Hepatite A',
+  HEPATITIS_AB = 'Hepatite A e B (Combinada)',
+  HEPATITIS_B = 'Hepatite B',
+  HERPES_ZOSTER = 'Herpes Zóster (Cobreiro)',
+  HEXAVALENT = 'Hexavalente (DTPa + VIP + Hib + HepB)',
+  HPV = 'HPV (Papilomavírus Humano)',
+  INFLUENZA = 'Influenza (Gripe)',
+  MENINGO_B = 'Meningocócica B',
+  MENINGO_C = 'Meningocócica C',
+  MENINGO_ACWY = 'Meningocócica Conjugada ACWY',
+  PENTAVALENT = 'Pentavalente (DTP + Hib + Hep B)',
+  PNEUMO = 'Pneumocócica 10 / 13 / 15 / 23 (Pneumonia)',
+  POLIO = 'Poliomielite (VIP / VOP / Paralisia Infantil)',
+  RABIES = 'Raiva (Antirrábica)',
+  ROTAVIRUS = 'Rotavírus',
+  TETRA_VIRAL = 'Tetra Viral (Tríplice + Varicela)',
+  DTP = 'Tríplice Bacteriana (DTP / DTPa / Coqueluche)',
+  MMR = 'Tríplice Viral (Sarampo, Caxumba, Rubéola)',
+  VARICELLA = 'Varicela (Catapora)',
+  RSV = 'VSR (Vírus Sincicial Respiratório)',
 }

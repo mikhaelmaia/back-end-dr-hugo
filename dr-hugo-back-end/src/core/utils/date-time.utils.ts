@@ -275,3 +275,27 @@ export const formatToBrazilianTimezone = (
 
   return date.toLocaleString('pt-BR', { ...defaultOptions, ...options });
 };
+
+/**
+ * Converte string YYYY-MM para MM/YYYY
+ * @param monthYear String no formato YYYY-MM
+ * @returns String no formato MM/YYYY
+ */
+export const formatMonthYearToBrazilian = (monthYear: string): string => {
+  const [year, month] = monthYear.split('-');
+  return `${month}/${year}`;
+};
+
+/**
+ * Converte Date ou string YYYY-MM-DD para DD/MM/YYYY
+ * @param date Date object ou string no formato YYYY-MM-DD
+ * @returns String no formato DD/MM/YYYY
+ */
+export const dateToBrazilianString = (date: Date | string): string => {
+  if (date instanceof Date) {
+    return localDateTimeToBrazilianString(date, false) ?? '';
+  }
+  // Date string no formato YYYY-MM-DD
+  const [year, month, day] = String(date).split('-');
+  return `${day}/${month}/${year}`;
+};

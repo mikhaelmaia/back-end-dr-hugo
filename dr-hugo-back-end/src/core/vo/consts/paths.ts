@@ -174,6 +174,18 @@ export class PatientAccessCodePaths extends BasePaths {
   public static readonly BASE = '/patients-access-code';
 }
 
-export class PatientDocumentPaths extends BasePaths {
-  public static readonly BASE = '/patient-documents';
+export class PatientDocumentPaths {
+  public static readonly ROOT = '/patient-documents';
+  public static readonly BY_ID = '/:id';
+  public static readonly MONTHLY = '/monthly';
+  public static readonly FILTERS = '/available-filters';
+  public static readonly STREAM = '/:id/media/:mediaId/stream';
+  public static readonly DOWNLOAD = '/:id/download';
+  public static readonly RENAME = '/:id/rename';
+}
+
+export class MedicalDocumentPaths extends BasePaths {
+  public static readonly BASE = '/medical-documents';
+  public static readonly DESCRIPTIONS_BY_TYPE = '/descriptions/:type';
+  public static readonly DESCRIPTIONS_BY_TYPE_FULL = `${this.BASE}${this.DESCRIPTIONS_BY_TYPE}`;
 }
