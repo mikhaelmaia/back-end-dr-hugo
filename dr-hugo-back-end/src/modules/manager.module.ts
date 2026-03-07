@@ -6,6 +6,7 @@ import { InstitutionModule } from './institutions/institution.module';
 import { MedicalRecordModule } from './medical-records/medical-record.module';
 import { UserChangeRequestModule } from './users/aggregates/change-request/user-change-request.module';
 import { PatientAccessCodeModule } from './patients/aggregates/access-code/patient-access-code.module';
+import { PatientDocumentModule } from './patients/aggregates/documents/patient-document.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { PatientAccessCodeModule } from './patients/aggregates/access-code/patie
     MedicalRecordModule,
     UserChangeRequestModule,
     PatientAccessCodeModule,
+    PatientDocumentModule,
   ],
   exports: [
     UserModule,
@@ -25,6 +27,7 @@ import { PatientAccessCodeModule } from './patients/aggregates/access-code/patie
     MedicalRecordModule,
     UserChangeRequestModule,
     PatientAccessCodeModule,
+    PatientDocumentModule,
   ],
 })
 export class ManagerModule {}

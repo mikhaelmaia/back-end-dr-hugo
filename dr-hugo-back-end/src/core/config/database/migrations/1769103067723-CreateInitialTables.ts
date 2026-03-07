@@ -54,6 +54,7 @@ export class CreateInitialTables1769103067723 implements MigrationInterface {
                 "size" integer NOT NULL,
                 "bucket" character varying(100) NOT NULL,
                 "object_name" character varying(500) NOT NULL,
+                "owner_user_id" uuid NOT NULL,
                 CONSTRAINT "PK_dv_media" PRIMARY KEY ("id")
             )
         `);
@@ -68,7 +69,7 @@ export class CreateInitialTables1769103067723 implements MigrationInterface {
                 "name" character varying(100) NOT NULL,
                 "email" character varying(50) NOT NULL,
                 "password" character varying(255) NOT NULL,
-                "taxId" character varying(14) NOT NULL,
+                "tax_id" character varying(14) NOT NULL,
                 "phone" character varying(15) NOT NULL,
                 "country_code" character varying(3) NOT NULL,
                 "country_idd" character varying(5) NOT NULL,
@@ -78,7 +79,7 @@ export class CreateInitialTables1769103067723 implements MigrationInterface {
                 "profile_picture_id" uuid,
                 CONSTRAINT "PK_dv_user" PRIMARY KEY ("id"),
                 CONSTRAINT "UQ_dv_user_email_role" UNIQUE ("email", "role"),
-                CONSTRAINT "UQ_dv_user_taxId_role" UNIQUE ("taxId", "role"),
+                CONSTRAINT "UQ_dv_user_tax_id_role" UNIQUE ("tax_id", "role"),
                 CONSTRAINT "UQ_dv_user_phone_role" UNIQUE ("phone", "role")
             )
         `);
