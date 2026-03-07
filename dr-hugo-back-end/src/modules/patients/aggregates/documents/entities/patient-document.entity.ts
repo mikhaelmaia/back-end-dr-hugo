@@ -1,60 +1,55 @@
 import { BaseEntity } from 'src/core/base/base.entity';
-import { Media } from 'src/core/modules/media/entities/media.entity';
 import { PatientDocumentType } from 'src/core/vo/consts/enums';
 import { Patient } from 'src/modules/patients/entities/patient.entity';
-import {
-  BeforeInsert,
-  BeforeUpdate,
-  Column,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  OneToOne,
-} from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
+import { PatientDocumentMedia } from './patient-document-media.entity';
 
 @Entity('dv_patient_document')
 export class PatientDocument extends BaseEntity {
-  @Column()
-  public description: string;
-
   @Column({
     type: 'enum',
     enum: PatientDocumentType,
+    nullable: false,
   })
   public type: PatientDocumentType;
 
-  @Column({ type: 'date' })
+  @Column({ length: 255, nullable: false })
+  public description: string;
+
+  @Column({ name: 'exam_date', type: 'date', nullable: false })
   public examDate: Date;
 
-  @Column({ type: 'date' })
-  public examMonth: Date;
+  @Column({ name: 'exam_month', type: 'varchar', length: 7, nullable: false })
+  public examMonth: string;
 
-  @Column({ nullable: true })
+  @Column({ name: 'requester_name', length: 255, nullable: true })
   public requesterName?: string;
 
-  @Column({ nullable: true })
+  @Column({ name: 'exam_location', length: 255, nullable: true })
   public examLocation?: string;
 
   @Column({ type: 'text', nullable: true })
   public observations?: string;
 
+  @Column({ name: 'tuss_code', nullable: true })
+  public tussCode?: string;
+
+  @Column({
+    name: 'tuss_category',
+    type: 'varchar',
+    length: 30,
+    nullable: true,
+  })
+  public tussCategory?: string;
+
   @ManyToOne(() => Patient)
-  @JoinColumn({ name: 'patient_id', referencedColumnName: 'id' })
+  @JoinColumn({ name: 'patient_id' })
   public patient: Patient;
 
-  @OneToOne(() => Media)
-  @JoinColumn({ name: 'media_id', referencedColumnName: 'id' })
-  public media: Media;
-
-  @BeforeInsert()
-  @BeforeUpdate()
-  private syncExamMonth(): void {
-    if (!this.examDate) return;
-
-    this.examMonth = new Date(
-      this.examDate.getFullYear(),
-      this.examDate.getMonth(),
-      1,
-    );
-  }
+  @OneToMany(
+    () => PatientDocumentMedia,
+    (documentMedia) => documentMedia.patientDocument,
+    { cascade: true },
+  )
+  public medias: PatientDocumentMedia[];
 }
