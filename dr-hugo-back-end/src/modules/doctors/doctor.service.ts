@@ -190,12 +190,6 @@ export class DoctorService extends BaseService<
 
       const activeCount = specializations.filter((s) => s.isActive).length;
 
-      if (specialization.isActive && activeCount === 1) {
-        throw new BadRequestException(
-          'Deve haver ao menos uma especialização ativa.',
-        );
-      }
-
       if (!specialization.isActive && activeCount >= 2) {
         throw new BadRequestException(
           'Máximo de duas especializações ativas permitido.',
