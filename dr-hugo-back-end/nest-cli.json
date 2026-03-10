@@ -16,6 +16,10 @@
       {
         "include": "core/**/*.json",
         "outDir": "dist"
+      },
+      {
+        "include": "core/**/*.csv",
+        "outDir": "dist"
       }
     ]
   }
