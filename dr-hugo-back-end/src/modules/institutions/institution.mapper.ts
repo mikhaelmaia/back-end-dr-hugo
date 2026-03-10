@@ -12,6 +12,7 @@ import {
 import {
   InstitutionValidatedDto,
   InstitutionValidationData,
+  HealthInstitutionData,
 } from './dtos/institution-validated.dto';
 import { InstitutionCompany } from './aggregates/company/entities/company.entity';
 import { InstitutionCompanyRepresentative } from './aggregates/representative/entities/representative.entity';
@@ -24,6 +25,8 @@ import {
 import { CreateInstitutionCompanyRepresentativeDto } from './aggregates/representative/dtos/create-representative.dto';
 import { CompanyDto } from './aggregates/company/dtos/company.dto';
 import { RepresentativeDto } from './aggregates/representative/dtos/representative.dto';
+import { HealthInstitution } from './aggregates/health/entities/health-institution.entity';
+import { stringToLocalDate } from 'src/core/utils/date-time.utils';
 
 @Injectable()
 export class InstitutionMapper extends BaseMapper<Institution, InstitutionDto> {
@@ -225,5 +228,32 @@ export class InstitutionMapper extends BaseMapper<Institution, InstitutionDto> {
     dto.state = entity.state;
 
     return dto;
+  }
+
+  public mapHealthDataToEntity(
+    healthData: HealthInstitutionData,
+  ): HealthInstitution {
+    const entity = new HealthInstitution();
+
+    entity.organizationNature = healthData.organizationNature;
+    entity.legalNatureDescription = healthData.legalNatureDescription;
+    entity.disablingReasonCode = healthData.disablingReasonCode;
+    entity.hasSurgicalCenter = healthData.hasSurgicalCenter;
+    entity.hasObstetricCenter = healthData.hasObstetricCenter;
+    entity.hasNeonatalCenter = healthData.hasNeonatalCenter;
+    entity.hasHospitalCare = healthData.hasHospitalCare;
+    entity.hasSupportService = healthData.hasSupportService;
+    entity.hasOutpatientCare = healthData.hasOutpatientCare;
+    entity.teachingActivityCode = healthData.teachingActivityCode;
+    entity.unitOrganizationNatureCode = healthData.unitOrganizationNatureCode;
+    entity.unitHierarchyLevelCode = healthData.unitHierarchyLevelCode;
+    entity.unitAdministrativeSphereCode =
+      healthData.unitAdministrativeSphereCode;
+
+    if (healthData.lastUpdateDate) {
+      entity.lastUpdateDate = stringToLocalDate(healthData.lastUpdateDate);
+    }
+
+    return entity;
   }
 }

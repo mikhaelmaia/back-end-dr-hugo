@@ -59,4 +59,9 @@ export default () => ({
     apiUrl: process.env.VIA_CEP_API_URL,
     apiTimeout: Number.parseInt(process.env.VIA_CEP_API_TIMEOUT, 10) || 3000,
   },
+  cnes: {
+    apiUrl: process.env.CNES_API_URL,
+    apiTimeout: Number.parseInt(process.env.CNES_API_TIMEOUT, 10) || 30000,
+    establishmentPath: process.env.CNES_ESTABLISHMENT_PATH,
+  },
 });

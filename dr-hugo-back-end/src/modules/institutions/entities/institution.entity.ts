@@ -3,6 +3,7 @@ import { BaseEntity } from 'src/core/base/base.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import { Address } from 'src/core/modules/address/entities/address.entity';
 import { InstitutionCompany } from '../aggregates/company/entities/company.entity';
+import { HealthInstitution } from '../aggregates/health/entities/health-institution.entity';
 import { MedicalInstitutionType } from 'src/core/vo/consts/enums';
 
 @Entity({ name: 'dv_institution' })
@@ -19,6 +20,15 @@ export class Institution extends BaseEntity {
     cascade: true,
   })
   public company: InstitutionCompany;
+
+  @OneToOne(
+    () => HealthInstitution,
+    (healthInstitution) => healthInstitution.institution,
+    {
+      cascade: true,
+    },
+  )
+  public healthInstitution: HealthInstitution;
 
   @Column({ name: 'cnes', length: 7, nullable: true })
   public cnes: string;

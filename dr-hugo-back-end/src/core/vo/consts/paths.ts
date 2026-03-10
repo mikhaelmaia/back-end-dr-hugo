@@ -116,6 +116,7 @@ export class AddressPaths extends BasePaths {
 export class InstitutionPaths extends BasePaths {
   public static readonly BASE = '/institutions';
   public static readonly LOOKUP = '/lookup';
+  public static readonly CNES_LOOKUP = '/lookup-cnes';
   public static readonly BY_USER = '/by-user/:userId';
   public static readonly CURRENT = '/current';
   public static readonly UPDATE_ADDRESS = '/current/address';
@@ -133,6 +134,7 @@ export class InstitutionPaths extends BasePaths {
   public static readonly FIND_ALL_FULL = `${this.BASE}${this.FIND_ALL}`;
   public static readonly CHECK_CNES_FULL = `${this.BASE}${this.CHECK_CNES}`;
   public static readonly LOOKUP_FULL = `${this.BASE}${this.LOOKUP}`;
+  public static readonly CNES_LOOKUP_FULL = `${this.BASE}${this.CNES_LOOKUP}`;
 }
 
 export class DoctorPaths extends BasePaths {
