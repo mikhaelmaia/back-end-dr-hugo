@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PatientAccessCode } from './entities/patient-access-code.entity';
 import { Repository } from 'typeorm';
 import { BaseRepository } from 'src/core/base/base.repository';
+import { InstitutionalUserRole } from 'src/core/vo/consts/enums';
 
 @Injectable()
 export class PatientAccessCodeRepository extends BaseRepository<PatientAccessCode> {
@@ -27,6 +28,30 @@ export class PatientAccessCodeRepository extends BaseRepository<PatientAccessCod
 
   public findByCode(code: string) {
     return this.findOne({ where: { code } });
+  }
+
+  public async findValidCodeByCodeAndRole(
+    code: string,
+    role: InstitutionalUserRole,
+  ): Promise<PatientAccessCode | null> {
+    return this.createBaseQuery()
+      .andWhere(`${this.alias}.code = :code`, { code })
+      .andWhere(`${this.alias}.used = false`)
+      .andWhere(`${this.alias}.role = :role`, { role })
+      .andWhere(`${this.alias}.expiresAt > NOW()`)
+      .getOne();
+  }
+
+  public async markAsUsed(id: string): Promise<boolean> {
+    const result = await this.repository
+      .createQueryBuilder()
+      .update(PatientAccessCode)
+      .set({ used: true })
+      .where('id = :id', { id })
+      .andWhere('used = false')
+      .execute();
+
+    return result.affected > 0;
   }
 
   public async existsByCode(code: string): Promise<boolean> {

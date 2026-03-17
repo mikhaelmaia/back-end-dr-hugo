@@ -1,4 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { PatientAccessCodeRepository } from './patient-access-code.repository';
 import { QrCodeService } from 'src/core/modules/qr-code/qr-code.service';
 import { PatientAccessCode } from './entities/patient-access-code.entity';
@@ -8,39 +13,81 @@ import { PatientsService } from '../../patients.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PatientAccessCodeMapper } from './patient-access-code.mapper';
 import { PatientAccessCodeDto } from './dtos/patient-access-code.dto';
+import { CreatePatientAccessCodeDto } from './dtos/create-patient-access-code.dto';
+import { InstitutionalUserRole } from 'src/core/vo/consts/enums';
+import { ConfigService } from '@nestjs/config';
+import { ResolutionKeyService } from 'src/core/modules/resolution-key/resolution-key.service';
 
 @Injectable()
 export class PatientAccessCodeService {
   private readonly logger = new Logger(PatientAccessCodeService.name);
   private readonly EXPIRATION_MINUTES = 5;
+  private readonly CODE_TTL_SECONDS = this.EXPIRATION_MINUTES * 60;
 
   constructor(
     private readonly repository: PatientAccessCodeRepository,
-    private readonly patientAccessCodeMapper: PatientAccessCodeMapper,
+    private readonly mapper: PatientAccessCodeMapper,
     private readonly patientService: PatientsService,
     private readonly qrCodeService: QrCodeService,
+    private readonly resolutionKeyService: ResolutionKeyService,
+    private readonly configService: ConfigService,
   ) {}
 
-  public async getOrGenerate(
+  public async createAccessCode(
     userId: string,
-    asQrCode: boolean,
+    dto: CreatePatientAccessCodeDto,
   ): Promise<PatientAccessCodeDto> {
     const patientId = await this.patientService.findPatientIdByUserId(userId);
 
-    let entity = await this.repository.findActiveByPatient(patientId);
+    const entity = await this.generate(patientId, dto.role, dto.documentsIds);
 
-    if (!entity || entity.isExpired()) {
-      entity = await this.generate(patientId);
-    }
+    const response = this.mapper.toDto(entity);
 
-    const response = this.patientAccessCodeMapper.toDto(entity);
-
-    if (asQrCode) {
-      const url = `${process.env.FRONTEND_URL}/patient-access/${entity.code}`;
-      response.qrCode = await this.qrCodeService.generateBase64(url);
-    }
+    response.qrCode = await this.generateQrCodeForAccessCode(entity.code);
 
     return response;
+  }
+
+  public async getExistingAccessCode(
+    userId: string,
+  ): Promise<PatientAccessCodeDto | null> {
+    const patientId = await this.patientService.findPatientIdByUserId(userId);
+
+    const entity = await this.repository.findActiveByPatient(patientId);
+
+    if (!entity || entity.isExpired()) {
+      return null;
+    }
+
+    const response = this.mapper.toDto(entity);
+
+    response.qrCode = await this.generateQrCodeForAccessCode(entity.code);
+
+    return response;
+  }
+
+  public async validateAccessCode(
+    t: string,
+    role: InstitutionalUserRole,
+  ): Promise<PatientAccessCodeDto> {
+    const code = await this.resolutionKeyService.resolve<{ code: string }>(t);
+
+    const entity = await this.repository.findValidCodeByCodeAndRole(
+      code.code,
+      role,
+    );
+
+    if (!entity) {
+      throw new NotFoundException('Código informado é inválido');
+    }
+
+    const wasMarkedAsUsed = await this.repository.markAsUsed(entity.id);
+
+    if (!wasMarkedAsUsed) {
+      throw new BadRequestException('Código já foi utilizado');
+    }
+
+    return this.mapper.toDto(entity);
   }
 
   @Cron(CronExpression.EVERY_MINUTE)
@@ -50,7 +97,11 @@ export class PatientAccessCodeService {
     this.logger.log('Limpeza de códigos expirados concluída.');
   }
 
-  private async generate(patientId: string): Promise<PatientAccessCode> {
+  private async generate(
+    patientId: string,
+    role: InstitutionalUserRole,
+    documentsIds?: string[],
+  ): Promise<PatientAccessCode> {
     let code = generateSixDigitCode();
 
     await until(
@@ -63,11 +114,22 @@ export class PatientAccessCodeService {
 
     const entity = this.repository.create({
       code,
+      role,
+      documentsIds,
       patient: { id: patientId } as any,
       expiresAt,
       used: false,
     });
 
     return this.repository.save(entity);
+  }
+
+  private async generateQrCodeForAccessCode(code: string): Promise<string> {
+    const url = `${this.configService.get('web.baseUrl')}${this.configService.get('web.permissionRequestPath')}?t=${await this.createEncryptedQueryParam(code)}`;
+    return await this.qrCodeService.generateBase64(url);
+  }
+
+  private async createEncryptedQueryParam(code: string): Promise<string> {
+    return this.resolutionKeyService.create({ code }, this.CODE_TTL_SECONDS);
   }
 }

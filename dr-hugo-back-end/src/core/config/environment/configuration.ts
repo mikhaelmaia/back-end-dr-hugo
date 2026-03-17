@@ -13,6 +13,7 @@ export default () => ({
       process.env.DV_WEB_EMAIL_CHANGE_CONFIRMATION_PATH,
     profileChangeConfirmationPath:
       process.env.DV_WEB_PROFILE_CHANGE_CONFIRMATION_PATH,
+    permissionRequestPath: process.env.DV_WEB_PERMISSION_REQUEST_PATH,
   },
   database: {
     host: process.env.DATABASE_HOST,
