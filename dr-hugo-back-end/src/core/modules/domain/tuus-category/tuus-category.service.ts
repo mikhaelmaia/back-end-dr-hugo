@@ -4,6 +4,7 @@ import {
   Logger,
   OnModuleInit,
   InternalServerErrorException,
+  Inject,
 } from '@nestjs/common';
 import { TuusCategoryRepository } from './tuus-category.repository';
 import { TuusCategoryMapper } from './tuus-category.mapper';
@@ -12,6 +13,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import * as csv from 'csv-parse/sync';
 import { TuusCategory } from './entities/tuus-category.entity';
+import { CACHE_SERVICE, CacheService } from '../../cache/cache.service';
 
 type TuusExamCategory =
   | 'LABORATORIAL'
@@ -35,6 +37,8 @@ export class TuusCategoryService implements OnModuleInit {
   constructor(
     private readonly repository: TuusCategoryRepository,
     private readonly mapper: TuusCategoryMapper,
+    @Inject(CACHE_SERVICE)
+    private readonly cacheService: CacheService,
   ) {}
 
   private readonly allowedPrefixes = [
@@ -67,17 +71,6 @@ export class TuusCategoryService implements OnModuleInit {
     }
   }
 
-  public async getAllDescriptions(): Promise<string[]> {
-    return this.repository.findAllDescriptions();
-  }
-
-  public async findAllDescriptions(
-    page: number,
-    limit: number,
-  ): Promise<{ descriptions: string[]; totalItems: number }> {
-    return this.repository.findAllDescriptionsPaged(page, limit);
-  }
-
   public async findDescriptionsPaged(
     page: number,
     limit: number,
@@ -103,12 +96,25 @@ export class TuusCategoryService implements OnModuleInit {
   public async findByDescription(
     description: string,
   ): Promise<TuusCategoryDto | null> {
+    const cacheKey = `tuus_category:description:${description.toLowerCase().trim()}`;
+
+    const cachedResult = await this.cacheService.get<TuusCategoryDto | null>(
+      cacheKey,
+    );
+    if (cachedResult !== null) {
+      return cachedResult;
+    }
+
     const entities = await this.repository.searchByName(description);
     const exactMatch = entities.find(
       (entity) => entity.name.toLowerCase() === description.toLowerCase(),
     );
 
-    return exactMatch ? this.mapper.toDto(exactMatch) : null;
+    const result = exactMatch ? this.mapper.toDto(exactMatch) : null;
+
+    await this.cacheService.set(cacheKey, result, 300);
+
+    return result;
   }
 
   private async importFromCsvFile(): Promise<void> {
