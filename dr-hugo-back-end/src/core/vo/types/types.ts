@@ -1,3 +1,4 @@
+import Stream from 'node:stream';
 import { UserRole } from '../consts/enums';
 
 export interface ApplicationResponse<T> {
@@ -44,7 +45,7 @@ export type JwtPayload = {
 };
 
 export type MediaStreamResult = {
-  stream: NodeJS.ReadableStream;
+  stream: Stream.Readable;
   contentType: string;
   filename: string;
 };

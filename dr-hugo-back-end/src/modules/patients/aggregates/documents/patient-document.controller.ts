@@ -10,8 +10,9 @@ import {
   Query,
   HttpCode,
   HttpStatus,
-  Res,
   ParseUUIDPipe,
+  StreamableFile,
+  NotFoundException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -31,20 +32,22 @@ import { CurrentUser } from 'src/core/vo/decorators/current-user.decorator';
 import { Auditable } from 'src/core/vo/decorators/auditable.decorator';
 import { ExceptionResponse } from 'src/core/config/exceptions/exception-response';
 import { PatientDocumentPaths } from 'src/core/vo/consts/paths';
-import { AuditEventType, PatientDocumentType } from 'src/core/vo/consts/enums';
-import type {
-  PaginationParams,
-  MediaStreamResult,
-} from 'src/core/vo/types/types';
+import {
+  AuditEventType,
+  PatientDocumentType,
+  UserRole,
+} from 'src/core/vo/consts/enums';
+import type { PaginationParams } from 'src/core/vo/types/types';
 import { PatientDocument } from './entities/patient-document.entity';
 import { NoCache } from 'src/core/vo/decorators/no-cache.decorator';
-import type { Response } from 'express';
 import { PatientDocumentAvailableFiltersDto } from './dtos/patient-document-available-filters.dto';
 import { PatientDocumentPaginatedDto } from './dtos/patient-document-paginated.dto';
 import { QueryParamsTransformPipe } from './pipes/query-params-transform.pipe';
+import { Roles } from 'src/core/vo/decorators/roles.decorator';
 
 @ApiTags('Patient Documents')
 @ApiBearerAuth()
+@Roles(UserRole.PATIENT)
 @Controller(PatientDocumentPaths.ROOT)
 export class PatientDocumentController {
   constructor(private readonly service: PatientDocumentService) {}
@@ -91,7 +94,7 @@ export class PatientDocumentController {
     @Body() dto: CreatePatientDocumentDto,
     @CurrentUser('id') userId: string,
   ): Promise<PatientDocumentDto> {
-    return await this.service.create(userId, dto);
+    return this.service.create(userId, dto);
   }
 
   @Get(PatientDocumentPaths.MONTHLY)
@@ -213,7 +216,7 @@ export class PatientDocumentController {
     @Query(QueryParamsTransformPipe)
     pagination: PaginationParams<PatientDocument>,
   ): Promise<PatientDocumentPaginatedDto> {
-    return await this.service.findMonthly(userId, pagination);
+    return this.service.findMonthly(userId, pagination);
   }
 
   @Get(PatientDocumentPaths.STREAM)
@@ -260,22 +263,21 @@ export class PatientDocumentController {
     @Param('id', ParseUUIDPipe) documentId: string,
     @Param('mediaId', ParseUUIDPipe) mediaId: string,
     @CurrentUser('id') userId: string,
-    @Res() response: Response,
-  ): Promise<void> {
-    const streamData: MediaStreamResult = await this.service.getStream(
+  ): Promise<StreamableFile> {
+    const streamData = await this.service.getStream(
       userId,
       documentId,
       mediaId,
     );
 
-    if (streamData) {
-      response.set(
-        'Content-Disposition',
-        `inline; filename="${streamData.filename}"`,
-      );
-      response.set('Content-Type', streamData.contentType);
-      streamData.stream.pipe(response);
+    if (!streamData) {
+      throw new NotFoundException('Arquivo não encontrado');
     }
+
+    return new StreamableFile(streamData.stream, {
+      disposition: `inline; filename="${streamData.filename}"`,
+      type: streamData.contentType,
+    });
   }
 
   @Get(PatientDocumentPaths.DOWNLOAD)
@@ -316,21 +318,20 @@ export class PatientDocumentController {
   public async downloadDocument(
     @Param('id', ParseUUIDPipe) documentId: string,
     @CurrentUser('id') userId: string,
-    @Res() response: Response,
-  ): Promise<void> {
+  ): Promise<StreamableFile> {
     const downloadData = await this.service.downloadDocument(
       userId,
       documentId,
     );
 
-    if (downloadData) {
-      response.set(
-        'Content-Disposition',
-        `inline; filename="${downloadData.filename}"`,
-      );
-      response.set('Content-Type', downloadData.contentType);
-      downloadData.stream.pipe(response);
+    if (!downloadData) {
+      throw new NotFoundException('Arquivo não encontrado');
     }
+
+    return new StreamableFile(downloadData.stream, {
+      disposition: `attachment; filename="${downloadData.filename}"`,
+      type: downloadData.contentType,
+    });
   }
 
   @Get(PatientDocumentPaths.FILTERS)
@@ -354,7 +355,7 @@ export class PatientDocumentController {
   public async getAvailableFilters(
     @CurrentUser('id') userId: string,
   ): Promise<PatientDocumentAvailableFiltersDto> {
-    return await this.service.findAvailableFilters(userId);
+    return this.service.findAvailableFilters(userId);
   }
 
   @Get(PatientDocumentPaths.BY_ID)
@@ -390,7 +391,7 @@ export class PatientDocumentController {
     @Param('id', ParseUUIDPipe) documentId: string,
     @CurrentUser('id') userId: string,
   ): Promise<PatientDocumentDto> {
-    return await this.service.findById(userId, documentId);
+    return this.service.findById(userId, documentId);
   }
 
   @Put()
@@ -442,7 +443,7 @@ export class PatientDocumentController {
     @Body() dto: PatientDocumentDto,
     @CurrentUser('id') userId: string,
   ): Promise<void> {
-    await this.service.update(userId, dto);
+    return this.service.update(userId, dto);
   }
 
   @Patch(PatientDocumentPaths.RENAME)
@@ -484,7 +485,7 @@ export class PatientDocumentController {
     @Body() dto: RenamePatientDocumentDto,
     @CurrentUser('id') userId: string,
   ): Promise<void> {
-    await this.service.rename(userId, documentId, dto.description);
+    return this.service.rename(userId, documentId, dto.description);
   }
 
   @Delete(PatientDocumentPaths.BY_ID)
@@ -519,6 +520,6 @@ export class PatientDocumentController {
     @Param('id', ParseUUIDPipe) documentId: string,
     @CurrentUser('id') userId: string,
   ): Promise<void> {
-    await this.service.softDelete(userId, documentId);
+    return this.service.softDelete(userId, documentId);
   }
 }

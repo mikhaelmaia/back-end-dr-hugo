@@ -5,6 +5,11 @@ export enum UserRole {
   INSTITUTION = 'INSTITUTION',
 }
 
+export enum InstitutionalUserRole {
+  DOCTOR = 'DOCTOR',
+  INSTITUTION = 'INSTITUTION',
+}
+
 export enum EnumType {
   BRAZILIAN_STATE = 'BRAZILIAN_STATE',
   DOCTOR_SPECIALIZATION_TYPE = 'DOCTOR_SPECIALIZATION_TYPE',

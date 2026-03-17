@@ -5,6 +5,7 @@ import {
   UseInterceptors,
   Patch,
   Res,
+  StreamableFile,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -148,18 +149,16 @@ export class UserController extends BaseController<User, UserDto, UserService> {
   public async getUserProfilePicture(
     @CurrentUser('id') userId: string,
     @Res({ passthrough: false }) res: Response,
-  ): Promise<void> {
+  ): Promise<StreamableFile | void> {
     const mediaStreamResult =
       await this.service.getProfilePictureStream(userId);
 
     if (mediaStreamResult) {
       const { stream, contentType, filename } = mediaStreamResult;
-      res.set({
-        'Content-Type': contentType,
-        'Content-Disposition': `inline; filename="${filename}"`,
+      return new StreamableFile(stream, {
+        type: contentType,
+        disposition: `inline; filename="${filename}"`,
       });
-
-      stream.pipe(res);
     } else {
       res.status(200).send({
         statusCode: 200,

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PatientDocumentRepository } from './patient-document.repository';
 import { PatientDocumentMapper } from './patient-document.mapper';
 import { PatientsService } from '../../patients.service';
@@ -14,6 +18,7 @@ import { TuusCategoryService } from 'src/core/modules/domain/tuus-category/tuus-
 import { PatientDocumentType } from 'src/core/vo/consts/enums';
 import { PatientDocumentPaginatedDto } from './dtos/patient-document-paginated.dto';
 import { formatMonthYearToBrazilian } from 'src/core/utils/date-time.utils';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class PatientDocumentService {
@@ -23,6 +28,7 @@ export class PatientDocumentService {
     private readonly patientService: PatientsService,
     private readonly mediaService: MediaService,
     private readonly tuusCategoryService: TuusCategoryService,
+    private readonly dataSource: DataSource,
   ) {}
 
   public async create(
@@ -35,7 +41,10 @@ export class PatientDocumentService {
     await this.mediaService.validateOwnership(dto.mediaIds, userId);
 
     const entity = this.mapper.toEntity(dto, resolvedPatientId);
-    await this.enrichEntityWithTussData(dto.type, dto.description, entity);
+
+    const tussData = await this.resolveTussData(dto.type, dto.description);
+    entity.tussCode = tussData.tussCode;
+    entity.tussCategory = tussData.tussCategory;
 
     const saved = await this.repository.save(entity);
 
@@ -75,7 +84,7 @@ export class PatientDocumentService {
     patientId?: string,
   ): Promise<PatientDocumentAvailableFiltersDto> {
     const resolvedPatientId = await this.resolvePatientId(userId, patientId);
-    return await this.repository.findAvailableFilters(resolvedPatientId);
+    return this.repository.findAvailableFilters(resolvedPatientId);
   }
 
   public async findById(
@@ -100,7 +109,7 @@ export class PatientDocumentService {
     documentId: string,
     mediaId: string,
     patientId?: string,
-  ): Promise<MediaStreamResult | undefined> {
+  ): Promise<MediaStreamResult> {
     const resolvedPatientId = await this.resolvePatientId(userId, patientId);
 
     const belongsToDocument =
@@ -110,9 +119,13 @@ export class PatientDocumentService {
         resolvedPatientId,
       );
 
-    if (belongsToDocument) {
-      return this.mediaService.getStream(mediaId, userId);
+    if (!belongsToDocument) {
+      throw new ForbiddenException(
+        'Arquivo não pertence ao documento informado.',
+      );
     }
+
+    return this.mediaService.getStream(mediaId, userId);
   }
 
   public async downloadDocument(
@@ -126,6 +139,8 @@ export class PatientDocumentService {
       documentId,
       resolvedPatientId,
     );
+
+    await this.validateDocumentExists(mediaIds.length > 0);
 
     return this.mediaService.downloadMany(mediaIds, userId);
   }
@@ -143,20 +158,40 @@ export class PatientDocumentService {
         resolvedPatientId,
       );
 
+    await this.validateDocumentExists(existingMediaIds.length >= 0);
+
     await this.mediaService.validateOwnership(dto.mediaIds, userId);
-    await this.removeOrphanedMedias(userId, existingMediaIds, dto.mediaIds);
 
-    const updateData = this.mapper.toUpdateData(dto);
-    await this.enrichWithTussData(dto.type, dto.description, updateData);
+    await this.dataSource.transaction(async (manager) => {
+      const removedMediaIds = existingMediaIds.filter(
+        (id) => !dto.mediaIds.includes(id),
+      );
 
-    const updated = await this.repository.updateDocumentById(
-      dto.id,
-      resolvedPatientId,
-      updateData,
-    );
+      await Promise.all(
+        removedMediaIds.map((mediaId) =>
+          this.mediaService.deleteByIdAndOwnerId(mediaId, userId),
+        ),
+      );
 
-    await this.validateDocumentExists(updated);
-    await this.repository.replaceDocumentMedias(dto.id, dto.mediaIds);
+      const updateData = this.mapper.toUpdateData(dto);
+
+      const tussData = await this.resolveTussData(dto.type, dto.description);
+
+      updateData.tussCode = tussData.tussCode;
+      updateData.tussCategory = tussData.tussCategory;
+
+      const result = await manager.update(
+        PatientDocument,
+        { id: dto.id, patient: { id: resolvedPatientId } },
+        updateData,
+      );
+
+      if (result.affected === 0) {
+        throw new NotFoundException('Documento não encontrado.');
+      }
+
+      await this.repository.replaceDocumentMedias(dto.id, dto.mediaIds);
+    });
   }
 
   public async rename(
@@ -182,7 +217,14 @@ export class PatientDocumentService {
     patientId?: string,
   ): Promise<void> {
     const resolvedPatientId = await this.resolvePatientId(userId, patientId);
-    await this.repository.softDeleteById(documentId, resolvedPatientId);
+
+    const exists = await this.repository.updateDocumentById(
+      documentId,
+      resolvedPatientId,
+      { deletedAt: new Date() },
+    );
+
+    await this.validateDocumentExists(exists);
   }
 
   private async resolvePatientId(
@@ -194,64 +236,31 @@ export class PatientDocumentService {
     );
   }
 
+  private async resolveTussData(
+    type: PatientDocumentType,
+    description: string,
+  ): Promise<{ tussCode: string | null; tussCategory: string | null }> {
+    if (type !== PatientDocumentType.LABORATORY_EXAM) {
+      return { tussCode: null, tussCategory: null };
+    }
+
+    const tuusCategory =
+      await this.tuusCategoryService.findByDescription(description);
+
+    if (!tuusCategory) {
+      return { tussCode: null, tussCategory: null };
+    }
+
+    return {
+      tussCode: tuusCategory.tussCode,
+      tussCategory: tuusCategory.category,
+    };
+  }
+
   private async validateDocumentExists(exists: boolean): Promise<void> {
     acceptFalseThrows(
       exists,
       () => new NotFoundException('Documento não encontrado.'),
     );
-  }
-
-  private async removeOrphanedMedias(
-    userId: string,
-    existingMediaIds: string[],
-    newMediaIds: string[],
-  ): Promise<void> {
-    const removedMediaIds = existingMediaIds.filter(
-      (id) => !newMediaIds.includes(id),
-    );
-
-    await Promise.all(
-      removedMediaIds.map((mediaId) =>
-        this.mediaService.deleteByIdAndOwnerId(mediaId, userId),
-      ),
-    );
-  }
-
-  private async enrichWithTussData(
-    type: PatientDocumentType,
-    description: string,
-    updateData: Partial<PatientDocument>,
-  ): Promise<void> {
-    if (type === PatientDocumentType.LABORATORY_EXAM) {
-      const tuusCategory =
-        await this.tuusCategoryService.findByDescription(description);
-
-      if (tuusCategory) {
-        updateData.tussCode = tuusCategory.tussCode;
-        updateData.tussCategory = tuusCategory.category;
-      } else {
-        updateData.tussCode = null;
-        updateData.tussCategory = null;
-      }
-    } else {
-      updateData.tussCode = null;
-      updateData.tussCategory = null;
-    }
-  }
-
-  private async enrichEntityWithTussData(
-    type: PatientDocumentType,
-    description: string,
-    entity: PatientDocument,
-  ): Promise<void> {
-    if (type === PatientDocumentType.LABORATORY_EXAM) {
-      const tuusCategory =
-        await this.tuusCategoryService.findByDescription(description);
-
-      if (tuusCategory) {
-        entity.tussCode = tuusCategory.tussCode;
-        entity.tussCategory = tuusCategory.category;
-      }
-    }
   }
 }
