@@ -11,6 +11,7 @@ import { PatientDocumentDto } from './dtos/patient-document.dto';
 import { MediaStreamResult, PaginationParams } from 'src/core/vo/types/types';
 import { PatientDocument } from './entities/patient-document.entity';
 import { MediaService } from 'src/core/modules/media/media.service';
+import { MinioBuckets } from 'src/core/modules/media/minio/minio.buckets';
 import { PatientDocumentListItemDto } from './dtos/patient-document-list-item.dto';
 import { PatientDocumentAvailableFiltersDto } from './dtos/patient-document-available-filters.dto';
 import { acceptFalseThrows } from 'src/core/utils/functions';
@@ -47,6 +48,16 @@ export class PatientDocumentService {
     entity.tussCategory = tussData.tussCategory;
 
     const saved = await this.repository.save(entity);
+
+    await Promise.all(
+      dto.mediaIds.map((mediaId) =>
+        this.mediaService.persistMedia(
+          mediaId,
+          userId,
+          MinioBuckets.PATIENT_DOCUMENTS,
+        ),
+      ),
+    );
 
     return this.mapper.toResponse(saved);
   }
@@ -158,7 +169,7 @@ export class PatientDocumentService {
         resolvedPatientId,
       );
 
-    await this.validateDocumentExists(existingMediaIds.length >= 0);
+    await this.validateDocumentExists(existingMediaIds.length > 0);
 
     await this.mediaService.validateOwnership(dto.mediaIds, userId);
 
@@ -191,6 +202,20 @@ export class PatientDocumentService {
       }
 
       await this.repository.replaceDocumentMedias(dto.id, dto.mediaIds);
+
+      const newMediaIds = dto.mediaIds.filter(
+        (id) => !existingMediaIds.includes(id),
+      );
+
+      await Promise.all(
+        newMediaIds.map((mediaId) =>
+          this.mediaService.persistMedia(
+            mediaId,
+            userId,
+            MinioBuckets.PATIENT_DOCUMENTS,
+          ),
+        ),
+      );
     });
   }
 
