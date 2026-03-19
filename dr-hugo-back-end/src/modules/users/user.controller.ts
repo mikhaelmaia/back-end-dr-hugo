@@ -4,7 +4,6 @@ import {
   UploadedFile,
   UseInterceptors,
   Patch,
-  Res,
   StreamableFile,
 } from '@nestjs/common';
 import {
@@ -26,7 +25,6 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { multerSingleFileConfig } from 'src/core/config/media/multer.config';
 import { MediaDto } from 'src/core/modules/media/dtos/media.dto';
 import { NoCache } from 'src/core/vo/decorators/no-cache.decorator';
-import { type Response } from 'express';
 
 @ApiTags('Gerenciamento de Usuários')
 @ApiBearerAuth()
@@ -148,8 +146,7 @@ export class UserController extends BaseController<User, UserDto, UserService> {
   @Get(UserPaths.FIND_PROFILE_PICTURE)
   public async getUserProfilePicture(
     @CurrentUser('id') userId: string,
-    @Res({ passthrough: false }) res: Response,
-  ): Promise<StreamableFile | void> {
+  ): Promise<StreamableFile | null> {
     const mediaStreamResult =
       await this.service.getProfilePictureStream(userId);
 
@@ -159,12 +156,8 @@ export class UserController extends BaseController<User, UserDto, UserService> {
         type: contentType,
         disposition: `inline; filename="${filename}"`,
       });
-    } else {
-      res.status(200).send({
-        statusCode: 200,
-        data: null,
-        message: 'Usuário não possui foto de perfil',
-      });
     }
+
+    return null;
   }
 }
