@@ -90,6 +90,13 @@ export class PatientAccessCodeService {
     return this.mapper.toDto(entity);
   }
 
+  public async deleteUnusedAndUnexpiredAccessCodeByPatientId(
+    userId: string,
+  ): Promise<void> {
+    const patientId = await this.patientService.findPatientIdByUserId(userId);
+    await this.repository.deleteUnusedAndUnexpiredByPatientId(patientId);
+  }
+
   @Cron(CronExpression.EVERY_MINUTE)
   public async deleteExpiredAccessCodes(): Promise<void> {
     this.logger.log('Iniciando limpeza de códigos de acesso expirados...');

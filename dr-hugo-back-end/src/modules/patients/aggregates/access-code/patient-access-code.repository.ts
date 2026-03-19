@@ -65,6 +65,19 @@ export class PatientAccessCodeRepository extends BaseRepository<PatientAccessCod
     return !!result;
   }
 
+  public async deleteUnusedAndUnexpiredByPatientId(
+    patientId: string,
+  ): Promise<void> {
+    await this.repository
+      .createQueryBuilder()
+      .delete()
+      .from(PatientAccessCode)
+      .where('patient_id = :patientId', { patientId })
+      .andWhere('used = false')
+      .andWhere('expires_at > NOW()')
+      .execute();
+  }
+
   public async deleteExpiredUnused(): Promise<void> {
     await this.repository
       .createQueryBuilder()

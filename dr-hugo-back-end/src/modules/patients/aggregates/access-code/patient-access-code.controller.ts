@@ -5,6 +5,7 @@ import {
   Post,
   HttpCode,
   HttpStatus,
+  Delete,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -112,5 +113,38 @@ export class PatientAccessCodeController {
     @CurrentUser('id') userId: string,
   ): Promise<PatientAccessCodeDto | null> {
     return this.service.getExistingAccessCode(userId);
+  }
+
+  @Delete()
+  @ApiOperation({
+    summary: 'Excluir código de acesso para paciente',
+    description:
+      'Exclui um código de acesso específico que não foi utilizado e ainda não expirou.',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Código de acesso excluído com sucesso.',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Código de acesso não encontrado, já utilizado ou expirado.',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Token de autenticação inválido ou ausente',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Usuário não é um paciente ou não tem permissão',
+    type: ExceptionResponse,
+  })
+  @Roles(UserRole.PATIENT)
+  @HttpCode(HttpStatus.OK)
+  public async deleteUnusedAndUnexpiredAccessCodeByPatientId(
+    @CurrentUser('id') userId: string,
+  ): Promise<void> {
+    await this.service.deleteUnusedAndUnexpiredAccessCodeByPatientId(userId);
   }
 }
