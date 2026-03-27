@@ -34,6 +34,7 @@ export class DoctorMapper extends BaseMapper<Doctor, DoctorDto> {
 
     dto.birthDate = entity.birthDate;
     dto.isGeneralist = entity.isGeneralist;
+    dto.gender = entity.gender;
 
     if (entity.user) {
       dto.name = entity.user.name;
@@ -81,6 +82,7 @@ export class DoctorMapper extends BaseMapper<Doctor, DoctorDto> {
 
     entity.birthDate = dto.birthDate;
     entity.isGeneralist = dto.isGeneralist;
+    entity.gender = dto.gender;
 
     entity.user = new User();
 
@@ -102,6 +104,7 @@ export class DoctorMapper extends BaseMapper<Doctor, DoctorDto> {
     const entity = new Doctor();
 
     entity.birthDate = dto.birthDate;
+    entity.gender = dto.gender;
 
     const user = new UserDto();
     user.email = dto.email;

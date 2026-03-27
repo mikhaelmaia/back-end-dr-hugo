@@ -12,11 +12,11 @@ export class PatientAccessCode extends BaseEntity {
   @JoinColumn({ name: 'patient_id', referencedColumnName: 'id' })
   public patient: Patient;
 
-  @Column({ 
-    name: 'role', 
-    type: 'enum', 
-    enum: InstitutionalUserRole, 
-    nullable: false 
+  @Column({
+    name: 'role',
+    type: 'enum',
+    enum: InstitutionalUserRole,
+    nullable: false,
   })
   public role: InstitutionalUserRole;
 
@@ -31,6 +31,13 @@ export class PatientAccessCode extends BaseEntity {
 
   @Column({ name: 'persistent', type: 'boolean', default: false })
   public persistent: boolean;
+
+  @Column({
+    name: 'allow_access_to_all_documents',
+    type: 'boolean',
+    default: false,
+  })
+  public allowAccessToAllDocuments: boolean;
 
   public isExpired(): boolean {
     return new Date() > this.expiresAt;

@@ -80,4 +80,17 @@ export class CreatePatientAccessCodeDto {
     default: false,
   })
   public persistent?: boolean;
+
+  @IsOptional()
+  @IsBoolean({
+    message: 'AllowAccessToAllDocuments deve ser um valor booleano',
+  })
+  @ApiPropertyOptional({
+    description:
+      'Se true, concede acesso a todos os documentos do paciente, incluindo os anteriores à data do grant (padrão: false)',
+    type: Boolean,
+    example: false,
+    default: false,
+  })
+  public allowAccessToAllDocuments?: boolean;
 }

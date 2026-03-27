@@ -1,7 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { TermsService } from './terms/terms.service';
 import { CountriesService } from './countries/countries.service';
-import { EnumType, TermsType, PatientDocumentType } from '../../vo/consts/enums';
+import {
+  EnumType,
+  TermsType,
+  PatientDocumentType,
+  UserRole,
+} from '../../vo/consts/enums';
 import { TermDto } from './terms/dtos/term.dto';
 import { CountryDto } from './countries/dtos/country.dto';
 import { CountriesPaginationDto } from './countries/dtos/countries-pagination.dto';
@@ -20,12 +25,17 @@ export class DomainService {
     private readonly medicalDocumentService: MedicalDocumentService,
   ) {}
 
-  public async getTermsByType(termType: TermsType): Promise<TermDto> {
-    return this.termsService.getTerms(termType);
+  public async getTermsByType(
+    termType: TermsType,
+    userRole?: UserRole,
+  ): Promise<TermDto> {
+    return this.termsService.getTerms(termType, userRole);
   }
 
-  public async getAllTerms(): Promise<Record<TermsType, TermDto>> {
-    return this.termsService.getAllTerms();
+  public async getAllTerms(
+    userRole?: UserRole,
+  ): Promise<Record<TermsType, TermDto>> {
+    return this.termsService.getAllTerms(userRole);
   }
 
   public getCountryByAcronym(acronym: string): CountryDto | null {
@@ -36,7 +46,9 @@ export class DomainService {
     return this.countriesService.getAllCountries();
   }
 
-  public getPaginatedCountries(paginationDto: CountriesPaginationDto): Page<CountryDto> {
+  public getPaginatedCountries(
+    paginationDto: CountriesPaginationDto,
+  ): Page<CountryDto> {
     return this.countriesService.getPaginatedCountries(paginationDto);
   }
 
@@ -50,6 +62,11 @@ export class DomainService {
     limit: number = 20,
     search?: string,
   ): Promise<MedicalDocumentDescriptionDto> {
-    return this.medicalDocumentService.getDescriptionOptionsByType(type, page, limit, search);
+    return this.medicalDocumentService.getDescriptionOptionsByType(
+      type,
+      page,
+      limit,
+      search,
+    );
   }
 }

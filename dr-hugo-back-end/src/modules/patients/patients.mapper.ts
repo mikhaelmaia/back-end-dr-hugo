@@ -20,6 +20,7 @@ export class PatientsMapper extends BaseMapper<Patient, PatientDto> {
     dto.profilePictureId = entity.user?.profilePicture?.id;
     dto.acceptedTerms = entity.user?.acceptedTerms;
     dto.birthDate = entity.birthDate;
+    dto.gender = entity.gender;
     dto.createdAt = entity.createdAt;
     dto.updatedAt = entity.updatedAt;
     return dto;
@@ -29,6 +30,7 @@ export class PatientsMapper extends BaseMapper<Patient, PatientDto> {
     const entity = new Patient();
     entity.id = dto.id;
     entity.birthDate = dto.birthDate;
+    entity.gender = dto.gender;
     return entity;
   }
 

@@ -3,6 +3,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { ManagerModule } from './modules/manager.module';
 import { IsUniqueConstraint } from './core/vo/validators/is-unique.validator';
 import { ExistsInValidator } from './core/vo/validators/exists-in.validator';
+import { ExistsInGrantValidator } from './core/vo/validators/exists-in-grant.validator';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { TimeoutInterceptor } from './core/config/interceptors/timeout.interceptor';
 import { TransformInterceptor } from './core/config/interceptors/transform.interceptor';
@@ -29,6 +30,7 @@ import { IsUniqueCompositeConstraint } from './core/vo/validators/is-unique-comp
     IsUniqueCompositeConstraint,
     IsUniqueConstraint,
     ExistsInValidator,
+    ExistsInGrantValidator,
     {
       provide: APP_GUARD,
       useClass: AuthGuard,

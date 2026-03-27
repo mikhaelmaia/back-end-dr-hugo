@@ -24,4 +24,13 @@ export class PatientMedicalRecordRepository extends BaseRepository<PatientMedica
       .where('user.id = :userId', { userId })
       .getOne();
   }
+
+  public findByPatientId(
+    patientId: string,
+  ): Promise<PatientMedicalRecord | null> {
+    return this.createBaseQuery()
+      .innerJoin('medicalRecord.patient', 'patient')
+      .where('patient.id = :patientId', { patientId })
+      .getOne();
+  }
 }

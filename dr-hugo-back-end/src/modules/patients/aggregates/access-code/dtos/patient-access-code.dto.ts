@@ -75,4 +75,20 @@ export class PatientAccessCodeDto {
     example: false,
   })
   public persistent: boolean;
+
+  @ApiProperty({
+    description:
+      'Indica se o código concede acesso a todos os documentos do paciente (incluindo passados)',
+    type: Boolean,
+    example: false,
+  })
+  public allowAccessToAllDocuments: boolean;
+
+  @ApiProperty({
+    description: 'Identificador do paciente que gerou o código de acesso',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+    format: 'uuid',
+    type: String,
+  })
+  public patientId: string;
 }

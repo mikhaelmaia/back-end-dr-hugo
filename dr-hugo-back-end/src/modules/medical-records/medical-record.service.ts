@@ -32,6 +32,16 @@ export class PatientMedicalRecordService extends BaseService<
       .orElse(null);
   }
 
+  public async findMedicalRecordByPatientId(
+    patientId: string,
+  ): Promise<PatientMedicalRecordDto | null> {
+    return Optional.ofNullable(
+      await this.repository.findByPatientId(patientId),
+    )
+      .map((record) => this.mapper.toDto(record))
+      .orElse(null);
+  }
+
   public async updateMedicalRecordByPatientUserId(
     dto: PatientMedicalRecordDto,
     userId: string,

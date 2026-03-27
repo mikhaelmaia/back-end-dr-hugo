@@ -35,6 +35,7 @@ export class PatientAccessCodeRepository extends BaseRepository<PatientAccessCod
     role: InstitutionalUserRole,
   ): Promise<PatientAccessCode | null> {
     return this.createBaseQuery()
+      .leftJoinAndSelect(`${this.alias}.patient`, 'patient')
       .andWhere(`${this.alias}.code = :code`, { code })
       .andWhere(`${this.alias}.used = false`)
       .andWhere(`${this.alias}.role = :role`, { role })

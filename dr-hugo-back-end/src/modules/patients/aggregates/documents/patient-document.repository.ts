@@ -94,8 +94,9 @@ export class PatientDocumentRepository extends BaseRepository<PatientDocument> {
 
   public async findAvailableFilters(
     patientId: string,
+    documentsIds?: string[],
   ): Promise<PatientDocumentAvailableFiltersDto> {
-    const result = await this.createBaseQuery()
+    let query = this.createBaseQuery()
       .select([
         `ARRAY_REMOVE(ARRAY_AGG(DISTINCT "document"."type"), NULL) AS "documentTypes"`,
         `ARRAY_REMOVE(ARRAY_AGG(DISTINCT "document"."description"), NULL) AS "descriptions"`,
@@ -104,8 +105,15 @@ export class PatientDocumentRepository extends BaseRepository<PatientDocument> {
         `ARRAY_REMOVE(ARRAY_AGG(DISTINCT "document"."exam_date"::date), NULL) AS "examDates"`,
       ])
       .where('document.patient.id = :patientId', { patientId })
-      .andWhere('document.deleted_at IS NULL')
-      .getRawOne<PatientDocumentAvailableFiltersDto>();
+      .andWhere('document.deleted_at IS NULL');
+
+    if (documentsIds?.length) {
+      query = query.andWhere('document.id = ANY(:documentsIds)', {
+        documentsIds,
+      });
+    }
+
+    const result = await query.getRawOne<PatientDocumentAvailableFiltersDto>();
 
     return {
       documentTypes: result?.documentTypes ?? [],

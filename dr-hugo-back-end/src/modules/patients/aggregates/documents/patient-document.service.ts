@@ -93,9 +93,10 @@ export class PatientDocumentService {
   public async findAvailableFilters(
     userId: string,
     patientId?: string,
+    documentsIds?: string[],
   ): Promise<PatientDocumentAvailableFiltersDto> {
     const resolvedPatientId = await this.resolvePatientId(userId, patientId);
-    return this.repository.findAvailableFilters(resolvedPatientId);
+    return this.repository.findAvailableFilters(resolvedPatientId, documentsIds);
   }
 
   public async findById(

@@ -1,4 +1,10 @@
-import { Controller, Get, Param, HttpStatus, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  HttpStatus,
+  Query,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -18,6 +24,7 @@ import {
   TermsType,
   EnumType,
   PatientDocumentType,
+  UserRole,
 } from '../../vo/consts/enums';
 import { TermDto } from './terms/dtos/term.dto';
 import { CountryDto } from './countries/dtos/country.dto';
@@ -63,7 +70,13 @@ export class DomainController {
   @ApiOperation({
     summary: 'Buscar todos os termos',
     description:
-      'Retorna todos os tipos de termos (política de privacidade e termos de serviço) em um objeto',
+      'Retorna todos os tipos de termos (política de privacidade e termos de serviço) em um objeto. Opcionalmente pode filtrar por role para receber termos específicos.',
+  })
+  @ApiQuery({
+    name: 'role',
+    description: 'Role do usuário para filtrar termos específicos',
+    enum: UserRole,
+    required: false,
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -91,21 +104,29 @@ export class DomainController {
     description: 'Erro interno do servidor ao buscar os termos',
     type: ExceptionResponse,
   })
-  public async getAllTerms(): Promise<Record<TermsType, TermDto>> {
-    return this.domainService.getAllTerms();
+  public async getAllTerms(
+    @Query('role') role?: UserRole,
+  ): Promise<Record<TermsType, TermDto>> {
+    return this.domainService.getAllTerms(role);
   }
 
   @Get(TermsPaths.FIND_BY_TYPE_FULL)
   @ApiOperation({
     summary: 'Buscar termos por tipo',
     description:
-      'Retorna os termos (política de privacidade ou termos de serviço) baseado no tipo especificado',
+      'Retorna os termos (política de privacidade ou termos de serviço) baseado no tipo especificado. Opcionalmente pode filtrar por role para receber termos específicos.',
   })
   @ApiParam({
     name: 'type',
     description: 'Tipo de termo a ser buscado',
     enum: TermsType,
     example: TermsType.PRIVACY_POLICY,
+  })
+  @ApiQuery({
+    name: 'role',
+    description: 'Role do usuário para filtrar termos específicos',
+    enum: UserRole,
+    required: false,
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -124,8 +145,9 @@ export class DomainController {
   })
   public async getTermsByType(
     @Param('type') type: TermsType,
+    @Query('role') role?: UserRole,
   ): Promise<TermDto> {
-    return this.domainService.getTermsByType(type);
+    return this.domainService.getTermsByType(type, role);
   }
 
   @Get(CountriesPaths.ALL_FULL)
@@ -295,7 +317,8 @@ export class DomainController {
   })
   @ApiQuery({
     name: 'search',
-    description: 'Termo de busca para filtrar descrições (busca parcial, case-insensitive)',
+    description:
+      'Termo de busca para filtrar descrições (busca parcial, case-insensitive)',
     example: 'hemograma',
     required: false,
     type: String,

@@ -7,8 +7,9 @@ import {
   IsStrongPassword,
   IsDate,
   IsArray,
+  IsEnum,
 } from 'class-validator';
-import { Exclude } from 'class-transformer';
+import { Exclude, Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import {
   provideIsStringValidationMessage,
@@ -18,6 +19,7 @@ import {
   provideMaxLengthValidationMessage,
   provideIsEmailValidationMessage,
   provideIsValidTaxIdValidationMessage,
+  provideIsEnumValidationMessage,
 } from 'src/core/vo/consts/validation-messages';
 import { IsNotBlacklisted } from 'src/core/vo/validators/is-not-blacklisted.validator';
 import { IsNotEmptyString } from 'src/core/vo/validators/is-not-empty-string.validator';
@@ -27,7 +29,8 @@ import { ContainsRequiredTerms } from 'src/core/vo/validators/contains-required-
 import { ToLocalDate } from 'src/core/vo/transformers/to-local-date.transformer';
 import { IsNotFutureDate } from 'src/core/vo/validators/is-not-future-date.validator';
 import { IsWithinValidAge } from 'src/core/vo/validators/is-within-valid-age.validator';
-import { TermsType } from 'src/core/vo/consts/enums';
+import { TermsType, Gender } from 'src/core/vo/consts/enums';
+import { findEnumValueByKeyOrValue } from 'src/core/utils/enum.utils';
 
 export class CreateDoctorDto {
   @IsNotEmpty({
@@ -204,4 +207,19 @@ export class CreateDoctorDto {
     },
   })
   public acceptedTerms: string[];
+
+  @IsNotEmpty({
+    message: provideIsNotEmptyValidationMessage('Gênero'),
+  })
+  @Transform(({ value }) => findEnumValueByKeyOrValue(Gender, value))
+  @IsEnum(Gender, {
+    message: (args) => provideIsEnumValidationMessage(args, Gender),
+  })
+  @ApiProperty({
+    description: 'Gênero do médico',
+    example: 'MALE',
+    enum: Gender,
+    enumName: 'Gender',
+  })
+  public gender: Gender;
 }

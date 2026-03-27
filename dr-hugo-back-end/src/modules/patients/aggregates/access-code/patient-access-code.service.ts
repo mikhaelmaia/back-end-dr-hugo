@@ -39,7 +39,7 @@ export class PatientAccessCodeService {
   ): Promise<PatientAccessCodeDto> {
     const patientId = await this.patientService.findPatientIdByUserId(userId);
 
-    const entity = await this.generate(patientId, dto.role, dto.documentsIds);
+    const entity = await this.generate(patientId, dto.role, dto.documentsIds, dto.persistent, dto.allowAccessToAllDocuments);
 
     const response = this.mapper.toDto(entity);
 
@@ -108,6 +108,8 @@ export class PatientAccessCodeService {
     patientId: string,
     role: InstitutionalUserRole,
     documentsIds?: string[],
+    persistent?: boolean,
+    allowAccessToAllDocuments?: boolean,
   ): Promise<PatientAccessCode> {
     let code = generateSixDigitCode();
 
@@ -123,6 +125,8 @@ export class PatientAccessCodeService {
       code,
       role,
       documentsIds,
+      persistent: persistent ?? false,
+      allowAccessToAllDocuments: allowAccessToAllDocuments ?? false,
       patient: { id: patientId } as any,
       expiresAt,
       used: false,

@@ -30,7 +30,7 @@ import { IsNotBlacklisted } from 'src/core/vo/validators/is-not-blacklisted.vali
 import { IsOnlyLetters } from 'src/core/vo/validators/is-only-letters.validator';
 import { IsStrongPassword } from 'src/core/vo/validators/is-strong-password.validator';
 import { ContainsRequiredTerms } from 'src/core/vo/validators/contains-required-terms.validator';
-import { TermsType, UserRole, BrazilianState } from 'src/core/vo/consts/enums';
+import { TermsType, UserRole, BrazilianState, Gender } from 'src/core/vo/consts/enums';
 import { ExistsIn } from 'src/core/vo/validators/exists-in.validator';
 import { IsNotEmptyString } from 'src/core/vo/validators/is-not-empty-string.validator';
 import { IsUniqueComposite } from 'src/core/vo/validators/is-unique-composite.validator';
@@ -313,4 +313,18 @@ export class DoctorDto extends BaseEntityDto<Doctor> {
     type: Boolean,
   })
   public isGeneralist: boolean;
+
+  @IsNotEmpty({
+    message: provideIsNotEmptyValidationMessage('Gênero'),
+  })
+  @IsEnum(Gender, {
+    message: (args) => provideIsEnumValidationMessage(args, Gender),
+  })
+  @ApiProperty({
+    description: 'Gênero do médico',
+    example: 'MALE',
+    enum: Gender,
+    enumName: 'Gender',
+  })
+  public gender: Gender;
 }

@@ -122,6 +122,28 @@ export class MediaService extends BaseService<
     };
   }
 
+  /**
+   * Streams a media file without ownership check.
+   * Use ONLY after verifying access via a grant or equivalent authorization.
+   */
+  public async getStreamGranted(mediaId: string): Promise<MediaStreamResult> {
+    const media = await this.repository.findById(mediaId);
+
+    acceptFalseThrows(
+      media !== null,
+      () => new NotFoundException(this.MEDIA_NOT_FOUND),
+    );
+
+    const client = await this.minioService.getClient();
+    const stream = await client.getObject(media.bucket, media.objectName);
+
+    return {
+      stream,
+      contentType: getMediaContentType(media.type),
+      filename: media.filename,
+    };
+  }
+
   public async getTempFileStream(
     mediaId: string,
     ownerUserId: string,
@@ -152,6 +174,13 @@ export class MediaService extends BaseService<
       contentType: getMediaContentType(media.type),
       filename: media.filename,
     };
+  }
+
+  public async downloadGranted(mediaIds: string[]): Promise<MediaStreamResult> {
+    if (mediaIds.length === 1) {
+      return this.getStreamGranted(mediaIds[0]);
+    }
+    return this.generateZipGranted(mediaIds);
   }
 
   public async downloadMany(
@@ -348,6 +377,30 @@ export class MediaService extends BaseService<
         mediaId,
         ownerUserId,
       );
+
+      const client = await this.minioService.getClient();
+      const fileStream = await client.getObject(media.bucket, media.objectName);
+
+      archive.append(fileStream, { name: media.filename });
+    }
+
+    archive.finalize();
+
+    return {
+      stream,
+      contentType: 'application/zip',
+      filename: 'documentos.zip',
+    };
+  }
+
+  private async generateZipGranted(mediaIds: string[]) {
+    const archive = archiver('zip', { zlib: { level: 9 } });
+    const stream = new PassThrough();
+
+    archive.pipe(stream);
+
+    for (const mediaId of mediaIds) {
+      const media = await this.repository.findById(mediaId);
 
       const client = await this.minioService.getClient();
       const fileStream = await client.getObject(media.bucket, media.objectName);

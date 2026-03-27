@@ -20,6 +20,8 @@ export class PatientAccessCodeMapper {
     response.role = entity.role;
     response.documentsIds = entity.documentsIds;
     response.persistent = entity.persistent;
+    response.allowAccessToAllDocuments = entity.allowAccessToAllDocuments;
+    response.patientId = entity.patient?.id;
 
     return response;
   }

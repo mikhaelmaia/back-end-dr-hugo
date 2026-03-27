@@ -15,6 +15,13 @@ export enum EnumType {
   DOCTOR_SPECIALIZATION_TYPE = 'DOCTOR_SPECIALIZATION_TYPE',
   MEDICAL_INSTITUTION_TYPE = 'MEDICAL_INSTITUTION_TYPE',
   PATIENT_DOCUMENT_TYPE = 'PATIENT_DOCUMENT_TYPE',
+  GENDER = 'GENDER',
+}
+
+export enum Gender {
+  MALE = 'Masculino',
+  FEMALE = 'Feminino',
+  OTHER = 'Outro',
 }
 
 /**

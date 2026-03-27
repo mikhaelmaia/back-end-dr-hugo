@@ -4,6 +4,7 @@ import {
   EnumType,
   BrazilianState,
   DoctorSpecializationType,
+  Gender,
   MedicalInstitutionType,
   PatientDocumentType,
 } from '../../../vo/consts/enums';
@@ -33,6 +34,12 @@ export class EnumsService {
 
       case EnumType.PATIENT_DOCUMENT_TYPE:
         return enumToKeyValueArray(PatientDocumentType).map((item) => ({
+          value: item.key,
+          description: item.value,
+        }));
+
+      case EnumType.GENDER:
+        return enumToKeyValueArray(Gender).map((item) => ({
           value: item.key,
           description: item.value,
         }));
