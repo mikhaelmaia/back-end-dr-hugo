@@ -49,7 +49,6 @@ export class AuditService extends BaseService<
         sessionId: fingerprintData.sessionId || null,
       });
       audit.fingerprint = fingerprint;
-      this.mapper.handleAuditFingerprintEncryption(audit);
     }
 
     const savedAudit = await this.repository.save(audit);

@@ -5,20 +5,28 @@ import { PatientDto } from './dtos/patient.dto';
 import { UserDto } from '../users/dtos/user.dto';
 import { UserRole } from 'src/core/vo/consts/enums';
 import { User } from '../users/entities/user.entity';
+import { UserMapper } from '../users/user.mapper';
 
 @Injectable()
 export class PatientsMapper extends BaseMapper<Patient, PatientDto> {
+  public constructor(private readonly userMapper: UserMapper) {
+    super();
+  }
+
   public toDto(entity: Patient): PatientDto {
     const dto = new PatientDto();
     dto.id = entity.id;
-    dto.name = entity.user?.name;
-    dto.email = entity.user?.email;
-    dto.taxId = entity.user?.taxId;
-    dto.phone = entity.user?.phone;
-    dto.countryCode = entity.user?.countryCode;
-    dto.countryIdd = entity.user?.countryIdd;
-    dto.profilePictureId = entity.user?.profilePicture?.id;
-    dto.acceptedTerms = entity.user?.acceptedTerms;
+    if (entity.user) {
+      const userDto = this.userMapper.toDto(entity.user);
+      dto.name = userDto.name;
+      dto.email = userDto.email;
+      dto.taxId = userDto.taxId;
+      dto.phone = userDto.phone;
+      dto.countryCode = userDto.countryCode;
+      dto.countryIdd = userDto.countryIdd;
+      dto.profilePictureId = entity.user.profilePicture?.id;
+      dto.acceptedTerms = userDto.acceptedTerms;
+    }
     dto.birthDate = entity.birthDate;
     dto.gender = entity.gender;
     dto.createdAt = entity.createdAt;
@@ -36,15 +44,16 @@ export class PatientsMapper extends BaseMapper<Patient, PatientDto> {
 
   public toDtoWithUser(patient: Patient, user: UserDto | User): PatientDto {
     const dto = this.toDto(patient);
-    dto.name = user.name;
-    dto.email = user.email;
-    dto.taxId = user.taxId;
-    dto.phone = user.phone;
-    dto.countryCode = user.countryCode;
-    dto.countryIdd = user.countryIdd;
+    const userDto = user instanceof User ? this.userMapper.toDto(user) : user;
+    dto.name = userDto.name;
+    dto.email = userDto.email;
+    dto.taxId = userDto.taxId;
+    dto.phone = userDto.phone;
+    dto.countryCode = userDto.countryCode;
+    dto.countryIdd = userDto.countryIdd;
     dto.profilePictureId =
       user instanceof User ? user.profilePicture?.id : user.profilePictureId;
-    dto.acceptedTerms = user.acceptedTerms;
+    dto.acceptedTerms = userDto.acceptedTerms;
     return dto;
   }
 

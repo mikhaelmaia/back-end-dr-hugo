@@ -78,8 +78,7 @@ export class PatientMedicalRecord extends BaseEntity {
 
   @Column({
     name: 'weekly_frequency',
-    type: 'varchar',
-    length: 50,
+    type: 'text',
     nullable: true,
   })
   public weeklyFrequency?: string;
@@ -87,8 +86,7 @@ export class PatientMedicalRecord extends BaseEntity {
   /* ---------- Blood pressure ---------- */
   @Column({
     name: 'blood_pressure',
-    type: 'varchar',
-    length: 10,
+    type: 'text',
     nullable: true,
   })
   public bloodPressure?: string;
@@ -97,9 +95,9 @@ export class PatientMedicalRecord extends BaseEntity {
   @Column({ name: 'is_smoker', type: 'boolean', default: false })
   public isSmoker: boolean;
 
-  @Column({ name: 'cigarettes_per_day', type: 'varchar', length: 50, nullable: true })
+  @Column({ name: 'cigarettes_per_day', type: 'text', nullable: true })
   public cigarettesPerDay?: string;
 
-  @Column({ name: 'years_smoking', type: 'varchar', length: 50, nullable: true })
+  @Column({ name: 'years_smoking', type: 'text', nullable: true })
   public yearsSmoking?: string;
 }

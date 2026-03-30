@@ -6,6 +6,7 @@ import { PatientsModule } from 'src/modules/patients/patients.module';
 import { NotificationsModule } from 'src/core/modules/notifications/notifications.module';
 import { MediaModule } from 'src/core/modules/media/media.module';
 import { MedicalRecordModule } from 'src/modules/medical-records/medical-record.module';
+import { CryptoModule } from 'src/core/modules/crypto/crypto.module';
 import { PatientAccessCodeModule } from '../access-code/patient-access-code.module';
 import { PatientDoctorGrant } from './entities/patient-doctor-grant.entity';
 import { PatientInstitutionGrant } from './entities/patient-institution-grant.entity';
@@ -17,6 +18,7 @@ import { PatientPermissionGrantService } from './patient-permission-grant.servic
 @Module({
   imports: [
     TypeOrmModule.forFeature([PatientDoctorGrant, PatientInstitutionGrant]),
+    CryptoModule,
     PatientAccessCodeModule,
     DoctorModule,
     InstitutionModule,

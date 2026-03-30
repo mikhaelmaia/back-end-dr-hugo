@@ -11,6 +11,7 @@ import { InstitutionCompanyRepresentative } from './aggregates/representative/en
 import { CacheModule } from 'src/core/modules/cache/cache.module';
 import { ExternalModule } from 'src/core/modules/external/external.module';
 import { UserModule } from '../users/user.module';
+import { CryptoModule } from 'src/core/modules/crypto/crypto.module';
 
 @Module({
   imports: [
@@ -21,7 +22,8 @@ import { UserModule } from '../users/user.module';
     ]),
     CacheModule,
     ExternalModule,
-    UserModule
+    UserModule,
+    CryptoModule,
   ],
   controllers: [InstitutionController],
   providers: [

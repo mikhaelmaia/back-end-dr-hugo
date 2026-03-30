@@ -1,16 +1,23 @@
+import { Injectable } from '@nestjs/common';
 import { PatientMedicalRecord } from './entities/medical-record.entity';
 import { PatientMedicalRecordDto } from './dtos/medical-record.dto';
 import { BaseMapper } from 'src/core/base/base.mapper';
+import { CryptoService } from 'src/core/modules/crypto/crypto.service';
 
 type ConditionPair = {
   has: keyof PatientMedicalRecord;
   description: keyof PatientMedicalRecord;
 };
 
+@Injectable()
 export class PatientMedicalRecordMapper extends BaseMapper<
   PatientMedicalRecord,
   PatientMedicalRecordDto
 > {
+  public constructor(private readonly cryptoService: CryptoService) {
+    super();
+  }
+
   public toDto(entity: PatientMedicalRecord): PatientMedicalRecordDto {
     return {
       id: entity.id,
@@ -54,16 +61,28 @@ export class PatientMedicalRecordMapper extends BaseMapper<
 
       physicalActivity: {
         hasPhysicalActivity: entity.hasPhysicalActivity,
-        physicalActivityTypes: entity.physicalActivityTypes,
-        weeklyFrequency: entity.weeklyFrequency,
+        physicalActivityTypes: entity.physicalActivityTypes
+          ? this.cryptoService.decrypt(entity.physicalActivityTypes)
+          : entity.physicalActivityTypes,
+        weeklyFrequency: entity.weeklyFrequency
+          ? this.cryptoService.decrypt(entity.weeklyFrequency)
+          : entity.weeklyFrequency,
       },
 
-      bloodPressure: { description: entity.bloodPressure },
+      bloodPressure: {
+        description: entity.bloodPressure
+          ? this.cryptoService.decrypt(entity.bloodPressure)
+          : entity.bloodPressure,
+      },
 
       smoking: {
         isSmoker: entity.isSmoker,
-        cigarettesPerDay: entity.cigarettesPerDay,
-        yearsSmoking: entity.yearsSmoking,
+        cigarettesPerDay: entity.cigarettesPerDay
+          ? this.cryptoService.decrypt(entity.cigarettesPerDay)
+          : entity.cigarettesPerDay,
+        yearsSmoking: entity.yearsSmoking
+          ? this.cryptoService.decrypt(entity.yearsSmoking)
+          : entity.yearsSmoking,
       },
     };
   }
@@ -106,23 +125,35 @@ export class PatientMedicalRecordMapper extends BaseMapper<
       description: 'alcoholDescription',
     });
 
-    entity.hasPhysicalActivity = dto.physicalActivity?.hasPhysicalActivity ?? false;
-    entity.physicalActivityTypes = dto.physicalActivity?.physicalActivityTypes ?? null;
-    entity.weeklyFrequency = dto.physicalActivity?.weeklyFrequency ?? null;
+    entity.hasPhysicalActivity =
+      dto.physicalActivity?.hasPhysicalActivity ?? false;
+    entity.physicalActivityTypes = dto.physicalActivity?.physicalActivityTypes
+      ? this.cryptoService.encrypt(dto.physicalActivity.physicalActivityTypes)
+      : null;
+    entity.weeklyFrequency = dto.physicalActivity?.weeklyFrequency
+      ? this.cryptoService.encrypt(dto.physicalActivity.weeklyFrequency)
+      : null;
 
-    entity.bloodPressure = dto.bloodPressure?.description ?? null;
+    entity.bloodPressure = dto.bloodPressure?.description
+      ? this.cryptoService.encrypt(dto.bloodPressure.description)
+      : null;
 
     entity.isSmoker = dto.smoking?.isSmoker ?? false;
-    entity.cigarettesPerDay = dto.smoking?.cigarettesPerDay ?? null;
-    entity.yearsSmoking = dto.smoking?.yearsSmoking ?? null;
+    entity.cigarettesPerDay = dto.smoking?.cigarettesPerDay
+      ? this.cryptoService.encrypt(dto.smoking.cigarettesPerDay)
+      : null;
+    entity.yearsSmoking = dto.smoking?.yearsSmoking
+      ? this.cryptoService.encrypt(dto.smoking.yearsSmoking)
+      : null;
 
     return entity;
   }
 
   private conditionToDto(entity: PatientMedicalRecord, pair: ConditionPair) {
+    const raw = entity[pair.description] as string | null | undefined;
     return {
       hasCondition: entity[pair.has] as boolean,
-      description: entity[pair.description] as string | null,
+      description: raw ? this.cryptoService.decrypt(raw) : (raw ?? null),
     };
   }
 
@@ -132,6 +163,8 @@ export class PatientMedicalRecordMapper extends BaseMapper<
     pair: ConditionPair,
   ) {
     (entity[pair.has] as boolean) = dto?.hasCondition ?? false;
-    (entity[pair.description] as string | null) = dto?.description ?? null;
+    (entity[pair.description] as string | null) = dto?.description
+      ? this.cryptoService.encrypt(dto.description)
+      : null;
   }
 }

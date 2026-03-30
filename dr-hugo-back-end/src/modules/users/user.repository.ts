@@ -4,6 +4,7 @@ import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserRole } from 'src/core/vo/consts/enums';
+import { CryptoService } from 'src/core/modules/crypto/crypto.service';
 
 @Injectable()
 export class UserRepository extends BaseRepository<User> {
@@ -12,14 +13,17 @@ export class UserRepository extends BaseRepository<User> {
   public constructor(
     @InjectRepository(User)
     userRepository: Repository<User>,
+    private readonly cryptoService: CryptoService,
   ) {
     super(userRepository);
   }
 
   public findByEmail(email: string, role?: UserRole): Promise<User | null> {
-    const query = this.createBaseQuery().where(`${this.alias}.email = :email`, {
-      email,
-    });
+    const emailHash = this.cryptoService.hashForSearch(email);
+    const query = this.createBaseQuery().where(
+      `${this.alias}.emailHash = :emailHash`,
+      { emailHash },
+    );
 
     if (role) {
       query.andWhere(`${this.alias}.role = :role`, { role });
@@ -32,11 +36,10 @@ export class UserRepository extends BaseRepository<User> {
     emailOrTaxId: string,
     role?: UserRole,
   ): Promise<User | null> {
+    const hash = this.cryptoService.hashForSearch(emailOrTaxId);
     let query = this.createBaseQuery().where(
-      `(${this.alias}.email = :emailOrTaxId OR ${this.alias}.taxId = :emailOrTaxId)`,
-      {
-        emailOrTaxId,
-      },
+      `(${this.alias}.emailHash = :hash OR ${this.alias}.taxIdHash = :hash)`,
+      { hash },
     );
 
     if (role) {
@@ -70,34 +73,52 @@ export class UserRepository extends BaseRepository<User> {
   }
 
   public async findEmailById(userId: string): Promise<string | null> {
-    return this.createBaseQuery()
+    const result = await this.createBaseQuery()
       .select(`${this.alias}.email`, 'email')
       .where(`${this.alias}.id = :userId`, { userId })
-      .getRawOne()
-      .then((result) => result?.email ?? null);
+      .getRawOne();
+    return result?.email ? this.cryptoService.decrypt(result.email) : null;
   }
 
   public async findPhoneById(userId: string): Promise<string | null> {
-    return this.createBaseQuery()
+    const result = await this.createBaseQuery()
       .select(`${this.alias}.phone`, 'phone')
       .where(`${this.alias}.id = :userId`, { userId })
-      .getRawOne()
-      .then((result) => result?.phone ?? null);
+      .getRawOne();
+    return result?.phone ? this.cryptoService.decrypt(result.phone) : null;
   }
 
   public async updateEmail(userId: string, email: string): Promise<void> {
-    await this.repository.update({ id: userId }, { email });
+    await this.repository.update(
+      { id: userId },
+      {
+        email: this.cryptoService.encrypt(email),
+        emailHash: this.cryptoService.hashForSearch(email),
+      },
+    );
   }
 
   public async updatePhone(userId: string, phone: string): Promise<void> {
-    await this.repository.update({ id: userId }, { phone });
+    await this.repository.update(
+      { id: userId },
+      {
+        phone: this.cryptoService.encrypt(phone),
+        phoneHash: this.cryptoService.hashForSearch(phone),
+      },
+    );
   }
 
-  public async updateCountryCode(userId: string, countryCode: string): Promise<void> {
+  public async updateCountryCode(
+    userId: string,
+    countryCode: string,
+  ): Promise<void> {
     await this.repository.update({ id: userId }, { countryCode });
   }
 
-  public async updateCountryIdd(userId: string, countryIdd: string): Promise<void> {
+  public async updateCountryIdd(
+    userId: string,
+    countryIdd: string,
+  ): Promise<void> {
     await this.repository.update({ id: userId }, { countryIdd });
   }
 }

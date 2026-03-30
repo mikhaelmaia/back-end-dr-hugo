@@ -26,7 +26,9 @@ export class AuditMapper extends BaseMapper<Audit, AuditDto> {
       ? ({
           id: entity.fingerprint.id,
           fingerprintHash: entity.fingerprint.fingerprint,
-          ip: entity.fingerprint.ip,
+          ip: entity.fingerprint.ip
+            ? this.cryptoService.decrypt(entity.fingerprint.ip)
+            : null,
           userAgent: entity.fingerprint.userAgent,
           sessionId: entity.fingerprint.sessionId,
           version: entity.fingerprint.version,
@@ -47,13 +49,5 @@ export class AuditMapper extends BaseMapper<Audit, AuditDto> {
     entity.entityId = dto.entityId;
     entity.data = dto.data;
     return entity;
-  }
-
-  public handleAuditFingerprintEncryption(audit: Audit): void {
-    if (audit.fingerprint) {
-      audit.fingerprint.fingerprint = this.cryptoService.encrypt(
-        audit.fingerprint.fingerprint,
-      );
-    }
   }
 }

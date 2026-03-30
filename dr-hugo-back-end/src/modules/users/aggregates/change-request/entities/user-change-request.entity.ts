@@ -16,7 +16,7 @@ export class UserChangeRequest extends BaseEntity {
   })
   public type: 'EMAIL' | 'PHONE';
 
-  @Column({ name: 'new_value', length: 100, nullable: false })
+  @Column({ name: 'new_value', type: 'text', nullable: false })
   public newValue: string;
 
   @Column({ name: 'new_country_code', length: 3, nullable: true })

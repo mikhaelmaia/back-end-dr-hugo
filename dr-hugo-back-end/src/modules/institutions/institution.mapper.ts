@@ -27,9 +27,18 @@ import { CompanyDto } from './aggregates/company/dtos/company.dto';
 import { RepresentativeDto } from './aggregates/representative/dtos/representative.dto';
 import { HealthInstitution } from './aggregates/health/entities/health-institution.entity';
 import { stringToLocalDate } from 'src/core/utils/date-time.utils';
+import { UserMapper } from '../users/user.mapper';
+import { CryptoService } from 'src/core/modules/crypto/crypto.service';
 
 @Injectable()
 export class InstitutionMapper extends BaseMapper<Institution, InstitutionDto> {
+  public constructor(
+    private readonly userMapper: UserMapper,
+    private readonly cryptoService: CryptoService,
+  ) {
+    super();
+  }
+
   public toDto(entity: Institution): InstitutionDto {
     const dto = new InstitutionDto();
 
@@ -39,14 +48,15 @@ export class InstitutionMapper extends BaseMapper<Institution, InstitutionDto> {
     dto.otherMedicalInstitutionType = entity.otherMedicalInstitutionType;
 
     if (entity.user) {
-      dto.name = entity.user.name;
-      dto.taxId = entity.user.taxId;
-      dto.role = entity.user.role;
-      dto.email = entity.user.email;
-      dto.countryCode = entity.user.countryCode;
-      dto.countryIdd = entity.user.countryIdd;
-      dto.phone = entity.user.phone;
-      dto.acceptedTerms = entity.user.acceptedTerms;
+      const userDto = this.userMapper.toDto(entity.user);
+      dto.name = userDto.name;
+      dto.taxId = userDto.taxId;
+      dto.role = userDto.role;
+      dto.email = userDto.email;
+      dto.countryCode = userDto.countryCode;
+      dto.countryIdd = userDto.countryIdd;
+      dto.phone = userDto.phone;
+      dto.acceptedTerms = userDto.acceptedTerms;
       dto.profilePictureId = entity.user.profilePicture?.id || null;
     }
 
@@ -137,12 +147,14 @@ export class InstitutionMapper extends BaseMapper<Institution, InstitutionDto> {
   ): Address {
     const address = new Address();
 
-    address.zipCode = validationData.zipCode;
-    address.street = validationData.street;
-    address.number = validationData.number;
-    address.complement = validationData.complement;
-    address.neighborhood = validationData.neighborhood;
-    address.city = validationData.city;
+    address.zipCode = this.cryptoService.encrypt(validationData.zipCode);
+    address.street = this.cryptoService.encrypt(validationData.street);
+    address.number = this.cryptoService.encrypt(validationData.number);
+    address.complement = validationData.complement
+      ? this.cryptoService.encrypt(validationData.complement)
+      : null;
+    address.neighborhood = this.cryptoService.encrypt(validationData.neighborhood);
+    address.city = this.cryptoService.encrypt(validationData.city);
     address.state = findEnumByKeyValue(BrazilianState, validationData.state);
 
     return address;
@@ -151,12 +163,14 @@ export class InstitutionMapper extends BaseMapper<Institution, InstitutionDto> {
   public mapAddressDtoToEntity(addressDto: AddressDto): Address {
     const address = new Address();
 
-    address.zipCode = addressDto.zipCode;
-    address.street = addressDto.street;
-    address.number = addressDto.number;
-    address.complement = addressDto.complement;
-    address.neighborhood = addressDto.neighborhood;
-    address.city = addressDto.city;
+    address.zipCode = this.cryptoService.encrypt(addressDto.zipCode);
+    address.street = this.cryptoService.encrypt(addressDto.street);
+    address.number = this.cryptoService.encrypt(addressDto.number);
+    address.complement = addressDto.complement
+      ? this.cryptoService.encrypt(addressDto.complement)
+      : null;
+    address.neighborhood = this.cryptoService.encrypt(addressDto.neighborhood);
+    address.city = this.cryptoService.encrypt(addressDto.city);
     address.state = addressDto.state;
     address.country = addressDto.country;
 
@@ -168,8 +182,8 @@ export class InstitutionMapper extends BaseMapper<Institution, InstitutionDto> {
   ): InstitutionCompanyRepresentative {
     const representative = new InstitutionCompanyRepresentative();
 
-    representative.name = representativeDto.name;
-    representative.taxId = representativeDto.taxId;
+    representative.name = this.cryptoService.encrypt(representativeDto.name);
+    representative.taxId = this.cryptoService.encrypt(representativeDto.taxId);
     representative.crm = representativeDto.crm;
     representative.state = representativeDto.state;
 
@@ -180,13 +194,13 @@ export class InstitutionMapper extends BaseMapper<Institution, InstitutionDto> {
     const dto = new AddressDto();
 
     dto.id = entity.id;
-    dto.street = entity.street;
-    dto.number = entity.number;
-    dto.complement = entity.complement;
-    dto.neighborhood = entity.neighborhood;
-    dto.city = entity.city;
+    dto.street = entity.street ? this.cryptoService.decrypt(entity.street) : entity.street;
+    dto.number = entity.number ? this.cryptoService.decrypt(entity.number) : entity.number;
+    dto.complement = entity.complement ? this.cryptoService.decrypt(entity.complement) : entity.complement;
+    dto.neighborhood = entity.neighborhood ? this.cryptoService.decrypt(entity.neighborhood) : entity.neighborhood;
+    dto.city = entity.city ? this.cryptoService.decrypt(entity.city) : entity.city;
     dto.state = entity.state;
-    dto.zipCode = entity.zipCode;
+    dto.zipCode = entity.zipCode ? this.cryptoService.decrypt(entity.zipCode) : entity.zipCode;
     dto.country = entity.country;
 
     return dto;
@@ -222,8 +236,8 @@ export class InstitutionMapper extends BaseMapper<Institution, InstitutionDto> {
     const dto = new RepresentativeDto();
 
     dto.id = entity.id;
-    dto.name = entity.name;
-    dto.taxId = entity.taxId;
+    dto.name = entity.name ? this.cryptoService.decrypt(entity.name) : entity.name;
+    dto.taxId = entity.taxId ? this.cryptoService.decrypt(entity.taxId) : entity.taxId;
     dto.crm = entity.crm;
     dto.state = entity.state;
 

@@ -4,6 +4,7 @@ import { User } from './entities/user.entity';
 import { UserDto } from './dtos/user.dto';
 import { UserRepository } from './user.repository';
 import { UserMapper } from './user.mapper';
+import { CryptoService } from 'src/core/modules/crypto/crypto.service';
 import {
   acceptFalseThrows,
   compare,
@@ -36,6 +37,7 @@ export class UserService extends BaseService<
     private readonly emailHelper: EmailHelper,
     private readonly tokenService: TokenService,
     private readonly mediaService: MediaService,
+    private readonly cryptoService: CryptoService,
   ) {
     super(userRepository, userMapper);
   }
@@ -119,13 +121,14 @@ export class UserService extends BaseService<
   }
 
   protected override async postCreate(entity: User): Promise<void> {
+    const decryptedEmail = this.cryptoService.decrypt(entity.email);
     const token = await this.tokenService.generateToken(
-      `${entity.email}:${entity.role}`,
+      `${decryptedEmail}:${entity.role}`,
       TokenType.EMAIL_CONFIRMATION,
     );
     await this.emailHelper.sendUserRegisteredEmail(
       entity.name,
-      entity.email,
+      decryptedEmail,
       entity.role,
       token.token,
     );
@@ -139,8 +142,18 @@ export class UserService extends BaseService<
     entityReceived: Partial<UserDto>,
     entityFound: User,
   ): User {
-    entityFound.email = entityReceived.email || entityFound.email;
-    entityFound.phone = entityReceived.phone || entityFound.phone;
+    if (entityReceived.email) {
+      entityFound.email = this.cryptoService.encrypt(entityReceived.email);
+      entityFound.emailHash = this.cryptoService.hashForSearch(
+        entityReceived.email,
+      );
+    }
+    if (entityReceived.phone) {
+      entityFound.phone = this.cryptoService.encrypt(entityReceived.phone);
+      entityFound.phoneHash = this.cryptoService.hashForSearch(
+        entityReceived.phone,
+      );
+    }
     return entityFound;
   }
 

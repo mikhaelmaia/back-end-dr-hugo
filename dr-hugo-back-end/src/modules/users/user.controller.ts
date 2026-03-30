@@ -25,6 +25,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { multerSingleFileConfig } from 'src/core/config/media/multer.config';
 import { MediaDto } from 'src/core/modules/media/dtos/media.dto';
 import { NoCache } from 'src/core/vo/decorators/no-cache.decorator';
+import type { Multer } from 'multer';
 
 @ApiTags('Gerenciamento de Usuários')
 @ApiBearerAuth()

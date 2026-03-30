@@ -9,6 +9,7 @@ import { EmailModule } from 'src/core/modules/email/email.module';
 import { TokenModule } from 'src/core/modules/token/token.module';
 import { MediaModule } from 'src/core/modules/media/media.module';
 import { InternalHttpModule } from 'src/core/modules/http/http.module';
+import { CryptoModule } from 'src/core/modules/crypto/crypto.module';
 
 @Module({
   imports: [
@@ -17,9 +18,10 @@ import { InternalHttpModule } from 'src/core/modules/http/http.module';
     MediaModule,
     TokenModule,
     InternalHttpModule,
+    CryptoModule,
   ],
   controllers: [UserController],
   providers: [UserService, UserMapper, UserRepository],
-  exports: [UserService, UserRepository],
+  exports: [UserService, UserRepository, UserMapper],
 })
 export class UserModule {}

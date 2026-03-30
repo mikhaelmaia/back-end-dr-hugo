@@ -1,5 +1,6 @@
 ﻿import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { CryptoService } from 'src/core/modules/crypto/crypto.service';
 import {
   InsertResult,
   IsNull,
@@ -20,6 +21,7 @@ export class PatientPermissionGrantRepository {
     private readonly doctorGrantRepo: Repository<PatientDoctorGrant>,
     @InjectRepository(PatientInstitutionGrant)
     private readonly institutionGrantRepo: Repository<PatientInstitutionGrant>,
+    private readonly cryptoService: CryptoService,
   ) {}
 
   private calculateAge(birthDate: Date): number {
@@ -46,10 +48,10 @@ export class PatientPermissionGrantRepository {
       gender: patient.gender,
       birthDate: patient.birthDate,
       age: this.calculateAge(new Date(patient.birthDate)),
-      email: user.email,
+      email: user.email ? this.cryptoService.decrypt(user.email) : user.email,
       countryCode: user.countryCode,
       countryIdd: user.countryIdd,
-      phone: user.phone,
+      phone: user.phone ? this.cryptoService.decrypt(user.phone) : user.phone,
     };
   }
 

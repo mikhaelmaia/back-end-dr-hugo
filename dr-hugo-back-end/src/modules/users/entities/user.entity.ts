@@ -8,17 +8,26 @@ export class User extends BaseEntity {
   @Column({ name: 'name', length: 100, nullable: false })
   public name: string;
 
-  @Column({ name: 'email', length: 50, nullable: false, unique: true })
+  @Column({ name: 'email', type: 'text', nullable: false })
   public email: string;
+
+  @Column({ name: 'email_hash', type: 'varchar', length: 64, nullable: false })
+  public emailHash: string;
 
   @Column({ name: 'password', length: 255, nullable: false })
   public password: string;
 
-  @Column({ name: 'tax_id', length: 14, nullable: false, unique: true })
+  @Column({ name: 'tax_id', type: 'text', nullable: false })
   public taxId: string;
 
-  @Column({ name: 'phone', length: 15, nullable: false, unique: true })
+  @Column({ name: 'tax_id_hash', type: 'varchar', length: 64, nullable: false })
+  public taxIdHash: string;
+
+  @Column({ name: 'phone', type: 'text', nullable: false })
   public phone: string;
+
+  @Column({ name: 'phone_hash', type: 'varchar', length: 64, nullable: false })
+  public phoneHash: string;
 
   @Column({ name: 'country_code', length: 3, nullable: false })
   public countryCode: string;
