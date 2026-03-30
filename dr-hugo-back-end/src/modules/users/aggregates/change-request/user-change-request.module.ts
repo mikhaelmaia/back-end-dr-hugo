@@ -7,6 +7,8 @@ import { UserChangeRequestController } from './user-change-request.controller';
 import { UserChangeRequestService } from './user-change-request.service';
 import { UserChangeRequestRepository } from './user-change-request.repository';
 import { UserModule } from '../../user.module';
+import { CryptoModule } from 'src/core/modules/crypto/crypto.module';
+import { ResolutionKeyModule } from 'src/core/modules/resolution-key/resolution-key.module';
 
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import { UserModule } from '../../user.module';
     EmailModule,
     TokenModule,
     UserModule,
+    CryptoModule,
+    ResolutionKeyModule,
   ],
   controllers: [UserChangeRequestController],
   providers: [UserChangeRequestService, UserChangeRequestRepository],

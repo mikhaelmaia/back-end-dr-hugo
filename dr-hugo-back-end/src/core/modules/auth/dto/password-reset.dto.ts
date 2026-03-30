@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString, IsEnum } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  IsEnum,
+  IsOptional,
+  Length,
+} from 'class-validator';
 import {
   provideIsNotEmptyValidationMessage,
   provideIsStringValidationMessage,
@@ -9,35 +16,46 @@ import {
 import { UserRole } from 'src/core/vo/consts/enums';
 
 export class PasswordResetDto {
-  @IsNotEmpty({
-    message: provideIsNotEmptyValidationMessage('Identificação do Token'),
+  @IsOptional()
+  @IsString({ message: provideIsStringValidationMessage('Chave de resolução') })
+  @Length(64, 64, {
+    message: 'Chave de resolução deve ter exatamente 64 caracteres',
   })
+  @ApiProperty({
+    description:
+      'Chave de resolução enviada por e-mail (parâmetro t do link). Use este campo OU os campos tokenIdentification + email + role.',
+    example: 'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456',
+    minLength: 64,
+    maxLength: 64,
+    required: false,
+    type: String,
+  })
+  public t?: string;
+
+  @IsOptional()
   @IsString({
     message: provideIsStringValidationMessage('Identificação do Token'),
   })
   @ApiProperty({
-    description: 'Identificação única do token de recuperação enviado por email',
+    description:
+      'Hash do token obtido após validação manual do código de 6 dígitos. Use este campo (junto com email e role) quando o usuário digitar o código manualmente.',
     example: 'abc123def456',
-    minLength: 4,
-    maxLength: 32,
-    type: String
+    required: false,
+    type: String,
   })
-  public tokenIdentification: string;
+  public tokenIdentification?: string;
 
-  @IsNotEmpty({
-    message: provideIsNotEmptyValidationMessage('E-mail do usuário'),
-  })
-  @IsEmail(
-    {},
-    { message: provideIsEmailValidationMessage() },
-  )
-  @ApiProperty({ 
-    description: 'Endereço de email do usuário para confirmação',
+  @IsOptional()
+  @IsEmail({}, { message: provideIsEmailValidationMessage() })
+  @ApiProperty({
+    description:
+      'E-mail do usuário (obrigatório no fluxo manual, dispensável com t).',
     example: 'joao.silva@email.com',
     format: 'email',
-    type: String
+    required: false,
+    type: String,
   })
-  public email: string;
+  public email?: string;
 
   @IsNotEmpty({
     message: provideIsNotEmptyValidationMessage('Nova senha do usuário'),
@@ -45,22 +63,26 @@ export class PasswordResetDto {
   @IsString({
     message: provideIsStringValidationMessage('Nova senha do usuário'),
   })
-  @ApiProperty({ 
+  @ApiProperty({
     description: 'Nova senha que será definida para o usuário',
     example: 'novasenhasegura456',
     minLength: 6,
     type: String,
-    writeOnly: true
+    writeOnly: true,
   })
   public password: string;
 
-  @IsNotEmpty({ message: provideIsNotEmptyValidationMessage('Perfil de Acesso') })
-  @IsEnum(UserRole, { message: (args) => provideIsEnumValidationMessage(args, UserRole) })
+  @IsOptional()
+  @IsEnum(UserRole, {
+    message: (args) => provideIsEnumValidationMessage(args, UserRole),
+  })
   @ApiProperty({
-    description: 'Perfil de acesso do usuário',
+    description:
+      'Perfil de acesso do usuário (obrigatório no fluxo manual, dispensável com t).',
+    required: false,
     example: 'PATIENT',
     enum: UserRole,
-    enumName: 'UserRole'
+    enumName: 'UserRole',
   })
-  public role: UserRole;
+  public role?: UserRole;
 }

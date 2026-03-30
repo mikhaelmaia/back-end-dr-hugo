@@ -76,10 +76,21 @@ export class InstitutionGrantController {
     eventType: AuditEventType.CREATE,
     entityName: 'PatientDocument',
     mode: 'success',
-    dataExtractor: ({ body }) => ({
-      type: body.type,
-      description: body.description,
-      examDate: body.examDate,
+    entityIdExtractor: ({ result }) => result?.id ?? null,
+    dataExtractor: ({ params, body, result }) => ({
+      request: {
+        grantId: params?.id,
+        type: body.type,
+        description: body.description,
+        examDate: body.examDate,
+        mediaIdsCount: body.mediaIds?.length ?? 0,
+        requesterName: body.requesterName,
+        examLocation: body.examLocation,
+      },
+      result: {
+        id: result?.id,
+        createdAt: result?.createdAt,
+      },
     }),
   })
   @ApiOperation({
@@ -105,10 +116,18 @@ export class InstitutionGrantController {
     eventType: AuditEventType.UPDATE,
     entityName: 'PatientDocument',
     mode: 'success',
-    dataExtractor: ({ body }) => ({
-      id: body.id,
-      type: body.type,
-      description: body.description,
+    entityIdExtractor: ({ body }) => body?.id ?? null,
+    dataExtractor: ({ params, body }) => ({
+      request: {
+        grantId: params?.id,
+        id: body.id,
+        type: body.type,
+        description: body.description,
+        examDate: body.examDate,
+        mediaIdsCount: body.mediaIds?.length ?? 0,
+        requesterName: body.requesterName,
+        examLocation: body.examLocation,
+      },
     }),
   })
   @ApiOperation({
@@ -134,9 +153,13 @@ export class InstitutionGrantController {
     eventType: AuditEventType.UPDATE,
     entityName: 'PatientDocument',
     mode: 'success',
+    entityIdExtractor: ({ params }) => params?.documentId ?? null,
     dataExtractor: ({ params, body }) => ({
-      documentId: params.documentId,
-      description: body.description,
+      request: {
+        grantId: params?.id,
+        documentId: params?.documentId,
+        description: body.description,
+      },
     }),
   })
   @ApiOperation({

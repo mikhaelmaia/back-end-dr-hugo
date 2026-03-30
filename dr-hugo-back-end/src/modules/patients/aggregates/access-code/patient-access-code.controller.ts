@@ -18,7 +18,8 @@ import { PatientAccessCodeService } from './patient-access-code.service';
 import { PatientAccessCodeDto } from './dtos/patient-access-code.dto';
 import { CurrentUser } from 'src/core/vo/decorators/current-user.decorator';
 import { Roles } from 'src/core/vo/decorators/roles.decorator';
-import { UserRole } from 'src/core/vo/consts/enums';
+import { AuditEventType, UserRole } from 'src/core/vo/consts/enums';
+import { Auditable } from 'src/core/vo/decorators/auditable.decorator';
 import { PatientAccessCodePaths } from 'src/core/vo/consts/paths';
 import { CreatePatientAccessCodeDto } from './dtos/create-patient-access-code.dto';
 import { ExceptionResponse } from 'src/core/config/exceptions/exception-response';
@@ -68,6 +69,21 @@ export class PatientAccessCodeController {
     status: HttpStatus.NOT_FOUND,
     description: 'Paciente não encontrado para o usuário atual',
     type: ExceptionResponse,
+  })
+  @Auditable({
+    eventType: AuditEventType.CREATE,
+    entityName: 'PatientAccessCode',
+    mode: 'success',
+    dataExtractor: ({ body, result }) => ({
+      request: {
+        role: body.role,
+        documentIdsCount: body.documentIds?.length ?? 0,
+      },
+      result: {
+        expiresAt: result?.expiresAt,
+        role: result?.role,
+      },
+    }),
   })
   @Roles(UserRole.PATIENT)
   @HttpCode(HttpStatus.CREATED)

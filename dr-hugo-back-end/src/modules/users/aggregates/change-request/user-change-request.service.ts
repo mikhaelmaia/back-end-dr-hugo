@@ -8,6 +8,8 @@ import { RequestUserChangeDto } from './dtos/request-user-change.dto';
 import { compare } from 'bcrypt';
 import { UserChangeRequestRepository } from './user-change-request.repository';
 import { UserRepository } from '../../user.repository';
+import { UserMapper } from '../../user.mapper';
+import { CryptoService } from 'src/core/modules/crypto/crypto.service';
 import { acceptFalseThrows } from 'src/core/utils/functions';
 import { toHttpException } from 'src/core/utils/errors.utils';
 import { User } from '../../entities/user.entity';
@@ -17,6 +19,7 @@ import { UserChangeRequest } from './entities/user-change-request.entity';
 import { TokenType, UserChangeRequestStatus } from 'src/core/vo/consts/enums';
 import { ConfirmUserChangeRequestDto } from './dtos/confirm-user-change-request.dto';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { ResolutionKeyService } from 'src/core/modules/resolution-key/resolution-key.service';
 
 @Injectable()
 export class UserChangeRequestService {
@@ -26,8 +29,11 @@ export class UserChangeRequestService {
   constructor(
     private readonly repository: UserChangeRequestRepository,
     private readonly userRepository: UserRepository,
+    private readonly userMapper: UserMapper,
+    private readonly cryptoService: CryptoService,
     private readonly tokenService: TokenService,
     private readonly emailHelper: EmailHelper,
+    private readonly resolutionKeyService: ResolutionKeyService,
   ) {}
 
   public async requestChange(
@@ -50,20 +56,32 @@ export class UserChangeRequestService {
 
     acceptFalseThrows(passwordMatches, () => toHttpException('E029'));
 
-    if (dto.newEmail && dto.newEmail !== user.email) {
+    if (
+      dto.newEmail &&
+      this.userMapper.hashForSearch(dto.newEmail) !== user.emailHash
+    ) {
       await this.handleEmailChange(userId, dto, user);
     }
 
-    if (dto.newPhone && dto.newPhone !== user.phone) {
+    if (
+      dto.newPhone &&
+      this.userMapper.hashForSearch(dto.newPhone) !== user.phoneHash
+    ) {
       await this.handlePhoneChange(userId, dto);
     }
   }
 
   public async confirmChange(
     dto: ConfirmUserChangeRequestDto,
-    userId: string,
   ): Promise<void> {
-    const request = await this.repository.findByIdAndUserId(dto.id, userId);
+    const { userId, token, requestId } =
+      await this.resolutionKeyService.resolve<{
+        userId: string;
+        token: string;
+        requestId: string;
+      }>(dto.t);
+
+    const request = await this.repository.findByIdAndUserId(requestId, userId);
 
     if (!request) {
       throw new NotFoundException(
@@ -82,9 +100,14 @@ export class UserChangeRequestService {
       throw new BadRequestException('Solicitação expirada');
     }
 
+    const validation = await this.tokenService.validateToken(
+      token,
+      `${userId}:${requestId}`,
+      TokenType.USER_REQUEST_CHANGE,
+    );
     await this.tokenService.concludeToken(
-      dto.hash,
-      `${userId}:${request.id}`,
+      validation.hash,
+      `${userId}:${requestId}`,
       TokenType.USER_REQUEST_CHANGE,
     );
 
@@ -171,7 +194,7 @@ export class UserChangeRequestService {
     const result = await this.repository.insert({
       user: { id: userId } as User,
       type,
-      newValue,
+      newValue: this.cryptoService.encrypt(newValue),
       newCountryCode,
       newCountryIdd,
       expiresAt: this.generateExpiresAt(),
@@ -193,19 +216,20 @@ export class UserChangeRequestService {
     userId: string,
   ): Promise<void> {
     const oldEmail = await this.userRepository.findEmailById(userId);
+    const newEmail = this.cryptoService.decrypt(request.newValue);
 
-    await this.userRepository.updateEmail(userId, request.newValue);
+    await this.userRepository.updateEmail(userId, newEmail);
 
     await this.emailHelper.sendEmailChangedWarningToOldEmail(
       request.user.name,
       oldEmail,
-      request.newValue,
+      newEmail,
     );
 
     await this.emailHelper.sendEmailChangedConfirmationToNewEmail(
       request.user.name,
       oldEmail,
-      request.newValue,
+      newEmail,
     );
   }
 
@@ -213,7 +237,9 @@ export class UserChangeRequestService {
     request: UserChangeRequest,
     userId: string,
   ): Promise<void> {
-    await this.userRepository.updatePhone(userId, request.newValue);
+    const newPhone = this.cryptoService.decrypt(request.newValue);
+
+    await this.userRepository.updatePhone(userId, newPhone);
 
     if (request.newCountryCode) {
       await this.userRepository.updateCountryCode(
@@ -228,7 +254,7 @@ export class UserChangeRequestService {
 
     // TODO: Implementar envio de notificação por WhatsApp confirmando alteração
     this.logger.log(
-      `Telefone alterado para ${request.newValue} - userId: ${userId}`,
+      `Telefone alterado para ${newPhone} - userId: ${userId}`,
     );
   }
 }

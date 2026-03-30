@@ -8,12 +8,14 @@ import { ConfigService } from '@nestjs/config';
 import { EmailModule } from '../email/email.module';
 import { provideJwtModuleOptions } from 'src/core/config/security/jwt.options';
 import { UserModule } from 'src/modules/users/user.module';
+import { ResolutionKeyModule } from '../resolution-key/resolution-key.module';
 
 @Module({
   imports: [
     UserModule,
     TokenModule,
     EmailModule,
+    ResolutionKeyModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) =>

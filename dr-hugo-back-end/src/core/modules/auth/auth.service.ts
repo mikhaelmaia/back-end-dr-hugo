@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AuthRequest } from './dto/auth-request.dto';
 import { AuthResponse } from './dto/auth-response.dto';
 import { PasswordResetDto } from './dto/password-reset.dto';
@@ -9,12 +13,13 @@ import { TokenService } from '../token/token.service';
 import { JwtProviderService } from './aggregates/jwt-provider.service';
 import { EmailHelper } from '../email/email.helper';
 import { UserDto } from 'src/modules/users/dtos/user.dto';
-import { TokenType } from 'src/core/vo/consts/enums';
+import { TokenType, UserRole } from 'src/core/vo/consts/enums';
 import { compare } from 'bcrypt';
 import { acceptFalseThrows, whenNullThrows } from 'src/core/utils/functions';
 import { JwtPayload } from 'src/core/vo/types/types';
 import { UserService } from 'src/modules/users/user.service';
 import { toHttpException } from 'src/core/utils/errors.utils';
+import { ResolutionKeyService } from '../resolution-key/resolution-key.service';
 
 @Injectable()
 export class AuthService {
@@ -26,6 +31,7 @@ export class AuthService {
     private readonly tokenService: TokenService,
     private readonly jwtProviderService: JwtProviderService,
     private readonly emailHelper: EmailHelper,
+    private readonly resolutionKeyService: ResolutionKeyService,
   ) {}
 
   public async login(authRequest: AuthRequest): Promise<AuthResponse> {
@@ -88,6 +94,59 @@ export class AuthService {
   public async performPasswordReset(
     passwordReset: PasswordResetDto,
   ): Promise<void> {
+    if (passwordReset.t) {
+      await this.performPasswordResetViaLink(passwordReset);
+    } else {
+      await this.performPasswordResetManual(passwordReset);
+    }
+  }
+
+  private async performPasswordResetViaLink(
+    passwordReset: PasswordResetDto,
+  ): Promise<void> {
+    const { email, token, role } = await this.resolutionKeyService.resolve<{
+      email: string;
+      token: string;
+      role: UserRole;
+    }>(passwordReset.t);
+
+    const user = await this.userService.findByEmail(email, role);
+
+    if (!user?.isActive) {
+      return;
+    }
+
+    const validation = await this.tokenService.validateToken(
+      token,
+      `${email}:${role}`,
+      TokenType.PASSWORD_RESET,
+    );
+    await this.tokenService.concludeToken(
+      validation.hash,
+      `${email}:${role}`,
+      TokenType.PASSWORD_RESET,
+    );
+    await this.userService.updateUserPassword(
+      email,
+      passwordReset.password,
+      role,
+    );
+    await this.emailHelper.sendPasswordResetEmail(user.name, user.email);
+  }
+
+  private async performPasswordResetManual(
+    passwordReset: PasswordResetDto,
+  ): Promise<void> {
+    if (
+      !passwordReset.tokenIdentification ||
+      !passwordReset.email ||
+      !passwordReset.role
+    ) {
+      throw new BadRequestException(
+        'Informe a chave de resolução (t) ou os campos tokenIdentification, email e role',
+      );
+    }
+
     const email = passwordReset.email;
     const role = passwordReset.role;
 
@@ -137,17 +196,26 @@ export class AuthService {
   public async confirmUserEmail(
     userEmailConfirm: EmailConfirmDto,
   ): Promise<void> {
-    const userEmail = userEmailConfirm.email;
-    const userRole = userEmailConfirm.role;
-    const user = await this.userService.findByEmail(userEmail, userRole);
+    const { email, token, role } = await this.resolutionKeyService.resolve<{
+      email: string;
+      token: string;
+      role: UserRole;
+    }>(userEmailConfirm.t);
+
+    const user = await this.userService.findByEmail(email, role);
 
     if (!user || user.isActive) {
       return;
     }
 
+    const validation = await this.tokenService.validateToken(
+      token,
+      `${email}:${role}`,
+      TokenType.EMAIL_CONFIRMATION,
+    );
     await this.tokenService.concludeToken(
-      userEmailConfirm.tokenIdentification,
-      `${userEmail}:${userRole}`,
+      validation.hash,
+      `${email}:${role}`,
       TokenType.EMAIL_CONFIRMATION,
     );
 

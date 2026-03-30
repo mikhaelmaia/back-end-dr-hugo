@@ -20,8 +20,9 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { ExceptionResponse } from 'src/core/config/exceptions/exception-response';
-import { Gender, UserRole } from 'src/core/vo/consts/enums';
+import { AuditEventType, Gender, UserRole } from 'src/core/vo/consts/enums';
 import { PatientPermissionGrantPaths } from 'src/core/vo/consts/paths';
+import { Auditable } from 'src/core/vo/decorators/auditable.decorator';
 import { CurrentUser } from 'src/core/vo/decorators/current-user.decorator';
 import { IsUUIDParam } from 'src/core/vo/decorators/is-uuid-param.decorator';
 import { NoCache } from 'src/core/vo/decorators/no-cache.decorator';
@@ -73,6 +74,20 @@ export class PatientPermissionGrantController {
     description: 'Código de acesso não encontrado.',
     type: ExceptionResponse,
   })
+  @Auditable({
+    eventType: AuditEventType.CREATE,
+    entityName: 'PatientPermissionGrant',
+    mode: 'success',
+    entityIdExtractor: ({ result }) => result?.id ?? null,
+    dataExtractor: ({ result }) => ({
+      result: {
+        id: result?.id,
+        patientId: result?.patientId,
+        granteeId: result?.granteeId,
+        role: result?.role,
+      },
+    }),
+  })
   public async createGrant(
     @CurrentUser() currentUser: UserDto,
     @Body() dto: CreatePatientPermissionGrantDto,
@@ -104,6 +119,18 @@ export class PatientPermissionGrantController {
     status: HttpStatus.NOT_FOUND,
     description: 'Concessão não encontrada.',
     type: ExceptionResponse,
+  })
+  @Auditable({
+    eventType: AuditEventType.DELETE,
+    entityName: 'PatientPermissionGrant',
+    mode: 'success',
+    entityIdExtractor: ({ body }) => body?.id ?? null,
+    dataExtractor: ({ body }) => ({
+      request: {
+        grantId: body?.id,
+        role: body?.role,
+      },
+    }),
   })
   public async revokeGrant(
     @CurrentUser() currentUser: UserDto,

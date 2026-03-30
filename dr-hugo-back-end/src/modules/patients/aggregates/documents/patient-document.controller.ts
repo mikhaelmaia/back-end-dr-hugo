@@ -80,13 +80,20 @@ export class PatientDocumentController {
     eventType: AuditEventType.CREATE,
     entityName: 'PatientDocument',
     mode: 'success',
-    dataExtractor: ({ body }) => ({
-      type: body.type,
-      description: body.description,
-      examDate: body.examDate,
-      mediaIdsCount: body.mediaIds?.length ?? 0,
-      requesterName: body.requesterName,
-      examLocation: body.examLocation,
+    entityIdExtractor: ({ result }) => result?.id ?? null,
+    dataExtractor: ({ body, result }) => ({
+      request: {
+        type: body.type,
+        description: body.description,
+        examDate: body.examDate,
+        mediaIdsCount: body.mediaIds?.length ?? 0,
+        requesterName: body.requesterName,
+        examLocation: body.examLocation,
+      },
+      result: {
+        id: result?.id,
+        createdAt: result?.createdAt,
+      },
     }),
   })
   @HttpCode(HttpStatus.CREATED)
@@ -429,13 +436,15 @@ export class PatientDocumentController {
     mode: 'success',
     entityIdExtractor: ({ body }) => body?.id ?? null,
     dataExtractor: ({ body }) => ({
-      id: body.id,
-      type: body.type,
-      description: body.description,
-      examDate: body.examDate,
-      mediaIdsCount: body.mediaIds?.length ?? 0,
-      requesterName: body.requesterName,
-      examLocation: body.examLocation,
+      request: {
+        id: body.id,
+        type: body.type,
+        description: body.description,
+        examDate: body.examDate,
+        mediaIdsCount: body.mediaIds?.length ?? 0,
+        requesterName: body.requesterName,
+        examLocation: body.examLocation,
+      },
     }),
   })
   @HttpCode(HttpStatus.OK)
@@ -479,6 +488,18 @@ export class PatientDocumentController {
     description: 'Acesso negado ao documento',
     type: ExceptionResponse,
   })
+  @Auditable({
+    eventType: AuditEventType.UPDATE,
+    entityName: 'PatientDocument',
+    mode: 'success',
+    entityIdExtractor: ({ params }) => params?.id ?? null,
+    dataExtractor: ({ params, body }) => ({
+      request: {
+        id: params?.id,
+        description: body.description,
+      },
+    }),
+  })
   @HttpCode(HttpStatus.OK)
   public async rename(
     @Param('id', ParseUUIDPipe) documentId: string,
@@ -514,6 +535,17 @@ export class PatientDocumentController {
     status: HttpStatus.FORBIDDEN,
     description: 'Acesso negado ao documento',
     type: ExceptionResponse,
+  })
+  @Auditable({
+    eventType: AuditEventType.DELETE,
+    entityName: 'PatientDocument',
+    mode: 'success',
+    entityIdExtractor: ({ params }) => params?.id ?? null,
+    dataExtractor: ({ params }) => ({
+      request: {
+        id: params?.id,
+      },
+    }),
   })
   @HttpCode(HttpStatus.OK)
   public async softDelete(

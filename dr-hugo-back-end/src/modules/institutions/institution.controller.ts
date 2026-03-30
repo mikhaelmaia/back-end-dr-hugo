@@ -277,13 +277,9 @@ export class InstitutionController extends BaseController<
     entityName: 'Institution',
     mode: 'success',
     entityIdExtractor: ({ result }) => result?.id ?? null,
-    dataExtractor: ({ body, result }) => ({
+    dataExtractor: ({ body }) => ({
       request: {
         address: body,
-      },
-      result: {
-        id: result?.id,
-        updatedAt: result?.updatedAt,
       },
     }),
   })
