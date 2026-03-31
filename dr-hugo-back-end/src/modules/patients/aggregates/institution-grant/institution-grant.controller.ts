@@ -24,7 +24,11 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { ExceptionResponse } from 'src/core/config/exceptions/exception-response';
-import { AuditEventType, MedicalInstitutionType, UserRole } from 'src/core/vo/consts/enums';
+import {
+  AuditEventType,
+  MedicalInstitutionType,
+  UserRole,
+} from 'src/core/vo/consts/enums';
 import { InstitutionGrantPaths } from 'src/core/vo/consts/paths';
 import { Auditable } from 'src/core/vo/decorators/auditable.decorator';
 import { CurrentUser } from 'src/core/vo/decorators/current-user.decorator';
@@ -56,8 +60,16 @@ export class InstitutionGrantController {
       'Alterna o estado de curtida na concessao entre paciente e instituicao. ' +
       'Pacientes alternam likedByPatient, instituicoes alternam likedByInstitution.',
   })
-  @ApiParam({ name: 'id', description: 'ID da concessao', format: 'uuid', type: String })
-  @ApiResponse({ status: HttpStatus.OK, description: 'Curtida alternada com sucesso.' })
+  @ApiParam({
+    name: 'id',
+    description: 'ID da concessao',
+    format: 'uuid',
+    type: String,
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Curtida alternada com sucesso.',
+  })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, type: ExceptionResponse })
   public async toggleLike(
     @IsUUIDParam('id') grantId: string,
@@ -97,7 +109,12 @@ export class InstitutionGrantController {
     summary: 'Criar documento para paciente via concessao',
     description: 'Cria um documento medico do paciente em nome da instituicao.',
   })
-  @ApiParam({ name: 'id', description: 'ID da concessao', format: 'uuid', type: String })
+  @ApiParam({
+    name: 'id',
+    description: 'ID da concessao',
+    format: 'uuid',
+    type: String,
+  })
   @ApiBody({ type: CreatePatientDocumentDto })
   @ApiResponse({ status: HttpStatus.CREATED, type: PatientDocumentDto })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, type: ExceptionResponse })
@@ -105,8 +122,9 @@ export class InstitutionGrantController {
     @IsUUIDParam('id') grantId: string,
     @Body() dto: CreatePatientDocumentDto,
     @CurrentUser('id') userId: string,
+    @CurrentUser('role') userRole: UserRole,
   ): Promise<PatientDocumentDto> {
-    return this.service.createDocument(userId, grantId, dto);
+    return this.service.createDocument(userId, grantId, dto, userRole);
   }
 
   @Put(InstitutionGrantPaths.DOCUMENTS)
@@ -132,18 +150,28 @@ export class InstitutionGrantController {
   })
   @ApiOperation({
     summary: 'Atualizar documento do paciente via concessao',
-    description: 'Atualiza um documento medico do paciente em nome da instituicao.',
+    description:
+      'Atualiza um documento medico do paciente em nome da instituicao.',
   })
-  @ApiParam({ name: 'id', description: 'ID da concessao', format: 'uuid', type: String })
+  @ApiParam({
+    name: 'id',
+    description: 'ID da concessao',
+    format: 'uuid',
+    type: String,
+  })
   @ApiBody({ type: PatientDocumentDto })
-  @ApiResponse({ status: HttpStatus.OK, description: 'Documento atualizado com sucesso.' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Documento atualizado com sucesso.',
+  })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, type: ExceptionResponse })
   public async updateDocument(
     @IsUUIDParam('id') grantId: string,
     @Body() dto: PatientDocumentDto,
     @CurrentUser('id') userId: string,
+    @CurrentUser('role') userRole: UserRole,
   ): Promise<void> {
-    await this.service.updateDocument(userId, grantId, dto);
+    await this.service.updateDocument(userId, grantId, dto, userRole);
   }
 
   @Patch(InstitutionGrantPaths.DOCUMENT_RENAME)
@@ -164,20 +192,41 @@ export class InstitutionGrantController {
   })
   @ApiOperation({
     summary: 'Renomear documento do paciente via concessao',
-    description: 'Altera a descricao de um documento medico do paciente em nome da instituicao.',
+    description:
+      'Altera a descricao de um documento medico do paciente em nome da instituicao.',
   })
-  @ApiParam({ name: 'id', description: 'ID da concessao', format: 'uuid', type: String })
-  @ApiParam({ name: 'documentId', description: 'ID do documento', format: 'uuid', type: String })
+  @ApiParam({
+    name: 'id',
+    description: 'ID da concessao',
+    format: 'uuid',
+    type: String,
+  })
+  @ApiParam({
+    name: 'documentId',
+    description: 'ID do documento',
+    format: 'uuid',
+    type: String,
+  })
   @ApiBody({ type: RenamePatientDocumentDto })
-  @ApiResponse({ status: HttpStatus.OK, description: 'Documento renomeado com sucesso.' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Documento renomeado com sucesso.',
+  })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, type: ExceptionResponse })
   public async renameDocument(
     @IsUUIDParam('id') grantId: string,
     @Param('documentId', ParseUUIDPipe) documentId: string,
     @Body() dto: RenamePatientDocumentDto,
     @CurrentUser('id') userId: string,
+    @CurrentUser('role') userRole: UserRole,
   ): Promise<void> {
-    await this.service.renameDocument(userId, grantId, documentId, dto.description);
+    await this.service.renameDocument(
+      userId,
+      grantId,
+      documentId,
+      dto.description,
+      userRole,
+    );
   }
 
   @Get(InstitutionGrantPaths.DOCUMENT_FILTERS)
@@ -186,16 +235,26 @@ export class InstitutionGrantController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Obter filtros disponiveis via concessao (instituicao)',
-    description: 'Retorna os filtros disponiveis para os documentos do paciente acessiveis pela instituicao.',
+    description:
+      'Retorna os filtros disponiveis para os documentos do paciente acessiveis pela instituicao.',
   })
-  @ApiParam({ name: 'id', description: 'ID da concessao', format: 'uuid', type: String })
-  @ApiResponse({ status: HttpStatus.OK, type: PatientDocumentAvailableFiltersDto })
+  @ApiParam({
+    name: 'id',
+    description: 'ID da concessao',
+    format: 'uuid',
+    type: String,
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: PatientDocumentAvailableFiltersDto,
+  })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, type: ExceptionResponse })
   public async findAvailableFilters(
     @IsUUIDParam('id') grantId: string,
     @CurrentUser('id') userId: string,
+    @CurrentUser('role') userRole: UserRole,
   ): Promise<PatientDocumentAvailableFiltersDto> {
-    return this.service.findAvailableFilters(userId, grantId);
+    return this.service.findAvailableFilters(userId, grantId, userRole);
   }
 
   @Get(InstitutionGrantPaths.DOCUMENTS)
@@ -210,41 +269,78 @@ export class InstitutionGrantController {
       'Se persistent=true, retorna documentos criados apos a concessao; ' +
       'caso contrario, apenas os documentos explicitamente liberados.',
   })
-  @ApiParam({ name: 'id', description: 'ID da concessao', format: 'uuid', type: String })
+  @ApiParam({
+    name: 'id',
+    description: 'ID da concessao',
+    format: 'uuid',
+    type: String,
+  })
   @ApiResponse({ status: HttpStatus.OK, type: PatientDocumentPaginatedDto })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, type: ExceptionResponse })
   public async findDocuments(
     @IsUUIDParam('id') grantId: string,
     @CurrentUser('id') userId: string,
+    @CurrentUser('role') userRole: UserRole,
     @Query(QueryParamsTransformPipe) params: any,
   ): Promise<PatientDocumentPaginatedDto> {
-    return this.service.findDocuments(userId, grantId, params);
+    return this.service.findDocuments(userId, grantId, params, userRole);
   }
 
   @Get(InstitutionGrantPaths.DOCUMENT_BY_ID)
   @Roles(UserRole.INSTITUTION, UserRole.PATIENT)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Obter documento via concessao (instituicao)' })
-  @ApiParam({ name: 'id', description: 'ID da concessao', format: 'uuid', type: String })
-  @ApiParam({ name: 'documentId', description: 'ID do documento', format: 'uuid', type: String })
+  @ApiParam({
+    name: 'id',
+    description: 'ID da concessao',
+    format: 'uuid',
+    type: String,
+  })
+  @ApiParam({
+    name: 'documentId',
+    description: 'ID do documento',
+    format: 'uuid',
+    type: String,
+  })
   @ApiResponse({ status: HttpStatus.OK, type: PatientDocumentDto })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, type: ExceptionResponse })
   public async findDocumentById(
     @IsUUIDParam('id') grantId: string,
     @Param('documentId', ParseUUIDPipe) documentId: string,
     @CurrentUser('id') userId: string,
+    @CurrentUser('role') userRole: UserRole,
   ): Promise<PatientDocumentDto> {
-    return this.service.findDocumentById(userId, grantId, documentId);
+    return this.service.findDocumentById(userId, grantId, documentId, userRole);
   }
 
   @Get(InstitutionGrantPaths.DOCUMENT_STREAM)
   @Roles(UserRole.INSTITUTION, UserRole.PATIENT)
   @NoCache()
-  @ApiProduces('application/octet-stream', 'video/*', 'image/*', 'application/pdf')
+  @ApiProduces(
+    'application/octet-stream',
+    'video/*',
+    'image/*',
+    'application/pdf',
+  )
   @ApiOperation({ summary: 'Stream de arquivo via concessao (instituicao)' })
-  @ApiParam({ name: 'id', description: 'ID da concessao', format: 'uuid', type: String })
-  @ApiParam({ name: 'documentId', description: 'ID do documento', format: 'uuid', type: String })
-  @ApiParam({ name: 'mediaId', description: 'ID da midia', format: 'uuid', type: String })
+  @ApiParam({
+    name: 'id',
+    description: 'ID da concessao',
+    format: 'uuid',
+    type: String,
+  })
+  @ApiParam({
+    name: 'documentId',
+    description: 'ID do documento',
+    format: 'uuid',
+    type: String,
+  })
+  @ApiParam({
+    name: 'mediaId',
+    description: 'ID da midia',
+    format: 'uuid',
+    type: String,
+  })
   @ApiResponse({ status: HttpStatus.OK, description: 'Stream do arquivo.' })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, type: ExceptionResponse })
   public async getStream(
@@ -252,8 +348,15 @@ export class InstitutionGrantController {
     @Param('documentId', ParseUUIDPipe) documentId: string,
     @Param('mediaId', ParseUUIDPipe) mediaId: string,
     @CurrentUser('id') userId: string,
+    @CurrentUser('role') userRole: UserRole,
   ): Promise<StreamableFile> {
-    const streamData = await this.service.getStream(userId, grantId, documentId, mediaId);
+    const streamData = await this.service.getStream(
+      userId,
+      grantId,
+      documentId,
+      mediaId,
+      userRole,
+    );
     if (!streamData) throw new NotFoundException('Arquivo nao encontrado');
     return new StreamableFile(streamData.stream, {
       disposition: `inline; filename="${streamData.filename}"`,
@@ -264,17 +367,35 @@ export class InstitutionGrantController {
   @Get(InstitutionGrantPaths.DOCUMENT_DOWNLOAD)
   @Roles(UserRole.INSTITUTION, UserRole.PATIENT)
   @NoCache()
-  @ApiOperation({ summary: 'Download de documento via concessao (instituicao)' })
-  @ApiParam({ name: 'id', description: 'ID da concessao', format: 'uuid', type: String })
-  @ApiParam({ name: 'documentId', description: 'ID do documento', format: 'uuid', type: String })
+  @ApiOperation({
+    summary: 'Download de documento via concessao (instituicao)',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'ID da concessao',
+    format: 'uuid',
+    type: String,
+  })
+  @ApiParam({
+    name: 'documentId',
+    description: 'ID do documento',
+    format: 'uuid',
+    type: String,
+  })
   @ApiResponse({ status: HttpStatus.OK, description: 'Arquivo para download.' })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, type: ExceptionResponse })
   public async downloadDocument(
     @IsUUIDParam('id') grantId: string,
     @Param('documentId', ParseUUIDPipe) documentId: string,
     @CurrentUser('id') userId: string,
+    @CurrentUser('role') userRole: UserRole,
   ): Promise<StreamableFile> {
-    const streamData = await this.service.downloadDocument(userId, grantId, documentId);
+    const streamData = await this.service.downloadDocument(
+      userId,
+      grantId,
+      documentId,
+      userRole,
+    );
     return new StreamableFile(streamData.stream, {
       disposition: `attachment; filename="${streamData.filename}"`,
       type: streamData.contentType,
@@ -310,7 +431,8 @@ export class InstitutionGrantController {
   @ApiQuery({
     name: 'sortBy',
     required: false,
-    description: 'Campo para ordenação. Use "name" para ordenar pelo nome da instituição.',
+    description:
+      'Campo para ordenação. Use "name" para ordenar pelo nome da instituição.',
     type: String,
     example: 'name',
   })
@@ -324,7 +446,8 @@ export class InstitutionGrantController {
   @ApiQuery({
     name: 'filter[name][ilike]',
     required: false,
-    description: 'Buscar pelo nome da instituição (case-insensitive, use % para wildcards)',
+    description:
+      'Buscar pelo nome da instituição (case-insensitive, use % para wildcards)',
     type: String,
     example: '%clinica%',
   })
@@ -338,14 +461,16 @@ export class InstitutionGrantController {
   @ApiQuery({
     name: 'filter[otherMedicalInstitutionType][ilike]',
     required: false,
-    description: 'Buscar na descrição customizada de tipo (somente quando tipo é "Outros")',
+    description:
+      'Buscar na descrição customizada de tipo (somente quando tipo é "Outros")',
     type: String,
     example: '%especialidade%',
   })
   @ApiQuery({
     name: 'filter[liked]',
     required: false,
-    description: 'Filtrar apenas instituições marcadas como favoritas pelo paciente',
+    description:
+      'Filtrar apenas instituições marcadas como favoritas pelo paciente',
     type: Boolean,
     example: true,
   })
@@ -361,7 +486,12 @@ export class InstitutionGrantController {
   @Roles(UserRole.PATIENT)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Obter instituicao por ID da concessao' })
-  @ApiParam({ name: 'grantId', description: 'ID da concessao', format: 'uuid', type: String })
+  @ApiParam({
+    name: 'grantId',
+    description: 'ID da concessao',
+    format: 'uuid',
+    type: String,
+  })
   @ApiResponse({ status: HttpStatus.OK, type: GrantedInstitutionDetailDto })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, type: ExceptionResponse })
   public async findGrantedInstitutionByGrantId(
@@ -382,7 +512,12 @@ export class InstitutionGrantController {
       'A concessao deve estar ativa (nao revogada). ' +
       'Retorna 404 se a instituicao nao possuir foto de perfil cadastrada.',
   })
-  @ApiParam({ name: 'grantId', description: 'ID da concessao', format: 'uuid', type: String })
+  @ApiParam({
+    name: 'grantId',
+    description: 'ID da concessao',
+    format: 'uuid',
+    type: String,
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Imagem retornada com sucesso (stream binário).',

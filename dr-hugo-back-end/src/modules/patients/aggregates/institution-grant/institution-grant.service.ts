@@ -78,10 +78,12 @@ export class InstitutionGrantService {
     userId: string,
     grantId: string,
     dto: CreatePatientDocumentDto,
+    userRole: UserRole,
   ): Promise<PatientDocumentDto> {
     const { patientId, institutionId } = await this.resolveGrant(
       userId,
       grantId,
+      userRole,
     );
     const created = await this.patientDocumentService.create(
       userId,
@@ -100,8 +102,9 @@ export class InstitutionGrantService {
     userId: string,
     grantId: string,
     params: PaginationParams<PatientDocument>,
+    userRole: UserRole,
   ): Promise<PatientDocumentPaginatedDto> {
-    const grant = await this.resolveGrant(userId, grantId);
+    const grant = await this.resolveGrant(userId, grantId, userRole);
 
     const enrichedParams = this.applyGrantFilter(grant, params);
     if (!enrichedParams) {
@@ -124,8 +127,9 @@ export class InstitutionGrantService {
     userId: string,
     grantId: string,
     documentId: string,
+    userRole: UserRole,
   ): Promise<PatientDocumentDto> {
-    const grant = await this.resolveGrant(userId, grantId);
+    const grant = await this.resolveGrant(userId, grantId, userRole);
 
     if (!grant.documentsIds?.includes(documentId)) {
       throw new NotFoundException(
@@ -143,8 +147,9 @@ export class InstitutionGrantService {
   public async findAvailableFilters(
     userId: string,
     grantId: string,
+    userRole: UserRole,
   ): Promise<PatientDocumentAvailableFiltersDto> {
-    const grant = await this.resolveGrant(userId, grantId);
+    const grant = await this.resolveGrant(userId, grantId, userRole);
     return this.patientDocumentService.findAvailableFilters(
       userId,
       grant.patientId,
@@ -157,8 +162,9 @@ export class InstitutionGrantService {
     grantId: string,
     documentId: string,
     mediaId: string,
+    userRole: UserRole,
   ): Promise<MediaStreamResult> {
-    const doc = await this.findDocumentById(userId, grantId, documentId);
+    const doc = await this.findDocumentById(userId, grantId, documentId, userRole);
 
     if (!doc.mediaIds?.includes(mediaId)) {
       throw new NotFoundException(
@@ -173,8 +179,9 @@ export class InstitutionGrantService {
     userId: string,
     grantId: string,
     documentId: string,
+    userRole: UserRole,
   ): Promise<MediaStreamResult> {
-    const doc = await this.findDocumentById(userId, grantId, documentId);
+    const doc = await this.findDocumentById(userId, grantId, documentId, userRole);
     return this.mediaService.downloadGranted(doc.mediaIds);
   }
 
@@ -182,10 +189,12 @@ export class InstitutionGrantService {
     userId: string,
     grantId: string,
     dto: PatientDocumentDto,
+    userRole: UserRole,
   ): Promise<void> {
     const { patientId, documentsIds } = await this.resolveGrant(
       userId,
       grantId,
+      userRole,
     );
     if (!documentsIds?.includes(dto.id)) {
       throw new NotFoundException(
@@ -200,10 +209,12 @@ export class InstitutionGrantService {
     grantId: string,
     documentId: string,
     newDescription: string,
+    userRole: UserRole,
   ): Promise<void> {
     const { patientId, documentsIds } = await this.resolveGrant(
       userId,
       grantId,
+      userRole,
     );
     if (!documentsIds?.includes(documentId)) {
       throw new NotFoundException(
@@ -294,7 +305,25 @@ export class InstitutionGrantService {
     };
   }
 
-  private async resolveGrant(userId: string, grantId: string) {
+  private async resolveGrant(userId: string, grantId: string, userRole: UserRole) {
+    if (userRole === UserRole.PATIENT) {
+      const patientId = await this.patientService.findPatientIdByUserId(userId);
+      const details = await this.repository.findGrantDetailsByIdForPatient(
+        grantId,
+        patientId,
+      );
+
+      acceptFalseThrows(
+        !!details,
+        () =>
+          new NotFoundException(
+            'Concessao nao encontrada, revogada ou acesso nao autorizado',
+          ),
+      );
+
+      return { institutionId: details.institutionId, ...details };
+    }
+
     const institutionId =
       await this.institutionService.findInstitutionIdByUserId(userId);
     const details = await this.repository.findGrantDetailsById(

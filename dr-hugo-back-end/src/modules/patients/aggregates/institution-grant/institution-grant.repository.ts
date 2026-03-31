@@ -89,6 +89,50 @@ export class InstitutionGrantRepository extends BaseRepository<PatientInstitutio
     };
   }
 
+  public async findGrantDetailsByIdForPatient(
+    grantId: string,
+    patientId: string,
+  ): Promise<{
+    grantId: string;
+    patientId: string;
+    institutionId: string;
+    documentsIds: string[] | null;
+    persistent: boolean;
+    allowAccessToAllDocuments: boolean;
+    createdAt: Date;
+  } | null> {
+    const grant = await this.repository.findOne({
+      where: {
+        id: grantId,
+        patient: { id: patientId },
+        revokedAt: IsNull(),
+        deletedAt: IsNull(),
+      },
+      relations: ['patient', 'institution'],
+      select: {
+        id: true,
+        documentsIds: true,
+        persistent: true,
+        allowAccessToAllDocuments: true,
+        createdAt: true,
+        patient: { id: true },
+        institution: { id: true },
+      },
+    });
+
+    if (!grant) return null;
+
+    return {
+      grantId: grant.id,
+      patientId: grant.patient.id,
+      institutionId: grant.institution.id,
+      documentsIds: grant.documentsIds ?? null,
+      persistent: grant.persistent,
+      allowAccessToAllDocuments: grant.allowAccessToAllDocuments,
+      createdAt: grant.createdAt,
+    };
+  }
+
   public async appendDocumentToGrant(
     grantId: string,
     institutionId: string,

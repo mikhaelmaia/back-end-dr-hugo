@@ -87,6 +87,45 @@ export class DoctorGrantRepository extends BaseRepository<PatientDoctorGrant> {
     };
   }
 
+  public async findGrantDetailsByIdForPatient(
+    grantId: string,
+    patientId: string,
+  ): Promise<{
+    patientId: string;
+    documentsIds: string[] | null;
+    persistent: boolean;
+    allowAccessToAllDocuments: boolean;
+    createdAt: Date;
+  } | null> {
+    const grant = await this.repository.findOne({
+      where: {
+        id: grantId,
+        patient: { id: patientId },
+        revokedAt: IsNull(),
+        deletedAt: IsNull(),
+      },
+      relations: ['patient'],
+      select: {
+        id: true,
+        documentsIds: true,
+        persistent: true,
+        allowAccessToAllDocuments: true,
+        createdAt: true,
+        patient: { id: true },
+      },
+    });
+
+    if (!grant) return null;
+
+    return {
+      patientId: grant.patient.id,
+      documentsIds: grant.documentsIds ?? null,
+      persistent: grant.persistent,
+      allowAccessToAllDocuments: grant.allowAccessToAllDocuments,
+      createdAt: grant.createdAt,
+    };
+  }
+
   // ── Patient-facing: see which doctors have access ─────────────────────────
 
   public async findGrantedDoctorsPaginated(

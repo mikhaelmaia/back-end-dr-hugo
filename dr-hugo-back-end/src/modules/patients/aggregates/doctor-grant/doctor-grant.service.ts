@@ -79,8 +79,9 @@ export class DoctorGrantService {
     userId: string,
     grantId: string,
     params: PaginationParams<PatientDocument>,
+    userRole: UserRole,
   ): Promise<PatientDocumentPaginatedDto> {
-    const grant = await this.resolveGrant(userId, grantId);
+    const grant = await this.resolveGrant(userId, grantId, userRole);
 
     const enrichedParams = this.applyGrantFilter(grant, params);
     if (!enrichedParams) {
@@ -103,8 +104,9 @@ export class DoctorGrantService {
     userId: string,
     grantId: string,
     documentId: string,
+    userRole: UserRole,
   ): Promise<PatientDocumentDto> {
-    const grant = await this.resolveGrant(userId, grantId);
+    const grant = await this.resolveGrant(userId, grantId, userRole);
 
     if (!grant.allowAccessToAllDocuments) {
       if (!grant.persistent && !grant.documentsIds?.includes(documentId)) {
@@ -136,8 +138,9 @@ export class DoctorGrantService {
   public async findAvailableFilters(
     userId: string,
     grantId: string,
+    userRole: UserRole,
   ): Promise<PatientDocumentAvailableFiltersDto> {
-    const grant = await this.resolveGrant(userId, grantId);
+    const grant = await this.resolveGrant(userId, grantId, userRole);
     const scopedIds =
       grant.allowAccessToAllDocuments || grant.persistent
         ? undefined
@@ -154,8 +157,14 @@ export class DoctorGrantService {
     grantId: string,
     documentId: string,
     mediaId: string,
+    userRole: UserRole,
   ): Promise<MediaStreamResult> {
-    const doc = await this.findDocumentById(userId, grantId, documentId);
+    const doc = await this.findDocumentById(
+      userId,
+      grantId,
+      documentId,
+      userRole,
+    );
 
     if (!doc.mediaIds?.includes(mediaId)) {
       throw new NotFoundException(
@@ -170,8 +179,14 @@ export class DoctorGrantService {
     userId: string,
     grantId: string,
     documentId: string,
+    userRole: UserRole,
   ): Promise<MediaStreamResult> {
-    const doc = await this.findDocumentById(userId, grantId, documentId);
+    const doc = await this.findDocumentById(
+      userId,
+      grantId,
+      documentId,
+      userRole,
+    );
     return this.mediaService.downloadGranted(doc.mediaIds);
   }
 
@@ -265,7 +280,29 @@ export class DoctorGrantService {
     return enriched;
   }
 
-  private async resolveGrant(userId: string, grantId: string) {
+  private async resolveGrant(
+    userId: string,
+    grantId: string,
+    userRole: UserRole,
+  ) {
+    if (userRole === UserRole.PATIENT) {
+      const patientId = await this.patientService.findPatientIdByUserId(userId);
+      const grant = await this.repository.findGrantDetailsByIdForPatient(
+        grantId,
+        patientId,
+      );
+
+      acceptFalseThrows(
+        !!grant,
+        () =>
+          new NotFoundException(
+            'Concessão não encontrada, revogada ou acesso não autorizado',
+          ),
+      );
+
+      return grant;
+    }
+
     const doctorId = await this.doctorService.findDoctorIdByUserId(userId);
     const grant = await this.repository.findGrantDetailsById(grantId, doctorId);
 

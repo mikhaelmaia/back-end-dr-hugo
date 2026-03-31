@@ -101,8 +101,9 @@ export class DoctorGrantController {
   public async findAvailableFilters(
     @IsUUIDParam('id') grantId: string,
     @CurrentUser('id') userId: string,
+    @CurrentUser('role') userRole: UserRole,
   ): Promise<PatientDocumentAvailableFiltersDto> {
-    return this.service.findAvailableFilters(userId, grantId);
+    return this.service.findAvailableFilters(userId, grantId, userRole);
   }
 
   @Get(DoctorGrantPaths.DOCUMENTS)
@@ -128,9 +129,10 @@ export class DoctorGrantController {
   public async findDocuments(
     @IsUUIDParam('id') grantId: string,
     @CurrentUser('id') userId: string,
+    @CurrentUser('role') userRole: UserRole,
     @Query(QueryParamsTransformPipe) params: any,
   ): Promise<PatientDocumentPaginatedDto> {
-    return this.service.findDocuments(userId, grantId, params);
+    return this.service.findDocuments(userId, grantId, params, userRole);
   }
 
   @Get(DoctorGrantPaths.DOCUMENT_BY_ID)
@@ -155,8 +157,9 @@ export class DoctorGrantController {
     @IsUUIDParam('id') grantId: string,
     @Param('documentId', ParseUUIDPipe) documentId: string,
     @CurrentUser('id') userId: string,
+    @CurrentUser('role') userRole: UserRole,
   ): Promise<PatientDocumentDto> {
-    return this.service.findDocumentById(userId, grantId, documentId);
+    return this.service.findDocumentById(userId, grantId, documentId, userRole);
   }
 
   @Get(DoctorGrantPaths.DOCUMENT_STREAM)
@@ -194,12 +197,14 @@ export class DoctorGrantController {
     @Param('documentId', ParseUUIDPipe) documentId: string,
     @Param('mediaId', ParseUUIDPipe) mediaId: string,
     @CurrentUser('id') userId: string,
+    @CurrentUser('role') userRole: UserRole,
   ): Promise<StreamableFile> {
     const streamData = await this.service.getStream(
       userId,
       grantId,
       documentId,
       mediaId,
+      userRole,
     );
     if (!streamData) throw new NotFoundException('Arquivo nao encontrado');
     return new StreamableFile(streamData.stream, {
@@ -230,11 +235,13 @@ export class DoctorGrantController {
     @IsUUIDParam('id') grantId: string,
     @Param('documentId', ParseUUIDPipe) documentId: string,
     @CurrentUser('id') userId: string,
+    @CurrentUser('role') userRole: UserRole,
   ): Promise<StreamableFile> {
     const streamData = await this.service.downloadDocument(
       userId,
       grantId,
       documentId,
+      userRole,
     );
     return new StreamableFile(streamData.stream, {
       disposition: `attachment; filename="${streamData.filename}"`,
