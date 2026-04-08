@@ -467,4 +467,27 @@ export class PatientPermissionGrantRepository {
 
     return result.affected > 0;
   }
+
+  public async revokeExpiredNonPersistentGrants(): Promise<void> {
+    await Promise.all([
+      this.doctorGrantRepo
+        .createQueryBuilder()
+        .update(PatientDoctorGrant)
+        .set({ revokedAt: () => 'CURRENT_TIMESTAMP' })
+        .where('persistent = false')
+        .andWhere('revoked_at IS NULL')
+        .andWhere('deleted_at IS NULL')
+        .andWhere("created_at <= NOW() - INTERVAL '24 hours'")
+        .execute(),
+      this.institutionGrantRepo
+        .createQueryBuilder()
+        .update(PatientInstitutionGrant)
+        .set({ revokedAt: () => 'CURRENT_TIMESTAMP' })
+        .where('persistent = false')
+        .andWhere('revoked_at IS NULL')
+        .andWhere('deleted_at IS NULL')
+        .andWhere("created_at <= NOW() - INTERVAL '24 hours'")
+        .execute(),
+    ]);
+  }
 }

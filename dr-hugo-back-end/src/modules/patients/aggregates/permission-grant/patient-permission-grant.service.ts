@@ -2,8 +2,10 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { acceptFalseThrows, acceptTrueThrows } from 'src/core/utils/functions';
 import { InstitutionalUserRole, UserRole } from 'src/core/vo/consts/enums';
 import { UserDto } from 'src/modules/users/dtos/user.dto';
@@ -32,6 +34,8 @@ import { PatientPermissionGrantMapper } from './patient-permission-grant.mapper'
 
 @Injectable()
 export class PatientPermissionGrantService {
+  private readonly logger = new Logger(PatientPermissionGrantService.name);
+
   constructor(
     private readonly repository: PatientPermissionGrantRepository,
     private readonly mapper: PatientPermissionGrantMapper,
@@ -139,6 +143,13 @@ export class PatientPermissionGrantService {
         this.repository.toggleLikedByInstitution(grantId, institutionId),
       [UserRole.ADMIN]: null,
     };
+  }
+
+  @Cron(CronExpression.EVERY_MINUTE)
+  public async revokeExpiredNonPersistentGrants(): Promise<void> {
+    this.logger.log('Iniciando revogação de concessões temporárias expiradas...');
+    await this.repository.revokeExpiredNonPersistentGrants();
+    this.logger.log('Revogação de concessões temporárias expiradas concluída.');
   }
 
   private toInstitutionalRole(userRole: UserRole): InstitutionalUserRole {
