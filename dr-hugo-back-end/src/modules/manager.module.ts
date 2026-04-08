@@ -10,6 +10,7 @@ import { PatientDocumentModule } from './patients/aggregates/documents/patient-d
 import { PatientPermissionGrantModule } from './patients/aggregates/permission-grant/patient-permission-grant.module';
 import { DoctorGrantModule } from './patients/aggregates/doctor-grant/doctor-grant.module';
 import { InstitutionGrantModule } from './patients/aggregates/institution-grant/institution-grant.module';
+import { InsightsModule } from './insights/insights.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { InstitutionGrantModule } from './patients/aggregates/institution-grant/
     PatientPermissionGrantModule,
     DoctorGrantModule,
     InstitutionGrantModule,
+    InsightsModule,
   ],
   exports: [
     UserModule,
@@ -37,6 +39,7 @@ import { InstitutionGrantModule } from './patients/aggregates/institution-grant/
     PatientPermissionGrantModule,
     DoctorGrantModule,
     InstitutionGrantModule,
+    InsightsModule,
   ],
 })
 export class ManagerModule {}

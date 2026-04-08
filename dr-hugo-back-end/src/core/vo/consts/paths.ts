@@ -259,3 +259,10 @@ export class InstitutionGrantPaths {
   public static readonly GRANTED_INSTITUTIONS_FULL = `${this.BASE}${this.GRANTED_INSTITUTIONS}`;
   public static readonly GRANTED_INSTITUTION_BY_GRANT_ID_FULL = `${this.BASE}${this.GRANTED_INSTITUTION_BY_GRANT_ID}`;
 }
+
+export class InsightsPaths {
+  public static readonly BASE = '/insights';
+  public static readonly TOTALS = '/totals';
+  public static readonly NEW_PATIENTS = '/new-patients';
+  public static readonly PATIENT_PROFILE_PICTURE = '/patients/:grantId/profile-picture';
+}
