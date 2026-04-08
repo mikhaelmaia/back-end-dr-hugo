@@ -127,8 +127,7 @@ export class CreateCoreDomainTables1769103067723 implements MigrationInterface {
         "user_agent"       text                   NOT NULL,
         "session_id"       character varying,
         "version"          character varying(20)  NOT NULL DEFAULT 'unknown',
-        CONSTRAINT "PK_dv_audit_fingerprint"      PRIMARY KEY ("id"),
-        CONSTRAINT "UQ_dv_audit_fingerprint_hash" UNIQUE ("fingerprint_hash")
+        CONSTRAINT "PK_dv_audit_fingerprint"      PRIMARY KEY ("id")
       )
     `);
 
@@ -145,7 +144,7 @@ export class CreateCoreDomainTables1769103067723 implements MigrationInterface {
         "event_type"   "audit_event_type_enum" NOT NULL,
         "entity_name"  character varying    NOT NULL,
         "entity_id"    character varying    NOT NULL,
-        "data"         jsonb                NOT NULL,
+        "data"         text                 NOT NULL,
         "author_id"    uuid,
         "fingerprint_id" uuid              NOT NULL,
         CONSTRAINT "PK_dv_audit"           PRIMARY KEY ("id"),
@@ -154,6 +153,26 @@ export class CreateCoreDomainTables1769103067723 implements MigrationInterface {
           REFERENCES "dv_audit_fingerprint"("id")
           ON DELETE CASCADE
       )
+    `);
+
+    await queryRunner.query(`
+      CREATE INDEX "IDX_dv_audit_author_id" ON "dv_audit" ("author_id")
+    `);
+
+    await queryRunner.query(`
+      CREATE INDEX "IDX_dv_audit_fingerprint_id" ON "dv_audit" ("fingerprint_id")
+    `);
+
+    await queryRunner.query(`
+      CREATE INDEX "IDX_dv_audit_event_type" ON "dv_audit" ("event_type")
+    `);
+
+    await queryRunner.query(`
+      CREATE INDEX "IDX_dv_audit_entity_name_entity_id" ON "dv_audit" ("entity_name", "entity_id")
+    `);
+
+    await queryRunner.query(`
+      CREATE INDEX "IDX_dv_audit_created_at" ON "dv_audit" ("created_at")
     `);
 
     // ─── dv_tuus_category ─────────────────────────────────────────────────────
@@ -202,10 +221,17 @@ export class CreateCoreDomainTables1769103067723 implements MigrationInterface {
     await queryRunner.query(`DROP INDEX "IDX_dv_tuus_category_is_active"`);
     await queryRunner.query(`DROP TABLE "dv_tuus_category"`);
 
+    await queryRunner.query(`DROP INDEX "IDX_dv_audit_created_at"`);
+    await queryRunner.query(`DROP INDEX "IDX_dv_audit_entity_name_entity_id"`);
+    await queryRunner.query(`DROP INDEX "IDX_dv_audit_event_type"`);
+    await queryRunner.query(`DROP INDEX "IDX_dv_audit_fingerprint_id"`);
+    await queryRunner.query(`DROP INDEX "IDX_dv_audit_author_id"`);
     await queryRunner.query(`DROP TABLE "dv_audit"`);
     await queryRunner.query(`DROP TABLE "dv_audit_fingerprint"`);
 
-    await queryRunner.query(`DROP INDEX "IDX_dv_token_identification_type_times"`);
+    await queryRunner.query(
+      `DROP INDEX "IDX_dv_token_identification_type_times"`,
+    );
     await queryRunner.query(`DROP INDEX "IDX_dv_token_expiration_time"`);
     await queryRunner.query(`DROP INDEX "IDX_dv_token_renewal_time"`);
     await queryRunner.query(`DROP TABLE "dv_token"`);

@@ -91,11 +91,14 @@ export class CreateMainEntityTables1769200000000 implements MigrationInterface {
         "is_valid"         boolean                NOT NULL DEFAULT false,
         "role"             "user_role_enum"        NOT NULL DEFAULT 'PATIENT',
         "accepted_terms"   jsonb                  NOT NULL,
+        "api_key"          text                   NOT NULL,
+        "api_key_hash"     character varying(64)  NOT NULL,
         "profile_picture_id" uuid,
         CONSTRAINT "PK_dv_user"                  PRIMARY KEY ("id"),
         CONSTRAINT "UQ_dv_user_email_hash_role"   UNIQUE ("email_hash", "role"),
         CONSTRAINT "UQ_dv_user_tax_id_hash_role"  UNIQUE ("tax_id_hash", "role"),
         CONSTRAINT "UQ_dv_user_phone_hash_role"   UNIQUE ("phone_hash", "role"),
+        CONSTRAINT "UQ_dv_user_api_key_hash"      UNIQUE ("api_key_hash"),
         CONSTRAINT "FK_dv_user_profile_picture"
           FOREIGN KEY ("profile_picture_id")
           REFERENCES "dv_media"("id")
@@ -121,6 +124,10 @@ export class CreateMainEntityTables1769200000000 implements MigrationInterface {
           REFERENCES "dv_user"("id")
           ON DELETE CASCADE
       )
+    `);
+
+    await queryRunner.query(`
+      CREATE INDEX "IDX_dv_patient_user_id" ON "dv_patient" ("user_id")
     `);
 
     // ─── dv_doctor_registration ───────────────────────────────────────────────
@@ -166,6 +173,14 @@ export class CreateMainEntityTables1769200000000 implements MigrationInterface {
           REFERENCES "dv_doctor_registration"("id")
           ON DELETE CASCADE
       )
+    `);
+
+    await queryRunner.query(`
+      CREATE INDEX "IDX_dv_doctor_user_id" ON "dv_doctor" ("user_id")
+    `);
+
+    await queryRunner.query(`
+      CREATE INDEX "IDX_dv_doctor_registration_id" ON "dv_doctor" ("registration_id")
     `);
 
     // ─── dv_doctor_specialization ─────────────────────────────────────────────
@@ -229,6 +244,14 @@ export class CreateMainEntityTables1769200000000 implements MigrationInterface {
           REFERENCES "dv_address"("id")
           ON DELETE CASCADE
       )
+    `);
+
+    await queryRunner.query(`
+      CREATE INDEX "IDX_dv_institution_user_id" ON "dv_institution" ("user_id")
+    `);
+
+    await queryRunner.query(`
+      CREATE INDEX "IDX_dv_institution_address_id" ON "dv_institution" ("address_id")
     `);
 
     // ─── dv_institution_company ───────────────────────────────────────────────
@@ -354,23 +377,38 @@ export class CreateMainEntityTables1769200000000 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`ALTER TABLE "dv_audit" DROP CONSTRAINT "FK_dv_audit_author"`);
+    await queryRunner.query(
+      `ALTER TABLE "dv_audit" DROP CONSTRAINT "FK_dv_audit_author"`,
+    );
 
-    await queryRunner.query(`DROP INDEX "IDX_dv_user_change_request_expires_at"`);
+    await queryRunner.query(
+      `DROP INDEX "IDX_dv_user_change_request_expires_at"`,
+    );
     await queryRunner.query(`DROP INDEX "IDX_dv_user_change_request_status"`);
-    await queryRunner.query(`DROP INDEX "IDX_dv_user_change_request_is_active"`);
+    await queryRunner.query(
+      `DROP INDEX "IDX_dv_user_change_request_is_active"`,
+    );
     await queryRunner.query(`DROP INDEX "IDX_dv_user_change_request_user_id"`);
     await queryRunner.query(`DROP TABLE "dv_user_change_request"`);
 
-    await queryRunner.query(`DROP INDEX "IDX_health_institution_institution_id"`);
+    await queryRunner.query(
+      `DROP INDEX "IDX_health_institution_institution_id"`,
+    );
     await queryRunner.query(`DROP TABLE "dv_health_institution"`);
 
     await queryRunner.query(`DROP TABLE "dv_institution_company"`);
+    await queryRunner.query(`DROP INDEX "IDX_dv_institution_address_id"`);
+    await queryRunner.query(`DROP INDEX "IDX_dv_institution_user_id"`);
     await queryRunner.query(`DROP TABLE "dv_institution"`);
-    await queryRunner.query(`DROP TABLE "dv_institution_company_representative"`);
+    await queryRunner.query(
+      `DROP TABLE "dv_institution_company_representative"`,
+    );
     await queryRunner.query(`DROP TABLE "dv_doctor_specialization"`);
+    await queryRunner.query(`DROP INDEX "IDX_dv_doctor_registration_id"`);
+    await queryRunner.query(`DROP INDEX "IDX_dv_doctor_user_id"`);
     await queryRunner.query(`DROP TABLE "dv_doctor"`);
     await queryRunner.query(`DROP TABLE "dv_doctor_registration"`);
+    await queryRunner.query(`DROP INDEX "IDX_dv_patient_user_id"`);
     await queryRunner.query(`DROP TABLE "dv_patient"`);
     await queryRunner.query(`DROP TABLE "dv_user"`);
 

@@ -25,6 +25,14 @@ export class CreatePatientAccessGrantRelatedTables1774316466050 implements Migra
     `);
 
     await queryRunner.query(`
+      CREATE INDEX "IDX_dv_patient_doctor_grant_patient_id" ON dv_patient_doctor_grant (patient_id)
+    `);
+
+    await queryRunner.query(`
+      CREATE INDEX "IDX_dv_patient_doctor_grant_doctor_id" ON dv_patient_doctor_grant (doctor_id)
+    `);
+
+    await queryRunner.query(`
       CREATE TABLE dv_patient_institution_grant (
         id                            UUID      PRIMARY KEY DEFAULT gen_random_uuid(),
         patient_id                    UUID      NOT NULL,
@@ -45,11 +53,31 @@ export class CreatePatientAccessGrantRelatedTables1774316466050 implements Migra
           FOREIGN KEY (institution_id) REFERENCES dv_institution(id)
       )
     `);
+
+    await queryRunner.query(`
+      CREATE INDEX "IDX_dv_patient_institution_grant_patient_id" ON dv_patient_institution_grant (patient_id)
+    `);
+
+    await queryRunner.query(`
+      CREATE INDEX "IDX_dv_patient_institution_grant_institution_id" ON dv_patient_institution_grant (institution_id)
+    `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
+      `DROP INDEX "IDX_dv_patient_institution_grant_institution_id"`,
+    );
+    await queryRunner.query(
+      `DROP INDEX "IDX_dv_patient_institution_grant_patient_id"`,
+    );
+    await queryRunner.query(
       `DROP TABLE IF EXISTS dv_patient_institution_grant`,
+    );
+    await queryRunner.query(
+      `DROP INDEX "IDX_dv_patient_doctor_grant_doctor_id"`,
+    );
+    await queryRunner.query(
+      `DROP INDEX "IDX_dv_patient_doctor_grant_patient_id"`,
     );
     await queryRunner.query(`DROP TABLE IF EXISTS dv_patient_doctor_grant`);
   }
