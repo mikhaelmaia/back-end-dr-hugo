@@ -3,9 +3,11 @@ import {
   ExecutionContext,
   ForbiddenException,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../../vo/decorators/public.decorator';
+import { IS_API_KEY_AUTH_KEY } from '../../vo/decorators/api-key-auth.decorator';
 import { JwtPayload } from '../../vo/types/types';
 import { asyncAcceptFalse } from '../../utils/functions';
 import { UserRole } from '../../vo/consts/enums';
@@ -23,6 +25,10 @@ export class AuthGuard implements CanActivate {
     'Método não permitido para o perfil do usuário';
 
   private readonly TOKEN_NOT_SENDED: string = 'Token não enviado';
+
+  private readonly API_KEY_NOT_PROVIDED: string = 'API Key não enviada';
+
+  private readonly INVALID_API_KEY: string = 'API Key inválida';
 
   constructor(
     private readonly reflector: Reflector,
@@ -43,6 +49,23 @@ export class AuthGuard implements CanActivate {
     context: ExecutionContext,
   ): Promise<void> {
     const request: Request = context.switchToHttp().getRequest();
+
+    const isApiKeyAuth: boolean = this.reflector.getAllAndOverride<boolean>(
+      IS_API_KEY_AUTH_KEY,
+      [context.getHandler(), context.getClass()],
+    );
+
+    if (isApiKeyAuth) {
+      await this.performApiKeyValidation(request, context);
+      return;
+    }
+    await this.performJwtValidation(request, context);
+  }
+
+  private async performJwtValidation(
+    request: Request,
+    context: ExecutionContext,
+  ): Promise<void> {
     const token: string = this.extractFromHeader(request);
     const payload: JwtPayload = await this.jwtProvider.verify(token);
     const roles: UserRole[] = this.reflector.getAllAndOverride<UserRole[]>(
@@ -54,11 +77,34 @@ export class AuthGuard implements CanActivate {
     request[this.CURRENT_USER_KEY] = user;
   }
 
+  private async performApiKeyValidation(
+    request: Request,
+    context: ExecutionContext,
+  ): Promise<void> {
+    const rawApiKey: string = this.extractApiKeyFromHeader(request);
+    const user: UserDto | null = await this.userService.findByApiKey(rawApiKey);
+    if (!user) {
+      throw new UnauthorizedException(this.INVALID_API_KEY);
+    }
+    const roles: UserRole[] = this.reflector.getAllAndOverride<UserRole[]>(
+      ROLES_KEY,
+      [context.getHandler(), context.getClass()],
+    );
+    this.validateRoles(user.role, roles);
+    request[this.CURRENT_USER_KEY] = user;
+  }
+
   private extractFromHeader(request: any): string {
     return Optional.ofNullable(request.headers.authorization)
       .filter((auth) => auth.startsWith('Bearer '))
       .map((auth) => auth.split(' ')[1])
       .orElseThrow(() => new ForbiddenException(this.TOKEN_NOT_SENDED));
+  }
+
+  private extractApiKeyFromHeader(request: any): string {
+    return Optional.ofNullable(request.headers['x-api-key']).orElseThrow(
+      () => new ForbiddenException(this.API_KEY_NOT_PROVIDED),
+    );
   }
 
   private validateRoles(userRole: UserRole, roles: UserRole[]): void {

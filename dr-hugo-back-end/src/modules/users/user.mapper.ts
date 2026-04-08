@@ -33,6 +33,9 @@ export class UserMapper extends BaseMapper<User, UserDto> {
     userDto.isActive = entity.isActive;
     userDto.isValid = entity.isValid;
     userDto.acceptedTerms = entity.acceptedTerms;
+    userDto.apiKey = entity.apiKey
+      ? this.cryptoService.decrypt(entity.apiKey)
+      : entity.apiKey;
     userDto.role = entity.role;
     userDto.createdAt = entity.createdAt;
     userDto.updatedAt = entity.updatedAt;
@@ -60,6 +63,10 @@ export class UserMapper extends BaseMapper<User, UserDto> {
     user.countryIdd = dto.countryIdd;
     user.isValid = dto.isValid;
     user.acceptedTerms = dto.acceptedTerms;
+    if (dto.apiKey !== undefined && dto.apiKey !== null) {
+      user.apiKey = this.cryptoService.encrypt(dto.apiKey);
+      user.apiKeyHash = this.cryptoService.hashForSearch(dto.apiKey);
+    }
     user.role = dto.role;
     return user;
   }

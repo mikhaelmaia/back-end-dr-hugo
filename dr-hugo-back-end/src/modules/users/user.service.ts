@@ -20,6 +20,7 @@ import { MediaService } from 'src/core/modules/media/media.service';
 import { MinioBuckets } from 'src/core/modules/media/minio/minio.buckets';
 import { MediaDto } from 'src/core/modules/media/dtos/media.dto';
 import { MediaStreamResult } from 'src/core/vo/types/types';
+import * as crypto from 'node:crypto';
 
 @Injectable()
 export class UserService extends BaseService<
@@ -58,6 +59,15 @@ export class UserService extends BaseService<
     role?: UserRole,
   ): Promise<UserDto | null> {
     return Optional.ofNullable(await this.repository.findByEmail(email, role))
+      .map((user: User) => this.mapper.toDto(user))
+      .orElse(null);
+  }
+
+  public async findByApiKey(rawApiKey: string): Promise<UserDto | null> {
+    const apiKeyHash = this.cryptoService.hashForSearch(rawApiKey);
+    return Optional.ofNullable(
+      await this.repository.findByApiKeyHash(apiKeyHash),
+    )
       .map((user: User) => this.mapper.toDto(user))
       .orElse(null);
   }
@@ -118,6 +128,7 @@ export class UserService extends BaseService<
   protected override async beforeCreate(entity: User): Promise<void> {
     entity.inactivate();
     await this.handleUserPassword(entity);
+    this.handleApiKey(entity);
   }
 
   protected override async postCreate(entity: User): Promise<void> {
@@ -171,5 +182,11 @@ export class UserService extends BaseService<
     if (!user.password || (await compare(user.password, saved.password)))
       user.updatePassword(saved.password);
     else user.updatePassword(await encrypt(user.password));
+  }
+
+  private handleApiKey(user: User): void {
+    const rawApiKey = crypto.randomBytes(32).toString('hex');
+    user.apiKey = this.cryptoService.encrypt(rawApiKey);
+    user.apiKeyHash = this.cryptoService.hashForSearch(rawApiKey);
   }
 }

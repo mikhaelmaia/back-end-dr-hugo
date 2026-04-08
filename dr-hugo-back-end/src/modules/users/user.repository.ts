@@ -121,4 +121,10 @@ export class UserRepository extends BaseRepository<User> {
   ): Promise<void> {
     await this.repository.update({ id: userId }, { countryIdd });
   }
+
+  public findByApiKeyHash(apiKeyHash: string): Promise<User | null> {
+    return this.createBaseQuery()
+      .where(`${this.alias}.apiKeyHash = :apiKeyHash`, { apiKeyHash })
+      .getOne();
+  }
 }

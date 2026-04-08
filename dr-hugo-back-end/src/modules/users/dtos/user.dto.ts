@@ -231,4 +231,7 @@ export class UserDto extends BaseEntityDto<User> {
     type: Boolean,
   })
   public isValid: boolean;
+
+  @Exclude()
+  public apiKey: string;
 }

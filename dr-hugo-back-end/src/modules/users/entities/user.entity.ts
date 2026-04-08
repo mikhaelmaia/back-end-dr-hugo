@@ -51,6 +51,12 @@ export class User extends BaseEntity {
   @Column({ name: 'accepted_terms', type: 'jsonb', nullable: false })
   public acceptedTerms: string[];
 
+  @Column({ name: 'api_key', type: 'text', nullable: false })
+  public apiKey: string;
+
+  @Column({ name: 'api_key_hash', type: 'varchar', length: 64, nullable: false })
+  public apiKeyHash: string;
+
   @OneToOne(() => Media, { nullable: true })
   @JoinColumn({ name: 'profile_picture_id', referencedColumnName: 'id' })
   public profilePicture: Media;
