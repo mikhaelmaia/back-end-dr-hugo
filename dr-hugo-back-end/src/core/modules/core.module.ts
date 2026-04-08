@@ -13,6 +13,7 @@ import { AddressModule } from './address/address.module';
 import { ResolutionKeyModule } from './resolution-key/resolution-key.module';
 import { QrCodeModule } from './qr-code/qr-code.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { WhatsAppModule } from './whatsapp/whatsapp.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     QrCodeModule,
     ResolutionKeyModule,
     TokenModule,
+    WhatsAppModule,
   ],
   exports: [
     AddressModule,
@@ -46,6 +48,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     QrCodeModule,
     ResolutionKeyModule,
     TokenModule,
+    WhatsAppModule,
   ],
 })
 export class CoreModule {}

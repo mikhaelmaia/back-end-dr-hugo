@@ -65,4 +65,11 @@ export default () => ({
     apiTimeout: Number.parseInt(process.env.CNES_API_TIMEOUT, 10) || 30000,
     establishmentPath: process.env.CNES_ESTABLISHMENT_PATH,
   },
+  zApi: {
+    apiUrl: process.env.ZAPI_API_URL,
+    instanceId: process.env.ZAPI_INSTANCE_ID,
+    token: process.env.ZAPI_TOKEN,
+    clientToken: process.env.ZAPI_CLIENT_TOKEN,
+    apiTimeout: Number.parseInt(process.env.ZAPI_API_TIMEOUT, 10) || 5000,
+  },
 });
