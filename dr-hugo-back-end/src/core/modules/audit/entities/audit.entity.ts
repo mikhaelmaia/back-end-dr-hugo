@@ -20,7 +20,7 @@ export class Audit extends BaseEntity {
   @Column({ name: 'entity_id', nullable: false })
   public entityId: string;
 
-  @Column({ name: 'data', type: 'jsonb', nullable: false })
+  @Column({ name: 'data', type: 'text', nullable: false })
   public data: any;
 
   @OneToOne(() => User, { onDelete: 'SET NULL' })

@@ -32,6 +32,7 @@ export class DoctorRegistrationValidationDto {
       tableName: 'dv_user',
       column: 'taxId',
       additionalField: { column: 'role', value: 'DOCTOR' },
+      useHash: true,
     },
     {
       message: 'Já existe médico com este CPF cadastrado',

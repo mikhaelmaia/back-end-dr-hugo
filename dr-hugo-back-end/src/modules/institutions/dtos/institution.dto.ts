@@ -80,7 +80,7 @@ export class InstitutionDto extends BaseEntityDto<Institution> {
   })
   @IsUnique('dv_user', 'email', {
     message: 'Já existe usuário com este e-mail cadastrado',
-  })
+  }, true)
   @ApiProperty({
     description:
       'Endereço de e-mail da instituição (deve ser único no sistema)',
@@ -130,7 +130,7 @@ export class InstitutionDto extends BaseEntityDto<Institution> {
   })
   @IsUnique('dv_user', 'taxId', {
     message: 'Já existe usuário com este CNPJ cadastrado',
-  })
+  }, true)
   @ApiProperty({
     description: 'CNPJ da instituição (apenas números, deve ser único)',
     example: '12345678000123',
@@ -151,7 +151,7 @@ export class InstitutionDto extends BaseEntityDto<Institution> {
   })
   @IsUnique('dv_user', 'phone', {
     message: 'Já existe usuário com este telefone cadastrado',
-  })
+  }, true)
   @ApiProperty({
     description:
       'Número de telefone da instituição (apenas números, deve ser único)',

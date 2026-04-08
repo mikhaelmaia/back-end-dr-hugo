@@ -36,7 +36,7 @@ export class AuditService extends BaseService<
     audit.eventType = auditDto.eventType;
     audit.entityName = auditDto.entityName;
     audit.entityId = auditDto.entityId;
-    audit.data = auditDto.data;
+    audit.data = this.mapper.encryptData(auditDto.data);
     audit.author = {
       id: fingerprintData.author?.id || null,
     } as any;

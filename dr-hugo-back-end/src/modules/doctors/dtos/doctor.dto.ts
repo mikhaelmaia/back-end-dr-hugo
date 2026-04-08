@@ -75,6 +75,7 @@ export class DoctorDto extends BaseEntityDto<Doctor> {
       tableName: 'dv_user',
       column: 'email',
       additionalField: { column: 'role', value: 'DOCTOR' },
+      useHash: true,
     },
     {
       message: 'Já existe médico com este e-mail cadastrado',
@@ -127,6 +128,7 @@ export class DoctorDto extends BaseEntityDto<Doctor> {
       tableName: 'dv_user',
       column: 'taxId',
       additionalField: { column: 'role', value: 'DOCTOR' },
+      useHash: true,
     },
     {
       message: 'Já existe médico com este CPF cadastrado',
@@ -153,6 +155,7 @@ export class DoctorDto extends BaseEntityDto<Doctor> {
       tableName: 'dv_user',
       column: 'phone',
       additionalField: { column: 'role', value: 'DOCTOR' },
+      useHash: true,
     },
     {
       message: 'Já existe médico com este telefone/celular cadastrado',

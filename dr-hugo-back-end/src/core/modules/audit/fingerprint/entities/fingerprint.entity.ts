@@ -6,7 +6,6 @@ export class Fingerprint extends BaseEntity {
   @Column({
     name: 'fingerprint_hash',
     type: 'text',
-    unique: true,
   })
   public fingerprint: string;
 

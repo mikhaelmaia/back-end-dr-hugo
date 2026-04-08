@@ -20,6 +20,7 @@ export class InstitutionValidationDto {
       tableName: 'dv_user',
       column: 'taxId',
       additionalField: { column: 'role', value: 'INSTITUTION' },
+      useHash: true,
     },
     {
       message: 'Já existe instituição com este CNPJ cadastrado',

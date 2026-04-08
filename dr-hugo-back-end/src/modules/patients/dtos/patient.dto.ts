@@ -77,6 +77,7 @@ export class PatientDto extends BaseEntityDto<Patient> {
       tableName: 'dv_user',
       column: 'email',
       additionalField: { column: 'role', value: 'PATIENT' },
+      useHash: true,
     },
     {
       message: 'Já existe paciente com este e-mail cadastrado',
@@ -129,6 +130,7 @@ export class PatientDto extends BaseEntityDto<Patient> {
       tableName: 'dv_user',
       column: 'taxId',
       additionalField: { column: 'role', value: 'PATIENT' },
+      useHash: true,
     },
     {
       message: 'Já existe paciente com este CPF cadastrado',
@@ -155,6 +157,7 @@ export class PatientDto extends BaseEntityDto<Patient> {
       tableName: 'dv_user',
       column: 'phone',
       additionalField: { column: 'role', value: 'PATIENT' },
+      useHash: true,
     },
     {
       message: 'Já existe paciente com este telefone/celular cadastrado',

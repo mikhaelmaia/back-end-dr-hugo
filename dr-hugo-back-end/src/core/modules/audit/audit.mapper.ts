@@ -16,7 +16,9 @@ export class AuditMapper extends BaseMapper<Audit, AuditDto> {
     dto.eventType = entity.eventType;
     dto.entityName = entity.entityName;
     dto.entityId = entity.entityId;
-    dto.data = entity.data;
+    dto.data = entity.data
+      ? JSON.parse(this.cryptoService.decrypt(entity.data))
+      : entity.data;
     dto.author = entity.author
       ? ({
           id: entity.author.id,
@@ -47,7 +49,13 @@ export class AuditMapper extends BaseMapper<Audit, AuditDto> {
     entity.eventType = dto.eventType;
     entity.entityName = dto.entityName;
     entity.entityId = dto.entityId;
-    entity.data = dto.data;
+    entity.data = dto.data !== undefined && dto.data !== null
+      ? this.cryptoService.encrypt(JSON.stringify(dto.data))
+      : dto.data;
     return entity;
+  }
+
+  public encryptData(data: any): string {
+    return this.cryptoService.encrypt(JSON.stringify(data));
   }
 }

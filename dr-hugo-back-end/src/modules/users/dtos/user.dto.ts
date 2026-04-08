@@ -59,9 +59,14 @@ export class UserDto extends BaseEntityDto<User> {
   @IsEmail({}, { message: provideIsEmailValidationMessage() })
   @IsNotBlacklisted()
   @MaxLength(50, { message: provideMaxLengthValidationMessage })
-  @IsUnique('dv_user', 'email', {
-    message: 'Já existe usuário com este e-mail cadastrado',
-  })
+  @IsUnique(
+    'dv_user',
+    'email',
+    {
+      message: 'Já existe usuário com este e-mail cadastrado',
+    },
+    true,
+  )
   @ApiProperty({
     description: 'Endereço de e-mail do usuário (deve ser único)',
     example: 'joao.silva@email.com',
@@ -105,9 +110,14 @@ export class UserDto extends BaseEntityDto<User> {
   @IsValidTaxId({
     message: provideIsValidTaxIdValidationMessage('CPF/CNPJ do Usuário'),
   })
-  @IsUnique('dv_user', 'taxId', {
-    message: 'Já existe usuário com este CPF/CNPJ cadastrado',
-  })
+  @IsUnique(
+    'dv_user',
+    'taxId',
+    {
+      message: 'Já existe usuário com este CPF/CNPJ cadastrado',
+    },
+    true,
+  )
   @ApiProperty({
     description: 'CPF ou CNPJ do usuário (apenas números, deve ser único)',
     example: '12345678901',

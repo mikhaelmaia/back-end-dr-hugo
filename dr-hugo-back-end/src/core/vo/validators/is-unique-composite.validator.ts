@@ -8,17 +8,22 @@ import {
 } from 'class-validator';
 import { EntityManager, Equal, Not } from 'typeorm';
 import { BaseEntityDto } from '../../base/base.entity.dto';
+import { CryptoService } from '../../modules/crypto/crypto.service';
 
 export interface IsUniqueCompositeOptions {
   tableName: string;
   column: string;
   additionalField: string | { column: string; value: any };
+  useHash?: boolean;
 }
 
 @ValidatorConstraint({ async: true })
 @Injectable()
 export class IsUniqueCompositeConstraint implements ValidatorConstraintInterface {
-  constructor(private readonly entityManager: EntityManager) {}
+  constructor(
+    private readonly entityManager: EntityManager,
+    private readonly cryptoService: CryptoService,
+  ) {}
 
   public async validate(
     value: any,
@@ -42,8 +47,15 @@ export class IsUniqueCompositeConstraint implements ValidatorConstraintInterface
       return true;
     }
 
+    const searchColumn = options.useHash
+      ? `${options.column}Hash`
+      : options.column;
+    const searchValue = options.useHash
+      ? this.cryptoService.hashForSearch(value)
+      : value;
+
     const whereCondition = {
-      [options.column]: value,
+      [searchColumn]: searchValue,
       [additionalColumnName]: additionalFieldValue,
       ...(id ? { id: Not(Equal(id)) } : {}),
     };
@@ -63,10 +75,10 @@ export class IsUniqueCompositeConstraint implements ValidatorConstraintInterface
 
 /**
  * Validator para verificar se a combinação de campos é única na base de dados
- * 
+ *
  * @param options Configurações do validator
  * @param validationOptions Opções de validação padrão do class-validator
- * 
+ *
  * @example
  * // Usando valor estático para role
  * @IsUniqueComposite({
@@ -75,12 +87,12 @@ export class IsUniqueCompositeConstraint implements ValidatorConstraintInterface
  *   additionalField: { column: 'role', value: 'PATIENT' }
  * })
  * public email: string;
- * 
- * @example  
+ *
+ * @example
  * // Usando campo dinâmico do objeto
  * @IsUniqueComposite({
  *   tableName: 'dv_user',
- *   column: 'email', 
+ *   column: 'email',
  *   additionalField: 'role'
  * })
  * public email: string;
