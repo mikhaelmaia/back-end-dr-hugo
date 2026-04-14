@@ -9,7 +9,7 @@ export class Patient extends BaseEntity {
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
   public user: User;
 
-  @Column({ name: 'birth_date', type: 'date', nullable: false })
+  @Column({ name: 'birth_date', type: 'date', nullable: false, utc: true })
   public birthDate: Date;
 
   @Column({ name: 'gender', type: 'varchar', length: 10, nullable: false })

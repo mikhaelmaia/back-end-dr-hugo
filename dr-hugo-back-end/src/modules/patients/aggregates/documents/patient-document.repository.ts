@@ -127,6 +127,29 @@ export class PatientDocumentRepository extends BaseRepository<PatientDocument> {
     };
   }
 
+  public async findIdsByPatientIdCreatedAfter(
+    patientId: string,
+    date: Date,
+  ): Promise<string[]> {
+    const rows = await this.createBaseQuery()
+      .select('document.id', 'id')
+      .where('document.patient.id = :patientId', { patientId })
+      .andWhere('document.createdAt >= :date', { date })
+      .getRawMany<{ id: string }>();
+
+    return rows.map((r) => r.id);
+  }
+
+  public async existsByIdAndPatientId(
+    id: string,
+    patientId: string,
+  ): Promise<boolean> {
+    return this.createBaseQuery()
+      .where('document.id = :id', { id })
+      .andWhere('document.patient.id = :patientId', { patientId })
+      .getExists();
+  }
+
   public async findByIdAndPatientId(
     id: string,
     patientId: string,

@@ -96,7 +96,10 @@ export class PatientDocumentService {
     documentsIds?: string[],
   ): Promise<PatientDocumentAvailableFiltersDto> {
     const resolvedPatientId = await this.resolvePatientId(userId, patientId);
-    return this.repository.findAvailableFilters(resolvedPatientId, documentsIds);
+    return this.repository.findAvailableFilters(
+      resolvedPatientId,
+      documentsIds,
+    );
   }
 
   public async findById(
@@ -281,6 +284,20 @@ export class PatientDocumentService {
       tussCode: tuusCategory.tussCode,
       tussCategory: tuusCategory.category,
     };
+  }
+
+  public async documentExistsByIdAndPatientId(
+    documentId: string,
+    patientId: string,
+  ): Promise<boolean> {
+    return this.repository.existsByIdAndPatientId(documentId, patientId);
+  }
+
+  public async findIdsByCreatedAfter(
+    patientId: string,
+    date: Date,
+  ): Promise<string[]> {
+    return this.repository.findIdsByPatientIdCreatedAfter(patientId, date);
   }
 
   private async validateDocumentExists(exists: boolean): Promise<void> {

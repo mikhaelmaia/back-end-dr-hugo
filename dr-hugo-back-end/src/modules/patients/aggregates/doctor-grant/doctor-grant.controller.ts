@@ -76,6 +76,76 @@ export class DoctorGrantController {
     await this.service.toggleLike(grantId, userId, userRole);
   }
 
+  @Patch(DoctorGrantPaths.TOGGLE_DOCUMENT)
+  @Roles(UserRole.PATIENT)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Incluir ou remover documento da concessao',
+    description:
+      'Alterna a presença do documento na lista de documentos liberados da concessao. ' +
+      'Se o documento ja estiver na lista, sera removido; caso contrario, sera incluido. ' +
+      'Valida se o documento pertence ao paciente autenticado.',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'ID da concessao',
+    format: 'uuid',
+    type: String,
+  })
+  @ApiParam({
+    name: 'documentId',
+    description: 'ID do documento',
+    format: 'uuid',
+    type: String,
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Documento alternado com sucesso.',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Concessao ou documento nao encontrado.',
+    type: ExceptionResponse,
+  })
+  public async toggleDocument(
+    @IsUUIDParam('id') grantId: string,
+    @Param('documentId', ParseUUIDPipe) documentId: string,
+    @CurrentUser('id') userId: string,
+  ): Promise<void> {
+    await this.service.toggleDocumentAccess(grantId, userId, documentId);
+  }
+
+  @Patch(DoctorGrantPaths.TOGGLE_ALL_DOCUMENTS)
+  @Roles(UserRole.PATIENT)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Alternar acesso a todos os documentos',
+    description:
+      'Alterna o campo allowAccessToAllDocuments da concessao. ' +
+      'Quando ativado, o medico tem acesso a todos os documentos do paciente.',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'ID da concessao',
+    format: 'uuid',
+    type: String,
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Acesso a todos os documentos alternado com sucesso.',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Concessao nao encontrada.',
+    type: ExceptionResponse,
+  })
+  public async toggleAllDocuments(
+    @IsUUIDParam('id') grantId: string,
+    @CurrentUser('id') userId: string,
+  ): Promise<void> {
+    await this.service.toggleAllDocumentsAccess(grantId, userId);
+  }
+
   // Documentos via concessao (medico, somente leitura)
 
   @Get(DoctorGrantPaths.DOCUMENT_FILTERS)

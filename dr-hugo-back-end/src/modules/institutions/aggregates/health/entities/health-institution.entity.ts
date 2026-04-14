@@ -51,6 +51,6 @@ export class HealthInstitution extends BaseEntity {
   })
   public unitAdministrativeSphereCode: string;
 
-  @Column({ name: 'last_update_date', type: 'date', nullable: true })
+  @Column({ name: 'last_update_date', type: 'date', nullable: true, utc: true })
   public lastUpdateDate: Date;
 }

@@ -16,7 +16,7 @@ export class PatientDocument extends BaseEntity {
   @Column({ length: 255, nullable: false })
   public description: string;
 
-  @Column({ name: 'exam_date', type: 'date', nullable: false })
+  @Column({ name: 'exam_date', type: 'date', nullable: false, utc: true })
   public examDate: Date;
 
   @Column({ name: 'exam_month', type: 'varchar', length: 7, nullable: false })

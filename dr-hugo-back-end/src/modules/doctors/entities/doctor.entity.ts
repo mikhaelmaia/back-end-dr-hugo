@@ -21,7 +21,7 @@ export class Doctor extends BaseEntity {
   @Column({ name: 'is_generalist', type: 'boolean', nullable: false, default: false })
   public isGeneralist: boolean;
 
-  @Column({ name: 'birth_date', type: 'date', nullable: false })
+  @Column({ name: 'birth_date', type: 'date', nullable: false, utc: true })
   public birthDate: Date;
 
   @Column({ name: 'gender', type: 'varchar', length: 10, nullable: false })

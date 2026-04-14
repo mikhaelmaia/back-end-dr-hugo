@@ -13,10 +13,10 @@ export function ToLocalDate() {
   return Transform(({ value }) => {
     if (!value) return value;
     
-    // Se já é um Date, apenas zera o horário
+    // Se já é um Date, apenas zera o horário (UTC para evitar shift de timezone)
     if (value instanceof Date) {
       const date = new Date(value);
-      date.setHours(0, 0, 0, 0);
+      date.setUTCHours(0, 0, 0, 0);
       return date;
     }
     

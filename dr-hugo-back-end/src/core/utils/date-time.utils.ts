@@ -72,19 +72,38 @@ export const stringToLocalDate = (dateString: string): Date | null => {
   if (!dateString) return null;
 
   try {
+    // ISO string with T or Z: extract date parts from the string (ignore time/timezone portion)
     if (dateString.includes('T') || dateString.includes('Z')) {
       const isoMatch = dateString.match(/^(\d{4})-(\d{2})-(\d{2})/);
       if (isoMatch) {
-        const [, year, month, day] = isoMatch;
-        return new Date(Number(year), Number(month) - 1, Number(day));
+        const year = Number(isoMatch[1]);
+        const month = Number(isoMatch[2]);
+        const day = Number(isoMatch[3]);
+        return new Date(Date.UTC(year, month - 1, day));
       }
     }
 
-    const date = stringToLocalDateTime(dateString);
-    if (!date) return null;
+    // Format DD/MM/YYYY
+    if (dateString.includes('/')) {
+      const parts = dateString.split('/');
+      const day = Number(parts[0]);
+      const month = Number(parts[1]);
+      const year = Number(parts[2]);
+      if (!day || !month || !year) return null;
+      return new Date(Date.UTC(year, month - 1, day));
+    }
 
-    date.setHours(0, 0, 0, 0);
-    return date;
+    // Format YYYY-MM-DD
+    if (dateString.includes('-')) {
+      const parts = dateString.split('-');
+      const year = Number(parts[0]);
+      const month = Number(parts[1]);
+      const day = Number(parts[2]);
+      if (!year || !month || !day) return null;
+      return new Date(Date.UTC(year, month - 1, day));
+    }
+
+    return null;
   } catch {
     return null;
   }

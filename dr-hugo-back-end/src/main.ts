@@ -1,3 +1,7 @@
+// Must be set before any other imports to ensure all Date operations use UTC
+// This prevents timezone-related date shifts between environments (dev UTC-3 vs production UTC)
+process.env.TZ = 'UTC';
+
 import {
   BadRequestException,
   ClassSerializerInterceptor,

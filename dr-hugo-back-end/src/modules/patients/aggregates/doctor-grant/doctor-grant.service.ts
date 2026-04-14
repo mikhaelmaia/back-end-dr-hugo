@@ -73,6 +73,60 @@ export class DoctorGrantService {
     };
   }
 
+  public async toggleDocumentAccess(
+    grantId: string,
+    userId: string,
+    documentId: string,
+  ): Promise<void> {
+    const patientId = await this.patientService.findPatientIdByUserId(userId);
+
+    const documentExists =
+      await this.patientDocumentService.documentExistsByIdAndPatientId(
+        documentId,
+        patientId,
+      );
+
+    if (!documentExists) {
+      throw new NotFoundException(
+        'Documento não encontrado ou não pertence ao paciente',
+      );
+    }
+
+    const affected = await this.repository.toggleDocumentId(
+      grantId,
+      patientId,
+      documentId,
+    );
+
+    acceptFalseThrows(
+      affected,
+      () =>
+        new NotFoundException(
+          'Concessão não encontrada, revogada ou acesso não autorizado',
+        ),
+    );
+  }
+
+  public async toggleAllDocumentsAccess(
+    grantId: string,
+    userId: string,
+  ): Promise<void> {
+    const patientId = await this.patientService.findPatientIdByUserId(userId);
+
+    const affected = await this.repository.toggleAllDocumentsAccess(
+      grantId,
+      patientId,
+    );
+
+    acceptFalseThrows(
+      affected,
+      () =>
+        new NotFoundException(
+          'Concessão não encontrada, revogada ou acesso não autorizado',
+        ),
+    );
+  }
+
   // ── Document access (read-only via grant) ────────────────────────────────
 
   public async findDocuments(
@@ -83,8 +137,30 @@ export class DoctorGrantService {
   ): Promise<PatientDocumentPaginatedDto> {
     const grant = await this.resolveGrant(userId, grantId, userRole);
 
-    const enrichedParams = this.applyGrantFilter(grant, params);
-    if (!enrichedParams) {
+    if (userRole === UserRole.PATIENT) {
+      const result = await this.patientDocumentService.findMonthly(
+        userId,
+        params,
+        grant.patientId,
+      );
+      return {
+        ...result,
+        grantDocumentsIds: grant.documentsIds ?? [],
+        allowAccessToAllDocuments: grant.allowAccessToAllDocuments,
+      };
+    }
+
+    if (grant.allowAccessToAllDocuments) {
+      return this.patientDocumentService.findMonthly(
+        userId,
+        { ...params, filter: { ...params.filter } },
+        grant.patientId,
+      );
+    }
+
+    const accessibleIds = await this.resolveAccessibleDocumentIds(grant);
+
+    if (!accessibleIds?.length) {
       return {
         items: {},
         totalItems: 0,
@@ -95,7 +171,7 @@ export class DoctorGrantService {
 
     return this.patientDocumentService.findMonthly(
       userId,
-      enrichedParams,
+      { ...params, filter: { ...params.filter, id: { in: accessibleIds } } },
       grant.patientId,
     );
   }
@@ -108,31 +184,21 @@ export class DoctorGrantService {
   ): Promise<PatientDocumentDto> {
     const grant = await this.resolveGrant(userId, grantId, userRole);
 
-    if (!grant.allowAccessToAllDocuments) {
-      if (!grant.persistent && !grant.documentsIds?.includes(documentId)) {
+    if (userRole !== UserRole.PATIENT && !grant.allowAccessToAllDocuments) {
+      const accessibleIds = await this.resolveAccessibleDocumentIds(grant);
+
+      if (!accessibleIds?.includes(documentId)) {
         throw new NotFoundException(
           'Documento não encontrado ou acesso não autorizado',
         );
       }
     }
 
-    const doc = await this.patientDocumentService.findById(
+    return this.patientDocumentService.findById(
       userId,
       documentId,
       grant.patientId,
     );
-
-    if (
-      !grant.allowAccessToAllDocuments &&
-      grant.persistent &&
-      doc.createdAt < grant.createdAt
-    ) {
-      throw new NotFoundException(
-        'Documento não encontrado ou acesso não autorizado',
-      );
-    }
-
-    return doc;
   }
 
   public async findAvailableFilters(
@@ -141,14 +207,37 @@ export class DoctorGrantService {
     userRole: UserRole,
   ): Promise<PatientDocumentAvailableFiltersDto> {
     const grant = await this.resolveGrant(userId, grantId, userRole);
-    const scopedIds =
-      grant.allowAccessToAllDocuments || grant.persistent
-        ? undefined
-        : (grant.documentsIds ?? undefined);
+
+    if (userRole === UserRole.PATIENT) {
+      return this.patientDocumentService.findAvailableFilters(
+        userId,
+        grant.patientId,
+      );
+    }
+
+    if (grant.allowAccessToAllDocuments) {
+      return this.patientDocumentService.findAvailableFilters(
+        userId,
+        grant.patientId,
+      );
+    }
+
+    const accessibleIds = await this.resolveAccessibleDocumentIds(grant);
+
+    if (!accessibleIds?.length) {
+      return {
+        documentTypes: [],
+        descriptions: [],
+        doctors: [],
+        locations: [],
+        examDates: [],
+      };
+    }
+
     return this.patientDocumentService.findAvailableFilters(
       userId,
       grant.patientId,
-      scopedIds,
+      accessibleIds,
     );
   }
 
@@ -251,33 +340,30 @@ export class DoctorGrantService {
     return this.mediaService.getStreamGranted(profilePictureId);
   }
 
-  private applyGrantFilter(
-    grant: {
-      documentsIds: string[] | null;
-      persistent: boolean;
-      allowAccessToAllDocuments: boolean;
-      createdAt: Date;
-    },
-    params: PaginationParams<PatientDocument>,
-  ): PaginationParams<PatientDocument> | null {
-    if (grant.allowAccessToAllDocuments) {
-      return { ...params, filter: { ...params.filter } };
+  private async resolveAccessibleDocumentIds(grant: {
+    id: string;
+    patientId: string;
+    documentsIds: string[] | null;
+    persistent: boolean;
+    updatedAt: Date;
+  }): Promise<string[] | null> {
+    if (!grant.persistent) {
+      return grant.documentsIds?.length ? grant.documentsIds : null;
     }
 
-    if (!grant.persistent && !grant.documentsIds?.length) return null;
+    const newIds = await this.patientDocumentService.findIdsByCreatedAfter(
+      grant.patientId,
+      grant.updatedAt,
+    );
 
-    const enriched: PaginationParams<PatientDocument> = {
-      ...params,
-      filter: { ...params.filter },
-    };
-
-    if (grant.persistent) {
-      (enriched.filter as any).createdAt = { gte: grant.createdAt };
-    } else {
-      (enriched.filter as any).id = { in: grant.documentsIds };
+    if (!newIds.length) {
+      return grant.documentsIds?.length ? grant.documentsIds : null;
     }
 
-    return enriched;
+    const combined = [...new Set([...(grant.documentsIds ?? []), ...newIds])];
+    await this.repository.updateDocumentsIds(grant.id, combined);
+
+    return combined;
   }
 
   private async resolveGrant(
