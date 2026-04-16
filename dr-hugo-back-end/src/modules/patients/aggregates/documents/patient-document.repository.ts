@@ -140,6 +140,15 @@ export class PatientDocumentRepository extends BaseRepository<PatientDocument> {
     return rows.map((r) => r.id);
   }
 
+  public async findAllIdsByPatientId(patientId: string): Promise<string[]> {
+    const rows = await this.createBaseQuery()
+      .select('document.id', 'id')
+      .where('document.patient.id = :patientId', { patientId })
+      .getRawMany<{ id: string }>();
+
+    return rows.map((r) => r.id);
+  }
+
   public async existsByIdAndPatientId(
     id: string,
     patientId: string,

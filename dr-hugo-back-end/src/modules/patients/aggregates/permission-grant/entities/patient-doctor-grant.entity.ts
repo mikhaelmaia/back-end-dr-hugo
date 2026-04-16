@@ -34,4 +34,11 @@ export class PatientDoctorGrant extends BaseEntity {
     default: false,
   })
   public allowAccessToAllDocuments: boolean;
+
+  @Column({
+    name: 'allow_access_to_all_documents_at',
+    type: 'timestamp',
+    nullable: true,
+  })
+  public allowAccessToAllDocumentsAt?: Date;
 }

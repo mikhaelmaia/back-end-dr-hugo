@@ -82,6 +82,8 @@ export class DoctorGrantRepository extends BaseRepository<PatientDoctorGrant> {
       .update(PatientDoctorGrant)
       .set({
         allowAccessToAllDocuments: () => 'NOT allow_access_to_all_documents',
+        allowAccessToAllDocumentsAt: () =>
+          "CASE WHEN allow_access_to_all_documents = false THEN NOW() ELSE NULL END",
       })
       .where('id = :grantId', { grantId })
       .andWhere('patient_id = :patientId', { patientId })
@@ -89,6 +91,73 @@ export class DoctorGrantRepository extends BaseRepository<PatientDoctorGrant> {
       .execute();
 
     return result.affected > 0;
+  }
+
+  public async togglePersistent(
+    grantId: string,
+    patientId: string,
+  ): Promise<{ affected: boolean; persistent: boolean; allowAccessToAllDocuments: boolean; allowAccessToAllDocumentsAt: Date | null }> {
+    const grant = await this.repository.findOne({
+      where: { id: grantId, patient: { id: patientId }, revokedAt: IsNull() },
+      select: { id: true, persistent: true, allowAccessToAllDocuments: true, allowAccessToAllDocumentsAt: true },
+    });
+
+    if (!grant) return { affected: false, persistent: false, allowAccessToAllDocuments: false, allowAccessToAllDocumentsAt: null };
+
+    const newPersistent = !grant.persistent;
+
+    await this.repository.update({ id: grantId }, { persistent: newPersistent });
+
+    return {
+      affected: true,
+      persistent: newPersistent,
+      allowAccessToAllDocuments: grant.allowAccessToAllDocuments,
+      allowAccessToAllDocumentsAt: grant.allowAccessToAllDocumentsAt ?? null,
+    };
+  }
+
+  public async findGrantsToExpireAllDocumentsAccess(): Promise<
+    { id: string; patientId: string; documentsIds: string[] | null }[]
+  > {
+    const grants = await this.repository.find({
+      where: {
+        allowAccessToAllDocuments: true,
+        persistent: false,
+        revokedAt: IsNull(),
+        deletedAt: IsNull(),
+      },
+      relations: ['patient'],
+      select: {
+        id: true,
+        documentsIds: true,
+        allowAccessToAllDocumentsAt: true,
+        patient: { id: true },
+      },
+    });
+
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    return grants
+      .filter((g) => g.allowAccessToAllDocumentsAt && g.allowAccessToAllDocumentsAt <= cutoff)
+      .map((g) => ({
+        id: g.id,
+        patientId: g.patient.id,
+        documentsIds: g.documentsIds ?? null,
+      }));
+  }
+
+  public async snapshotAndDisableAllDocumentsAccess(
+    grantId: string,
+    documentsIds: string[],
+  ): Promise<void> {
+    await this.repository.update(
+      { id: grantId },
+      {
+        documentsIds,
+        allowAccessToAllDocuments: false,
+        allowAccessToAllDocumentsAt: null,
+      },
+    );
   }
 
   public async findGrantDetailsById(
@@ -101,7 +170,6 @@ export class DoctorGrantRepository extends BaseRepository<PatientDoctorGrant> {
     persistent: boolean;
     allowAccessToAllDocuments: boolean;
     createdAt: Date;
-    updatedAt: Date;
   } | null> {
     const grant = await this.repository.findOne({
       where: {
@@ -117,7 +185,6 @@ export class DoctorGrantRepository extends BaseRepository<PatientDoctorGrant> {
         persistent: true,
         allowAccessToAllDocuments: true,
         createdAt: true,
-        updatedAt: true,
         patient: { id: true },
       },
     });
@@ -131,7 +198,6 @@ export class DoctorGrantRepository extends BaseRepository<PatientDoctorGrant> {
       persistent: grant.persistent,
       allowAccessToAllDocuments: grant.allowAccessToAllDocuments,
       createdAt: grant.createdAt,
-      updatedAt: grant.updatedAt,
     };
   }
 
@@ -145,7 +211,6 @@ export class DoctorGrantRepository extends BaseRepository<PatientDoctorGrant> {
     persistent: boolean;
     allowAccessToAllDocuments: boolean;
     createdAt: Date;
-    updatedAt: Date;
   } | null> {
     const grant = await this.repository.findOne({
       where: {
@@ -161,7 +226,6 @@ export class DoctorGrantRepository extends BaseRepository<PatientDoctorGrant> {
         persistent: true,
         allowAccessToAllDocuments: true,
         createdAt: true,
-        updatedAt: true,
         patient: { id: true },
       },
     });
@@ -175,7 +239,6 @@ export class DoctorGrantRepository extends BaseRepository<PatientDoctorGrant> {
       persistent: grant.persistent,
       allowAccessToAllDocuments: grant.allowAccessToAllDocuments,
       createdAt: grant.createdAt,
-      updatedAt: grant.updatedAt,
     };
   }
 

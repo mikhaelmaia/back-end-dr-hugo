@@ -1,4 +1,5 @@
-﻿import { Injectable, NotFoundException } from '@nestjs/common';
+﻿import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { acceptFalseThrows } from 'src/core/utils/functions';
 import { UserRole } from 'src/core/vo/consts/enums';
 import { DoctorService } from 'src/modules/doctors/doctor.service';
@@ -20,6 +21,8 @@ import { GrantedDoctorPaginatedDto } from './dtos/granted-doctor-paginated.dto';
 
 @Injectable()
 export class DoctorGrantService {
+  private readonly logger = new Logger(DoctorGrantService.name);
+
   constructor(
     private readonly repository: DoctorGrantRepository,
     private readonly mapper: DoctorGrantMapper,
@@ -127,6 +130,34 @@ export class DoctorGrantService {
     );
   }
 
+  public async togglePersistentAccess(
+    grantId: string,
+    userId: string,
+  ): Promise<void> {
+    const patientId = await this.patientService.findPatientIdByUserId(userId);
+
+    const result = await this.repository.togglePersistent(grantId, patientId);
+
+    acceptFalseThrows(
+      result.affected,
+      () =>
+        new NotFoundException(
+          'Concessão não encontrada, revogada ou acesso não autorizado',
+        ),
+    );
+
+    if (!result.persistent && result.allowAccessToAllDocuments) {
+      const hasExpired =
+        result.allowAccessToAllDocumentsAt &&
+        result.allowAccessToAllDocumentsAt.getTime() <=
+          Date.now() - 24 * 60 * 60 * 1000;
+
+      if (hasExpired) {
+        await this.snapshotAndExpireGrant(grantId, patientId);
+      }
+    }
+  }
+
   // ── Document access (read-only via grant) ────────────────────────────────
 
   public async findDocuments(
@@ -147,6 +178,7 @@ export class DoctorGrantService {
         ...result,
         grantDocumentsIds: grant.documentsIds ?? [],
         allowAccessToAllDocuments: grant.allowAccessToAllDocuments,
+        persistent: grant.persistent,
       };
     }
 
@@ -345,7 +377,7 @@ export class DoctorGrantService {
     patientId: string;
     documentsIds: string[] | null;
     persistent: boolean;
-    updatedAt: Date;
+    createdAt: Date;
   }): Promise<string[] | null> {
     if (!grant.persistent) {
       return grant.documentsIds?.length ? grant.documentsIds : null;
@@ -353,7 +385,7 @@ export class DoctorGrantService {
 
     const newIds = await this.patientDocumentService.findIdsByCreatedAfter(
       grant.patientId,
-      grant.updatedAt,
+      grant.createdAt,
     );
 
     if (!newIds.length) {
@@ -401,5 +433,43 @@ export class DoctorGrantService {
     );
 
     return grant;
+  }
+
+  @Cron(CronExpression.EVERY_MINUTE)
+  public async expireAllDocumentsAccessForNonPersistentGrants(): Promise<void> {
+    this.logger.log(
+      'Verificando concessões de médico com acesso total a documentos expirado...',
+    );
+
+    const grants = await this.repository.findGrantsToExpireAllDocumentsAccess();
+
+    if (!grants.length) return;
+
+    await Promise.all(
+      grants.map((grant) =>
+        this.snapshotAndExpireGrant(
+          grant.id,
+          grant.patientId,
+          grant.documentsIds,
+        ),
+      ),
+    );
+
+    this.logger.log(
+      `${grants.length} concessão(ões) de médico com acesso total expirado(s).`,
+    );
+  }
+
+  private async snapshotAndExpireGrant(
+    grantId: string,
+    patientId: string,
+    existingDocumentsIds?: string[] | null,
+  ): Promise<void> {
+    const allIds =
+      await this.patientDocumentService.findAllIdsByPatientId(patientId);
+
+    const merged = [...new Set([...(existingDocumentsIds ?? []), ...allIds])];
+
+    await this.repository.snapshotAndDisableAllDocumentsAccess(grantId, merged);
   }
 }

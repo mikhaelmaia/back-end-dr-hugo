@@ -300,6 +300,10 @@ export class PatientDocumentService {
     return this.repository.findIdsByPatientIdCreatedAfter(patientId, date);
   }
 
+  public async findAllIdsByPatientId(patientId: string): Promise<string[]> {
+    return this.repository.findAllIdsByPatientId(patientId);
+  }
+
   private async validateDocumentExists(exists: boolean): Promise<void> {
     acceptFalseThrows(
       exists,

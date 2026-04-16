@@ -146,6 +146,39 @@ export class DoctorGrantController {
     await this.service.toggleAllDocumentsAccess(grantId, userId);
   }
 
+  @Patch(DoctorGrantPaths.TOGGLE_PERSISTENT)
+  @Roles(UserRole.PATIENT)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Alternar persistencia de documentos futuros',
+    description:
+      'Alterna o campo persistent da concessao. ' +
+      'Quando ativado, documentos criados apos a concessao sao automaticamente acessiveis ao medico. ' +
+      'Quando desativado, se allowAccessToAllDocuments estiver ativo e ja tiver expirado (24h), ' +
+      'realiza snapshot dos documentos atuais e desativa o acesso total.',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'ID da concessao',
+    format: 'uuid',
+    type: String,
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Persistencia alternada com sucesso.',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Concessao nao encontrada.',
+    type: ExceptionResponse,
+  })
+  public async togglePersistent(
+    @IsUUIDParam('id') grantId: string,
+    @CurrentUser('id') userId: string,
+  ): Promise<void> {
+    await this.service.togglePersistentAccess(grantId, userId);
+  }
+
   // Documentos via concessao (medico, somente leitura)
 
   @Get(DoctorGrantPaths.DOCUMENT_FILTERS)

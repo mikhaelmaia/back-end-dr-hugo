@@ -67,4 +67,14 @@ export class PatientDocumentPaginatedDto {
     nullable: true,
   })
   public allowAccessToAllDocuments?: boolean | null;
+
+  @ApiProperty({
+    description:
+      'Indica se documentos futuros sao automaticamente acessiveis ao medico. ' +
+      'Presente apenas quando o perfil consultado e o proprio paciente.',
+    type: Boolean,
+    required: false,
+    nullable: true,
+  })
+  public persistent?: boolean | null;
 }

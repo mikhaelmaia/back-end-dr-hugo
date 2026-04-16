@@ -164,7 +164,12 @@ export class InstitutionGrantService {
     mediaId: string,
     userRole: UserRole,
   ): Promise<MediaStreamResult> {
-    const doc = await this.findDocumentById(userId, grantId, documentId, userRole);
+    const doc = await this.findDocumentById(
+      userId,
+      grantId,
+      documentId,
+      userRole,
+    );
 
     if (!doc.mediaIds?.includes(mediaId)) {
       throw new NotFoundException(
@@ -181,7 +186,12 @@ export class InstitutionGrantService {
     documentId: string,
     userRole: UserRole,
   ): Promise<MediaStreamResult> {
-    const doc = await this.findDocumentById(userId, grantId, documentId, userRole);
+    const doc = await this.findDocumentById(
+      userId,
+      grantId,
+      documentId,
+      userRole,
+    );
     return this.mediaService.downloadGranted(doc.mediaIds);
   }
 
@@ -305,7 +315,11 @@ export class InstitutionGrantService {
     };
   }
 
-  private async resolveGrant(userId: string, grantId: string, userRole: UserRole) {
+  private async resolveGrant(
+    userId: string,
+    grantId: string,
+    userRole: UserRole,
+  ) {
     if (userRole === UserRole.PATIENT) {
       const patientId = await this.patientService.findPatientIdByUserId(userId);
       const details = await this.repository.findGrantDetailsByIdForPatient(

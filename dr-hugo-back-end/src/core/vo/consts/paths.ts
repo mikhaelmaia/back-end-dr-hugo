@@ -217,6 +217,7 @@ export class DoctorGrantPaths {
   public static readonly LIKE = '/:id/like';
   public static readonly TOGGLE_DOCUMENT = '/:id/toggle-document/:documentId';
   public static readonly TOGGLE_ALL_DOCUMENTS = '/:id/toggle-all-documents';
+  public static readonly TOGGLE_PERSISTENT = '/:id/toggle-persistent';
   public static readonly DOCUMENTS = '/:id/documents';
   public static readonly DOCUMENT_FILTERS = '/:id/documents/available-filters';
   public static readonly DOCUMENT_BY_ID = '/:id/documents/:documentId';
