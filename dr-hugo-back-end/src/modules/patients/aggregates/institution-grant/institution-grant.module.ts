@@ -9,6 +9,7 @@ import { InstitutionGrantRepository } from './institution-grant.repository';
 import { InstitutionGrantService } from './institution-grant.service';
 import { InstitutionGrantMapper } from './institution-grant.mapper';
 import { MediaModule } from 'src/core/modules/media/media.module';
+import { WhatsAppModule } from 'src/core/modules/whatsapp/whatsapp.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { MediaModule } from 'src/core/modules/media/media.module';
     PatientsModule,
     PatientDocumentModule,
     MediaModule,
+    WhatsAppModule,
   ],
   controllers: [InstitutionGrantController],
   providers: [

@@ -20,6 +20,7 @@ import { TokenType, UserChangeRequestStatus } from 'src/core/vo/consts/enums';
 import { ConfirmUserChangeRequestDto } from './dtos/confirm-user-change-request.dto';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ResolutionKeyService } from 'src/core/modules/resolution-key/resolution-key.service';
+import { WhatsAppHelper } from 'src/core/modules/whatsapp/whatsapp.helper';
 
 @Injectable()
 export class UserChangeRequestService {
@@ -34,6 +35,7 @@ export class UserChangeRequestService {
     private readonly tokenService: TokenService,
     private readonly emailHelper: EmailHelper,
     private readonly resolutionKeyService: ResolutionKeyService,
+    private readonly whatsAppHelper: WhatsAppHelper,
   ) {}
 
   public async requestChange(
@@ -71,9 +73,7 @@ export class UserChangeRequestService {
     }
   }
 
-  public async confirmChange(
-    dto: ConfirmUserChangeRequestDto,
-  ): Promise<void> {
+  public async confirmChange(dto: ConfirmUserChangeRequestDto): Promise<void> {
     const { userId, token, requestId } =
       await this.resolutionKeyService.resolve<{
         userId: string;
@@ -176,12 +176,27 @@ export class UserChangeRequestService {
       dto.newCountryIdd,
     );
 
-    await this.tokenService.generateToken(
+    const tokenData = await this.tokenService.generateToken(
       `${userId}:${request.id}`,
       TokenType.USER_REQUEST_CHANGE,
     );
-    // TODO: Implementar envio de WhatsApp para confirmação de alteração de telefone
-    // Incluir request.id nos parâmetros da notificação
+
+    const iddWithoutPlus = (dto.newCountryIdd ?? '').replace(/^\+/, '');
+    const sendablePhone = `${iddWithoutPlus}${dto.newPhone}`;
+
+    this.whatsAppHelper
+      .sendPhoneChangeConfirmationRequest(
+        sendablePhone,
+        tokenData.token,
+        userId,
+        request.id,
+      )
+      .catch((err) =>
+        this.logger.error(
+          'Falha ao enviar notificação WhatsApp de confirmação de telefone',
+          err instanceof Error ? err.message : String(err),
+        ),
+      );
   }
 
   private async createRequestChange(
@@ -237,6 +252,11 @@ export class UserChangeRequestService {
     request: UserChangeRequest,
     userId: string,
   ): Promise<void> {
+    const user = await this.userRepository.findById(userId);
+    const oldPhone = this.cryptoService.decrypt(user.phone);
+    const oldIdd = (user.countryIdd ?? '').replace(/^\+/, '');
+    const oldSendablePhone = `${oldIdd}${oldPhone}`;
+
     const newPhone = this.cryptoService.decrypt(request.newValue);
 
     await this.userRepository.updatePhone(userId, newPhone);
@@ -252,9 +272,13 @@ export class UserChangeRequestService {
       await this.userRepository.updateCountryIdd(userId, request.newCountryIdd);
     }
 
-    // TODO: Implementar envio de notificação por WhatsApp confirmando alteração
-    this.logger.log(
-      `Telefone alterado para ${newPhone} - userId: ${userId}`,
-    );
+    this.whatsAppHelper
+      .sendPhoneChangedWarning(oldSendablePhone, newPhone)
+      .catch((err) =>
+        this.logger.error(
+          'Falha ao enviar notificação WhatsApp de telefone alterado',
+          err instanceof Error ? err.message : String(err),
+        ),
+      );
   }
 }

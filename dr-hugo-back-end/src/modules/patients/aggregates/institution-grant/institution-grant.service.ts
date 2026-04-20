@@ -1,4 +1,4 @@
-﻿import { Injectable, NotFoundException } from '@nestjs/common';
+﻿import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { acceptFalseThrows } from 'src/core/utils/functions';
 import { UserRole } from 'src/core/vo/consts/enums';
 import { InstitutionService } from 'src/modules/institutions/institution.service';
@@ -18,9 +18,12 @@ import { InstitutionGrantRepository } from './institution-grant.repository';
 import { InstitutionGrantMapper } from './institution-grant.mapper';
 import { GrantedInstitutionDetailDto } from './dtos/granted-institution-detail.dto';
 import { GrantedInstitutionPaginatedDto } from './dtos/granted-institution-paginated.dto';
+import { WhatsAppHelper } from 'src/core/modules/whatsapp/whatsapp.helper';
 
 @Injectable()
 export class InstitutionGrantService {
+  private readonly logger = new Logger(InstitutionGrantService.name);
+
   constructor(
     private readonly repository: InstitutionGrantRepository,
     private readonly mapper: InstitutionGrantMapper,
@@ -28,6 +31,7 @@ export class InstitutionGrantService {
     private readonly mediaService: MediaService,
     private readonly institutionService: InstitutionService,
     private readonly patientService: PatientsService,
+    private readonly whatsAppHelper: WhatsAppHelper,
   ) {}
 
   public async toggleLike(
@@ -95,6 +99,18 @@ export class InstitutionGrantService {
       institutionId,
       created.id,
     );
+
+    this.notifyPatientOfDocumentUploaded(
+      patientId,
+      institutionId,
+      created.id,
+    ).catch((err) =>
+      this.logger.error(
+        'Falha ao enviar notificação WhatsApp de documento adicionado',
+        err instanceof Error ? err.message : String(err),
+      ),
+    );
+
     return created;
   }
 
@@ -296,6 +312,24 @@ export class InstitutionGrantService {
     if (!profilePictureId) return null;
 
     return this.mediaService.getStreamGranted(profilePictureId);
+  }
+
+  private async notifyPatientOfDocumentUploaded(
+    patientId: string,
+    institutionId: string,
+    documentId: string,
+  ): Promise<void> {
+    const [patient, institution] = await Promise.all([
+      this.patientService.findById(patientId),
+      this.institutionService.findById(institutionId),
+    ]);
+    const phone = `${patient.countryIdd.replace(/^\+/, '')}${patient.phone}`;
+    await this.whatsAppHelper.sendPatientDocumentUploadedNotification(phone, {
+      patientName: patient.name,
+      institutionName: institution.name,
+      uploadedAt: new Date(),
+      documentId,
+    });
   }
 
   private applyGrantFilter(

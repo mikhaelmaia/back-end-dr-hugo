@@ -14,6 +14,12 @@ export default () => ({
     profileChangeConfirmationPath:
       process.env.DV_WEB_PROFILE_CHANGE_CONFIRMATION_PATH,
     permissionRequestPath: process.env.DV_WEB_PERMISSION_REQUEST_PATH,
+    phoneChangeConfirmationPath:
+      process.env.DV_WEB_PHONE_CHANGE_CONFIRMATION_PATH,
+    grantedDoctorPath: process.env.DV_WEB_GRANTED_DOCTOR_PATH,
+    grantedInstitutionPath: process.env.DV_WEB_GRANTED_INSTITUTION_PATH,
+    grantedPatientPath: process.env.DV_WEB_GRANTED_PATIENT_PATH,
+    documentFormPath: process.env.DV_WEB_DOCUMENT_FORM_PATH,
   },
   database: {
     host: process.env.DATABASE_HOST,

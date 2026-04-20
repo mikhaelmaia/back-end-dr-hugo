@@ -9,6 +9,7 @@ import { UserChangeRequestRepository } from './user-change-request.repository';
 import { UserModule } from '../../user.module';
 import { CryptoModule } from 'src/core/modules/crypto/crypto.module';
 import { ResolutionKeyModule } from 'src/core/modules/resolution-key/resolution-key.module';
+import { WhatsAppModule } from 'src/core/modules/whatsapp/whatsapp.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ResolutionKeyModule } from 'src/core/modules/resolution-key/resolution-
     UserModule,
     CryptoModule,
     ResolutionKeyModule,
+    WhatsAppModule,
   ],
   controllers: [UserChangeRequestController],
   providers: [UserChangeRequestService, UserChangeRequestRepository],

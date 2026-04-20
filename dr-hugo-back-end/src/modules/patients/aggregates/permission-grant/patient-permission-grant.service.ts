@@ -31,6 +31,7 @@ import { PatientMedicalRecordService } from 'src/modules/medical-records/medical
 import { GrantedPatientMedicalRecordDto } from './dtos/granted-patient-medical-record.dto';
 import { PatientPermissionGrantRepository } from './patient-permission-grant.repository';
 import { PatientPermissionGrantMapper } from './patient-permission-grant.mapper';
+import { WhatsAppHelper } from 'src/core/modules/whatsapp/whatsapp.helper';
 
 @Injectable()
 export class PatientPermissionGrantService {
@@ -46,6 +47,7 @@ export class PatientPermissionGrantService {
     private readonly notificationsService: NotificationsService,
     private readonly mediaService: MediaService,
     private readonly medicalRecordService: PatientMedicalRecordService,
+    private readonly whatsAppHelper: WhatsAppHelper,
   ) {}
 
   public async createGrant(
@@ -90,13 +92,10 @@ export class PatientPermissionGrantService {
     );
   }
 
-  public async toggleLike(
-    grantId: string,
-    user: UserDto,
-  ): Promise<void> {
+  public async toggleLike(grantId: string, user: UserDto): Promise<void> {
     const profileResolver = this.getProfileResolvers()[user.role];
     const likeToggler = this.getLikeTogglers()[user.role];
-    
+
     if (!profileResolver || !likeToggler) {
       throw new BadRequestException(
         'Tipo de usuário não autorizado para curtir concessões',
@@ -105,7 +104,7 @@ export class PatientPermissionGrantService {
 
     const profileId = await profileResolver(user.id);
     const affected = await likeToggler(grantId, profileId);
-    
+
     acceptFalseThrows(
       affected,
       () =>
@@ -147,7 +146,9 @@ export class PatientPermissionGrantService {
 
   @Cron(CronExpression.EVERY_MINUTE)
   public async revokeExpiredNonPersistentGrants(): Promise<void> {
-    this.logger.log('Iniciando revogação de concessões temporárias expiradas...');
+    this.logger.log(
+      'Iniciando revogação de concessões temporárias expiradas...',
+    );
     await this.repository.revokeExpiredNonPersistentGrants();
     this.logger.log('Revogação de concessões temporárias expiradas concluída.');
   }
@@ -242,6 +243,32 @@ export class PatientPermissionGrantService {
       payload,
     );
 
+    this.notifyPatientOfDoctorGrant(
+      accessCodeData.patientId,
+      user.name,
+      dto.id,
+      accessCodeData.persistent,
+    ).catch((err) =>
+      this.logger.error(
+        'Falha ao enviar notificação WhatsApp de vínculo com médico',
+        err instanceof Error ? err.message : String(err),
+      ),
+    );
+
+    this.notifyDoctorOfPatientGrant(
+      user.id,
+      user.name,
+      doctorId,
+      accessCodeData.patientId,
+      dto.id,
+      accessCodeData.persistent,
+    ).catch((err) =>
+      this.logger.error(
+        'Falha ao enviar notificação WhatsApp ao médico sobre novo vínculo',
+        err instanceof Error ? err.message : String(err),
+      ),
+    );
+
     return dto;
   }
 
@@ -297,7 +324,114 @@ export class PatientPermissionGrantService {
       payload,
     );
 
+    this.notifyPatientOfInstitutionGrant(
+      accessCodeData.patientId,
+      user.name,
+      dto.id,
+      accessCodeData.persistent,
+    ).catch((err) =>
+      this.logger.error(
+        'Falha ao enviar notificação WhatsApp de vínculo com instituição',
+        err instanceof Error ? err.message : String(err),
+      ),
+    );
+
+    this.notifyInstitutionOfPatientGrant(
+      user.id,
+      user.name,
+      institutionId,
+      accessCodeData.patientId,
+      dto.id,
+      accessCodeData.persistent,
+    ).catch((err) =>
+      this.logger.error(
+        'Falha ao enviar notificação WhatsApp à instituição sobre novo vínculo',
+        err instanceof Error ? err.message : String(err),
+      ),
+    );
+
     return dto;
+  }
+
+  private async notifyPatientOfDoctorGrant(
+    patientId: string,
+    doctorName: string,
+    grantId: string,
+    persistent: boolean,
+  ): Promise<void> {
+    const patient = await this.patientService.findById(patientId);
+    const phone = `${patient.countryIdd.replace(/^\+/, '')}${patient.phone}`;
+    await this.whatsAppHelper.sendPatientDoctorGrantNotification(phone, {
+      patientName: patient.name,
+      doctorName,
+      grantedAt: new Date(),
+      persistent,
+      grantId,
+    });
+  }
+
+  private async notifyPatientOfInstitutionGrant(
+    patientId: string,
+    institutionName: string,
+    grantId: string,
+    persistent: boolean,
+  ): Promise<void> {
+    const patient = await this.patientService.findById(patientId);
+    const phone = `${patient.countryIdd.replace(/^\+/, '')}${patient.phone}`;
+    await this.whatsAppHelper.sendPatientInstitutionGrantNotification(phone, {
+      patientName: patient.name,
+      institutionName,
+      grantedAt: new Date(),
+      persistent,
+      grantId,
+    });
+  }
+
+  private async notifyDoctorOfPatientGrant(
+    doctorUserId: string,
+    doctorName: string,
+    doctorId: string,
+    patientId: string,
+    grantId: string,
+    persistent: boolean,
+  ): Promise<void> {
+    const [doctor, patient] = await Promise.all([
+      this.doctorService.findById(doctorId),
+      this.patientService.findById(patientId),
+    ]);
+    const phone = `${doctor.countryIdd.replace(/^\+/, '')}${doctor.phone}`;
+    await this.whatsAppHelper.sendDoctorReceivePatientGrantNotification(phone, {
+      doctorName,
+      patientName: patient.name,
+      grantedAt: new Date(),
+      persistent,
+      grantId,
+    });
+  }
+
+  private async notifyInstitutionOfPatientGrant(
+    institutionUserId: string,
+    institutionName: string,
+    institutionId: string,
+    patientId: string,
+    grantId: string,
+    persistent: boolean,
+  ): Promise<void> {
+    const [institution, patient] = await Promise.all([
+      this.institutionService.findById(institutionId),
+      this.patientService.findById(patientId),
+    ]);
+    const phone = `${institution.countryIdd.replace(/^\+/, '')}${institution.phone}`;
+    await this.whatsAppHelper.sendInstitutionReceivePatientGrantNotification(
+      phone,
+      {
+        institutionName,
+        patientName: patient.name,
+        grantedAt: new Date(),
+        persistent,
+        grantId,
+      },
+    );
   }
 
   private async revokeDoctorGrantInternal(
