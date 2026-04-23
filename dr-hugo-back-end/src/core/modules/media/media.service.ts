@@ -286,11 +286,12 @@ export class MediaService extends BaseService<
       media.objectName,
     );
 
-    await this.removeFromMinio(media.bucket, media.objectName);
-
+    const sourceBucket = media.bucket;
     media.bucket = targetBucket;
 
     const updatedMedia = await this.repository.save(media);
+
+    await this.removeFromMinio(sourceBucket, media.objectName);
 
     return this.mapper.toDto(updatedMedia);
   }

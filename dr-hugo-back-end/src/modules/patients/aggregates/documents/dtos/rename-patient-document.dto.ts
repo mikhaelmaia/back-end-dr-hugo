@@ -4,8 +4,6 @@ import {
   provideIsNotEmptyValidationMessage,
   provideIsStringValidationMessage,
 } from 'src/core/vo/consts/validation-messages';
-import { IsUnique } from 'src/core/vo/validators/is-unique.validator';
-
 export class RenamePatientDocumentDto {
   @IsNotEmpty({
     message: provideIsNotEmptyValidationMessage('Descrição'),
@@ -13,11 +11,8 @@ export class RenamePatientDocumentDto {
   @IsString({
     message: provideIsStringValidationMessage('Descrição'),
   })
-  @IsUnique('dv_patient_document', 'description', {
-    message: 'Já existe um documento com esta descrição.',
-  })
   @ApiProperty({
-    description: 'Descrição do documento médico (deve ser única no sistema)',
+    description: 'Descrição do documento médico',
     example: 'Hemograma completo - exame de rotina',
   })
   public description: string;

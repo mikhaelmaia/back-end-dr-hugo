@@ -291,9 +291,9 @@ export class DoctorGrantRepository extends BaseRepository<PatientDoctorGrant> {
     }
 
     if (sortBy === 'name') {
-      qb.orderBy('user.name', sortOrder);
+      qb.orderBy('user.name', sortOrder).addOrderBy('grant.createdAt', 'DESC');
     } else {
-      qb.orderBy('grant.createdAt', 'DESC');
+      qb.orderBy('grant.likedByPatient', 'DESC').addOrderBy('grant.createdAt', 'DESC');
     }
 
     qb.take(limit).skip((page - 1) * limit);

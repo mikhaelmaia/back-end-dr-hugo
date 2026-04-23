@@ -12,7 +12,6 @@ import {
 import { Transform } from 'class-transformer';
 import { PatientDocumentType } from 'src/core/vo/consts/enums';
 import { PatientDocumentMediaDto } from './patient-document-media.dto';
-import { IsUnique } from 'src/core/vo/validators/is-unique.validator';
 import { IsEnumKey } from 'src/core/vo/validators/is-enum-key.validator';
 import { ToLocalDate } from 'src/core/vo/transformers/to-local-date.transformer';
 import { IsNotFutureDate } from 'src/core/vo/validators/is-not-future-date.validator';
@@ -65,9 +64,6 @@ export class PatientDocumentDto {
   })
   @IsString({
     message: provideIsStringValidationMessage('Descrição'),
-  })
-  @IsUnique('PatientDocument', 'description', {
-    message: 'Já existe um documento com esta descrição.',
   })
   @ApiProperty({
     description: 'Descrição do documento',

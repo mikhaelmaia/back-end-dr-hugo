@@ -10,7 +10,6 @@ import {
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PatientDocumentType } from 'src/core/vo/consts/enums';
-import { IsUnique } from 'src/core/vo/validators/is-unique.validator';
 import {
   provideIsNotEmptyValidationMessage,
   provideIsStringValidationMessage,
@@ -45,11 +44,9 @@ export class CreatePatientDocumentDto {
   @IsString({
     message: provideIsStringValidationMessage('Descrição'),
   })
-  @IsUnique('PatientDocument', 'description', {
-    message: 'Já existe um documento com esta descrição.',
-  })
   @ApiProperty({
-    description: 'Descrição do documento médico (deve ser única no sistema)',
+    description: 'Descrição do documento médico',
+
     example: 'Hemograma completo - exame de rotina',
   })
   public description: string;

@@ -10,6 +10,7 @@ import { CreatePatientDocumentDto } from './dtos/create-patient-document.dto';
 import { PatientDocumentDto } from './dtos/patient-document.dto';
 import { MediaStreamResult, PaginationParams } from 'src/core/vo/types/types';
 import { PatientDocument } from './entities/patient-document.entity';
+import { PatientDocumentMedia } from './entities/patient-document-media.entity';
 import { MediaService } from 'src/core/modules/media/media.service';
 import { MinioBuckets } from 'src/core/modules/media/minio/minio.buckets';
 import { PatientDocumentListItemDto } from './dtos/patient-document-list-item.dto';
@@ -140,7 +141,7 @@ export class PatientDocumentService {
       );
     }
 
-    return this.mediaService.getStream(mediaId, userId);
+    return this.mediaService.getStreamGranted(mediaId);
   }
 
   public async downloadDocument(
@@ -157,7 +158,7 @@ export class PatientDocumentService {
 
     await this.validateDocumentExists(mediaIds.length > 0);
 
-    return this.mediaService.downloadMany(mediaIds, userId);
+    return this.mediaService.downloadGranted(mediaIds);
   }
 
   public async update(
@@ -177,24 +178,20 @@ export class PatientDocumentService {
 
     await this.mediaService.validateOwnership(dto.mediaIds, userId);
 
+    const removedMediaIds = existingMediaIds.filter(
+      (id) => !dto.mediaIds.includes(id),
+    );
+
+    const newMediaIds = dto.mediaIds.filter(
+      (id) => !existingMediaIds.includes(id),
+    );
+
+    const updateData = this.mapper.toUpdateData(dto);
+    const tussData = await this.resolveTussData(dto.type, dto.description);
+    updateData.tussCode = tussData.tussCode;
+    updateData.tussCategory = tussData.tussCategory;
+
     await this.dataSource.transaction(async (manager) => {
-      const removedMediaIds = existingMediaIds.filter(
-        (id) => !dto.mediaIds.includes(id),
-      );
-
-      await Promise.all(
-        removedMediaIds.map((mediaId) =>
-          this.mediaService.deleteByIdAndOwnerId(mediaId, userId),
-        ),
-      );
-
-      const updateData = this.mapper.toUpdateData(dto);
-
-      const tussData = await this.resolveTussData(dto.type, dto.description);
-
-      updateData.tussCode = tussData.tussCode;
-      updateData.tussCategory = tussData.tussCategory;
-
       const result = await manager.update(
         PatientDocument,
         { id: dto.id, patient: { id: resolvedPatientId } },
@@ -205,22 +202,38 @@ export class PatientDocumentService {
         throw new NotFoundException('Documento não encontrado.');
       }
 
-      await this.repository.replaceDocumentMedias(dto.id, dto.mediaIds);
+      await manager.delete(PatientDocumentMedia, {
+        patientDocument: { id: dto.id },
+      });
 
-      const newMediaIds = dto.mediaIds.filter(
-        (id) => !existingMediaIds.includes(id),
-      );
-
-      await Promise.all(
-        newMediaIds.map((mediaId) =>
-          this.mediaService.persistMedia(
-            mediaId,
-            userId,
-            MinioBuckets.PATIENT_DOCUMENTS,
-          ),
-        ),
-      );
+      if (dto.mediaIds.length > 0) {
+        const junctionRecords = dto.mediaIds.map((mediaId, index) => {
+          const documentMedia = new PatientDocumentMedia();
+          documentMedia.patientDocument = { id: dto.id } as any;
+          documentMedia.media = { id: mediaId } as any;
+          documentMedia.order = index;
+          documentMedia.isPrimary = index === 0;
+          return documentMedia;
+        });
+        await manager.save(PatientDocumentMedia, junctionRecords);
+      }
     });
+
+    await Promise.all(
+      removedMediaIds.map((mediaId) =>
+        this.mediaService.deleteByIdAndOwnerId(mediaId, userId),
+      ),
+    );
+
+    await Promise.all(
+      newMediaIds.map((mediaId) =>
+        this.mediaService.persistMedia(
+          mediaId,
+          userId,
+          MinioBuckets.PATIENT_DOCUMENTS,
+        ),
+      ),
+    );
   }
 
   public async rename(

@@ -155,7 +155,7 @@ export class WhatsAppTemplateEngine {
   ): string {
     const accessLine = params.persistent
       ? `A instituição *${params.institutionName}* agora tem acesso contínuo à sua conta e pode subir documentos e visualizar seus dados na plataforma Doutor Viu a qualquer momento.`
-      : `A instituição *${params.institutionName}* acabou de se vincular à sua conta e pode subir documentos e visualizar seus dados na plataforma Doutor Viu por até 24 horas.`;
+      : `A instituição *${params.institutionName}* acabou de se vincular à sua conta e pode subir documentos e visualizar seus dados na plataforma Doutor Viu por até 15 dias.`;
 
     return [
       '🏥 *Doutor Viu - Novo acesso autorizado*',
@@ -223,7 +223,7 @@ export class WhatsAppTemplateEngine {
   ): string {
     const accessLine = params.persistent
       ? `Você agora tem acesso contínuo à conta do paciente *${params.patientName}*, podendo subir documentos dele na plataforma Doutor Viu a qualquer momento.`
-      : `Você agora tem acesso à conta do paciente *${params.patientName}*, podendo subir documentos dele na plataforma Doutor Viu por até 24 horas.`;
+      : `Você agora tem acesso à conta do paciente *${params.patientName}*, podendo subir documentos dele na plataforma Doutor Viu por até 15 dias.`;
 
     return [
       '🏥 *Doutor Viu - Novo vínculo realizado*',

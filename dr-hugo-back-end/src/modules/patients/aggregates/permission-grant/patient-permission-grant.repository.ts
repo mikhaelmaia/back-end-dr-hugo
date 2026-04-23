@@ -245,9 +245,15 @@ export class PatientPermissionGrantRepository {
     }
 
     if (sortBy === 'name') {
-      qb.orderBy('user.name', (sortOrder as 'ASC' | 'DESC') ?? 'ASC');
+      qb.orderBy(
+        'user.name',
+        (sortOrder as 'ASC' | 'DESC') ?? 'ASC',
+      ).addOrderBy('grant.createdAt', 'DESC');
     } else {
-      qb.orderBy('grant.createdAt', 'DESC');
+      qb.orderBy('grant.likedByDoctor', 'DESC').addOrderBy(
+        'grant.createdAt',
+        'DESC',
+      );
     }
 
     const totalItems = await qb.getCount();
@@ -321,9 +327,15 @@ export class PatientPermissionGrantRepository {
     }
 
     if (sortBy === 'name') {
-      qb.orderBy('user.name', (sortOrder as 'ASC' | 'DESC') ?? 'ASC');
+      qb.orderBy(
+        'user.name',
+        (sortOrder as 'ASC' | 'DESC') ?? 'ASC',
+      ).addOrderBy('grant.createdAt', 'DESC');
     } else {
-      qb.orderBy('grant.createdAt', 'DESC');
+      qb.orderBy('grant.likedByInstitution', 'DESC').addOrderBy(
+        'grant.createdAt',
+        'DESC',
+      );
     }
 
     const totalItems = await qb.getCount();
@@ -476,7 +488,7 @@ export class PatientPermissionGrantRepository {
       .where('persistent = false')
       .andWhere('revoked_at IS NULL')
       .andWhere('deleted_at IS NULL')
-      .andWhere("created_at <= NOW() - INTERVAL '24 hours'")
+      .andWhere("created_at <= NOW() - INTERVAL '15 days'")
       .execute();
   }
 }

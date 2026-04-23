@@ -20,7 +20,10 @@ const ALLOWED_PATIENT_DOCUMENT_MIME_TYPES = new Set([
 
   // Compactados
   'application/zip',
+  'application/x-zip',
+  'application/x-zip-compressed',
   'application/x-rar-compressed',
+  'application/x-rar',
   'application/vnd.rar',
 ]);
 
@@ -109,6 +112,12 @@ export const getMediaTypeFromFile = (file: Express.Multer.File): MediaType => {
       MediaType.PPTX,
     'text/plain': MediaType.TXT,
     'text/html': MediaType.HTML,
+    'application/zip': MediaType.ZIP,
+    'application/x-zip': MediaType.ZIP,
+    'application/x-zip-compressed': MediaType.ZIP,
+    'application/x-rar-compressed': MediaType.RAR,
+    'application/x-rar': MediaType.RAR,
+    'application/vnd.rar': MediaType.RAR,
   };
 
   return mimeTypeMap[file.mimetype] || MediaType.TXT;
