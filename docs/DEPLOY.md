@@ -112,7 +112,7 @@ Cuidados:
 | WhatsApp não chega | `ZAPI_*` incorreto (falha só vai para o log `[COMM] channel=whatsapp`) | Conferir `ZAPI_*` e a instância na Z-API |
 | Cadastro de instituição/médico falha na validação | `CNES_*` / `CFM_*` ausentes ou serviço fora do ar | Conferir variáveis e a disponibilidade da API |
 | Cadastro de médico/instituição falha ("realize a consulta antes") | Cache da consulta expirou (1 h) ou Redis reiniciado | Repetir a consulta |
-| 400 "Tempo de consulta expirado" | Requisição passou de 30 s | Ver integrações externas lentas |
+| 400 "Tempo de consulta expirado" | Requisição passou de 30 s (5 min nos uploads) | Ver integrações externas lentas; em upload, conexão do usuário muito lenta |
 
 ## Rollback
 

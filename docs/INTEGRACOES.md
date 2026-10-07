@@ -178,4 +178,4 @@ Para o WebSocket, use qualquer cliente Socket.IO conectando em `http://localhost
 - **Mudança de domínio do front:** atualize `DV_WEB_BASE_URL` **e** a lista de origens do CORS em `security.providers.ts` (exige novo deploy). Links já enviados continuam apontando para o domínio antigo.
 - **Mudança de URL/credencial de terceiros:** altere a variável no Coolify e reinicie o app ([COOLIFY.md](COOLIFY.md)).
 - **Arquivos lidos de `src/`:** termos legais, países e o CSV TUSS são lidos de `process.cwd()/src/core/resources/...`; o app precisa rodar com o diretório `src/` presente (é o caso do build por Nixpacks em produção).
-- **Timeout global:** toda requisição é abortada em 30 s (`TimeoutInterceptor`), igual ao timeout padrão da ReceitaWS e do CNES.
+- **Timeout:** toda requisição é abortada em 30 s (`TimeoutInterceptor`), igual ao timeout padrão da ReceitaWS e do CNES. As rotas de upload (`/media/temp`, `/media/temp/multiple`, `PATCH /users/profile-picture`) usam `@RequestTimeout(UPLOAD_REQUEST_TIMEOUT_MS)`, de 5 minutos, para não derrubar envios em conexões lentas.

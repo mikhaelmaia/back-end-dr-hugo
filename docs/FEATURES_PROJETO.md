@@ -138,7 +138,7 @@ Existe também a autenticação por API key (cabeçalho `x-api-key`, decorator `
 | `POST /media/temp/multiple` | Logado | Upload de até 20 arquivos (campo `files`, 50 MB cada) |
 | `GET /media/temp/:id/stream` | Logado | Visualiza um arquivo do bucket temporário |
 
-Tipos aceitos (pela extensão): PNG, JPG, JPEG, GIF, PDF, DOCX, DOC, XLSX, XLS, PPTX, PPT, TXT, HTML, CSV, ODS, RAR, ZIP.
+Tipos aceitos (**validados só pela extensão** do nome do arquivo; o `Content-Type` enviado pelo navegador é ignorado): PNG, JPG, JPEG, GIF, PDF, DOCX, DOC, XLSX, XLS, PPTX, PPT, TXT, HTML, CSV, ODS, RAR, ZIP, mais **HEIC e HEIF**, que são convertidos para JPEG no envio (o arquivo é gravado como `.jpg`, tipo `JPEG`, e o nome devolvido termina em `.jpg`). No envio múltiplo todos os arquivos são validados antes de qualquer gravação; se um falhar, nada é mantido. Timeout de upload: 5 minutos (as demais rotas: 30 s). Se o MinIO estiver indisponível, o upload responde `424 Failed Dependency` (após ~67 s de tentativas de conexão).
 
 ### Dados de apoio (todos públicos)
 

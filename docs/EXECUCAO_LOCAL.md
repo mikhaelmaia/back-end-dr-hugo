@@ -363,7 +363,7 @@ Também lida pelo Node (não é do projeto): `npm_package_version` (versão no `
 | Login não encontra usuários depois de trocar `CRYPTO_KEY` | E-mail/CPF são buscados por hash gerado com a chave | Restaure a chave original ou recrie o banco de desenvolvimento. |
 | WhatsApp não é enviado | `ZAPI_*` ausente/inválido (falha só vai para o log `[COMM] channel=whatsapp`) | Preencha ou ignore em desenvolvimento. |
 | Links dos e-mails com `undefined` | `DV_WEB_BASE_URL`/`DV_WEB_*_PATH` vazios | Preencha. |
-| "Tempo de consulta expirado" | O `TimeoutInterceptor` aborta requisições com mais de 30 s | Veja se uma API externa está lenta. |
+| "Tempo de consulta expirado" | O `TimeoutInterceptor` aborta requisições com mais de 30 s (5 min nas rotas de upload) | Veja se uma API externa está lenta. |
 | Erro de CORS no navegador | Origem do front fora da lista (`doutorviu.com.br`, `www.doutorviu.com.br`, `localhost:5173`) | Rodar o front na porta 5173 ou ajustar [security.providers.ts](../dr-hugo-back-end/src/core/config/security/security.providers.ts). |
 | `/domain/terms/*` ou `/domain/countries/*` falham; log `Arquivo CSV não encontrado` (TUSS) | Esses serviços leem arquivos de `process.cwd()/src/core/resources/...`; funcionam rodando da pasta do projeto, mas não de um diretório sem `src/` | Rode os comandos dentro de `dr-hugo-back-end/`. |
 | Teste e2e (`npm run test:e2e`) falha | O teste existente é o modelo do Nest (espera `GET /` = `Hello World!`) e precisa de todos os serviços | Não é um teste real do projeto. |
