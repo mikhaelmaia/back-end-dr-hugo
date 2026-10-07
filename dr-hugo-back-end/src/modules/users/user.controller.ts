@@ -21,6 +21,10 @@ import { UserService } from './user.service';
 import { CurrentUser } from 'src/core/vo/decorators/current-user.decorator';
 import { UserPaths } from 'src/core/vo/consts/paths';
 import { ExceptionResponse } from 'src/core/config/exceptions/exception-response';
+import {
+  RequestTimeout,
+  UPLOAD_REQUEST_TIMEOUT_MS,
+} from 'src/core/vo/decorators/request-timeout.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerSingleFileConfig } from 'src/core/config/media/multer.config';
 import { MediaDto } from 'src/core/modules/media/dtos/media.dto';
@@ -106,6 +110,7 @@ export class UserController extends BaseController<User, UserDto, UserService> {
     type: ExceptionResponse,
   })
   @Patch(UserPaths.UPDATE_PROFILE_PICTURE)
+  @RequestTimeout(UPLOAD_REQUEST_TIMEOUT_MS)
   @UseInterceptors(FileInterceptor('file', multerSingleFileConfig))
   public async updateUserProfilePicture(
     @CurrentUser('id') userId: string,

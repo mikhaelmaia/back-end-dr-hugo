@@ -12,7 +12,7 @@ import { MediaMapper } from './media.mapper';
 import { BaseService } from '../../base/base.service';
 import { MinioService } from './minio/minio.service';
 import { MinioBuckets } from './minio/minio.buckets';
-import { acceptFalseThrows } from '../../utils/functions';
+import { acceptFalseThrows, isPresent } from '../../utils/functions';
 import { Optional } from '../../utils/optional';
 import { MediaType } from '../../vo/consts/enums';
 import { Cron, CronExpression } from '@nestjs/schedule';
@@ -21,7 +21,8 @@ import * as path from 'node:path';
 import {
   extractFileTypeFromOriginalName,
   getMediaContentType,
-  isAllowedMimeType,
+  isHeicExtension,
+  isHeicFile,
 } from 'src/core/utils/media.utils';
 import { PassThrough } from 'node:stream';
 import archiver from 'archiver';
@@ -36,6 +37,7 @@ export class MediaService extends BaseService<
 > {
   private readonly logger = new Logger(MediaService.name);
   private readonly MEDIA_TYPE_NOT_SUPPORTED = 'Tipo de mídia não suportado';
+  private readonly NO_FILE_SENT = 'Nenhum arquivo enviado';
   private readonly MEDIA_NOT_FOUND = 'Mídia não encontrada';
   private readonly ACCESS_NOT_ALLOWED = 'Acesso negado ao recurso';
 
@@ -52,12 +54,7 @@ export class MediaService extends BaseService<
     userId: string,
     bucket: MinioBuckets = MinioBuckets.TEMP,
   ): Promise<MediaDto> {
-    acceptFalseThrows(
-      isAllowedMimeType(file.mimetype),
-      () => new BadRequestException(this.MEDIA_TYPE_NOT_SUPPORTED),
-    );
-
-    this.validateFileType(file);
+    this.validateUploadedFile(file);
 
     const objectName = this.generateObjectName(file);
 
@@ -73,6 +70,44 @@ export class MediaService extends BaseService<
     const savedMedia = await this.repository.save(media);
 
     return this.mapper.toDto(savedMedia);
+  }
+
+  public async createManyMedia(
+    files: Express.Multer.File[],
+    userId: string,
+  ): Promise<MediaDto[]> {
+    acceptFalseThrows(
+      Array.isArray(files) && files.length > 0,
+      () => new BadRequestException(this.NO_FILE_SENT),
+    );
+
+    files.forEach((file) => this.validateUploadedFile(file));
+
+    const results = await Promise.allSettled(
+      files.map((file) => this.createMedia(file, userId)),
+    );
+
+    const failure = results.find(
+      (result): result is PromiseRejectedResult => result.status === 'rejected',
+    );
+
+    if (failure) {
+      await this.discardCreatedMedias(results, userId);
+      throw failure.reason;
+    }
+
+    return results.map(
+      (result) => (result as PromiseFulfilledResult<MediaDto>).value,
+    );
+  }
+
+  public validateUploadedFile(file: Express.Multer.File): void {
+    acceptFalseThrows(
+      isPresent(file),
+      () => new BadRequestException(this.NO_FILE_SENT),
+    );
+
+    this.validateFileType(file);
   }
 
   public async findByIdAndOwnerId(
@@ -201,10 +236,7 @@ export class MediaService extends BaseService<
     file: Express.Multer.File,
     ownerUserId: string,
   ): Promise<MediaDto> {
-    acceptFalseThrows(
-      isAllowedMimeType(file.mimetype),
-      () => new BadRequestException(this.MEDIA_TYPE_NOT_SUPPORTED),
-    );
+    this.validateUploadedFile(file);
 
     const existingMedia = await this.repository.findByIdAndOwnerId(
       id,
@@ -215,8 +247,6 @@ export class MediaService extends BaseService<
       existingMedia !== null,
       () => new NotFoundException(this.MEDIA_NOT_FOUND),
     );
-
-    this.validateFileType(file);
 
     await this.removeFromMinio(existingMedia.bucket, existingMedia.objectName);
 
@@ -316,6 +346,23 @@ export class MediaService extends BaseService<
     }
   }
 
+  private async discardCreatedMedias(
+    results: PromiseSettledResult<MediaDto>[],
+    userId: string,
+  ): Promise<void> {
+    for (const result of results) {
+      if (result.status !== 'fulfilled') continue;
+      try {
+        await this.deleteByIdAndOwnerId(result.value.id, userId);
+      } catch (error) {
+        this.logger.error(
+          `Erro ao descartar mídia ${result.value.id} após falha no envio em lote`,
+          error,
+        );
+      }
+    }
+  }
+
   private async uploadToMinio(
     bucket: string,
     objectName: string,
@@ -323,9 +370,14 @@ export class MediaService extends BaseService<
     contentType: string,
   ): Promise<void> {
     const client = await this.minioService.getClient();
-    await client.putObject(bucket, objectName, buffer, buffer.length, {
-      'Content-Type': contentType,
-    });
+    try {
+      await client.putObject(bucket, objectName, buffer, buffer.length, {
+        'Content-Type': contentType,
+      });
+    } catch (error) {
+      this.logger.error(`Falha ao gravar ${objectName} no MinIO`, error);
+      throw this.minioService.storageUnavailable();
+    }
   }
 
   private async removeFromMinio(
@@ -352,7 +404,9 @@ export class MediaService extends BaseService<
 
   private generateObjectName(file: Express.Multer.File): string {
     const uniqueId = randomUUID();
-    const fileExtension = path.extname(file.originalname);
+    const fileExtension = isHeicFile(file)
+      ? '.jpg'
+      : path.extname(file.originalname);
     return `${uniqueId}${fileExtension}`;
   }
 
@@ -360,8 +414,9 @@ export class MediaService extends BaseService<
     Optional.ofNullable(file)
       .map((f) => f.originalname)
       .map(extractFileTypeFromOriginalName)
-      .map((type) => type?.toUpperCase())
-      .map((type) => MediaType[type])
+      .filter(
+        (type) => isHeicExtension(type) || !!MediaType[type?.toUpperCase()],
+      )
       .orElseThrow(
         () => new BadRequestException(this.MEDIA_TYPE_NOT_SUPPORTED),
       );

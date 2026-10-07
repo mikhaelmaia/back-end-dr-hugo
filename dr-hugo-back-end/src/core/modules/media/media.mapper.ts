@@ -4,7 +4,7 @@ import { Media } from './entities/media.entity';
 import { MediaDto } from './dtos/media.dto';
 import {
   extractFilename,
-  isHeic,
+  isHeicFile,
   convertHeicToJpeg,
   getMediaTypeFromFile,
   getMediaContentType,
@@ -47,15 +47,18 @@ export class MediaMapper extends BaseMapper<Media, MediaDto> {
     let finalMimeType = getMediaTypeFromFile(file);
     let finalContentType = getMediaContentType(finalMimeType);
 
-    if (isHeic(file.mimetype)) {
+    if (isHeicFile(file)) {
       buffer = await convertHeicToJpeg(file.buffer);
       finalMimeType = MediaType.JPEG;
       finalContentType = getMediaContentType(finalMimeType);
     }
 
-    media.filename = extractFilename(file);
+    const heic = isHeicFile(file);
+    media.filename = heic
+      ? extractFilename(file).replace(/\.(heic|heif)$/i, '.jpg')
+      : extractFilename(file);
     media.type = finalMimeType;
-    media.size = file.size;
+    media.size = buffer.length;
     media.bucket = bucket;
     media.objectName = objectName;
     media.ownerUserId = userId;
