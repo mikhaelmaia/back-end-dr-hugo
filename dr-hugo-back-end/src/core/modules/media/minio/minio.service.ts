@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Client } from 'minio';
 import { ConfigService } from '@nestjs/config';
 import { getAllMinioBuckets } from './minio.buckets';
@@ -26,13 +26,24 @@ export class MinioService {
     });
 
     this.logger.log(
-      `MinIO client criado (${useSSL ? 'https' : 'http'}://${endPoint}:${port}) - accessKey=${this.configService.get<string>('MINIO_ACCESS_KEY')} - secretKey=${this.configService.get<string>('MINIO_SECRET_KEY')}`,
+      `MinIO client criado (${useSSL ? 'https' : 'http'}://${endPoint}:${port})`,
     );
   }
 
   public async getClient(): Promise<Client> {
-    await this.ensureInitialized();
+    try {
+      await this.ensureInitialized();
+    } catch {
+      throw this.storageUnavailable();
+    }
     return this.client;
+  }
+
+  public storageUnavailable(): HttpException {
+    return new HttpException(
+      'Armazenamento de arquivos indisponível. Tente novamente em instantes.',
+      HttpStatus.FAILED_DEPENDENCY,
+    );
   }
 
   public getObjectUrl(bucket: string, objectName: string): string {
@@ -51,7 +62,10 @@ export class MinioService {
     if (this.initialized) return;
 
     if (!this.initializing) {
-      this.initializing = this.initialize();
+      this.initializing = this.initialize().catch((error) => {
+        this.initializing = undefined;
+        throw error;
+      });
     }
 
     await this.initializing;

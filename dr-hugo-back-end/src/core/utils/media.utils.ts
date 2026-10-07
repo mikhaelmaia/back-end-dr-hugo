@@ -1,38 +1,17 @@
 import heicConvert from 'heic-convert';
 import { MediaType } from '../vo/consts/enums';
 
-const ALLOWED_PATIENT_DOCUMENT_MIME_TYPES = new Set([
-  // Imagens
-  'image/jpeg',
-  'image/jpg',
-  'image/png',
-  'image/heic',
-  'image/heif',
-
-  // Documentos
-  'application/pdf',
-  'application/msword', // DOC
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // DOCX
-  'text/csv',
-  'application/vnd.oasis.opendocument.spreadsheet', // ODS
-  'application/vnd.ms-excel', // XLS
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // XLSX
-
-  // Compactados
-  'application/zip',
-  'application/x-zip',
-  'application/x-zip-compressed',
-  'application/x-rar-compressed',
-  'application/x-rar',
-  'application/vnd.rar',
-]);
-
-export const isAllowedMimeType = (mimeType: string): boolean => {
-  return ALLOWED_PATIENT_DOCUMENT_MIME_TYPES.has(mimeType);
-};
+const HEIC_EXTENSIONS = new Set(['heic', 'heif']);
 
 export const isHeic = (mimeType: string): boolean =>
   mimeType === 'image/heic' || mimeType === 'image/heif';
+
+export const isHeicExtension = (extension: string | null): boolean =>
+  HEIC_EXTENSIONS.has(extension?.toLowerCase());
+
+export const isHeicFile = (file: Express.Multer.File): boolean =>
+  isHeic(file.mimetype) ||
+  isHeicExtension(extractFileTypeFromOriginalName(file.originalname));
 
 export const convertHeicToJpeg = async (buffer: Buffer): Promise<Buffer> => {
   const outputBuffer = await heicConvert({
@@ -63,6 +42,9 @@ export const getMediaContentType = (mediaType: MediaType): string => {
     [MediaType.XLS]: 'application/vnd.ms-excel',
     [MediaType.XLSX]:
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    [MediaType.PPT]: 'application/vnd.ms-powerpoint',
+    [MediaType.PPTX]:
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
     [MediaType.TXT]: 'text/plain',
     [MediaType.CSV]: 'text/csv',
     [MediaType.ODS]: 'application/vnd.oasis.opendocument.spreadsheet',

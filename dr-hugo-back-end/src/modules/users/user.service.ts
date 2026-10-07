@@ -80,6 +80,8 @@ export class UserService extends BaseService<
     userId: string,
     file: Express.Multer.File | null,
   ): Promise<MediaDto> {
+    this.mediaService.validateUploadedFile(file);
+
     const currentUserProfilePictureId =
       await this.repository.findUserProfilePictureId(userId);
 

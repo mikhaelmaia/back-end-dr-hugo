@@ -26,6 +26,10 @@ import {
   multerSingleFileConfig,
   multerMultipleFilesConfig,
 } from '../../config/media/multer.config';
+import {
+  RequestTimeout,
+  UPLOAD_REQUEST_TIMEOUT_MS,
+} from 'src/core/vo/decorators/request-timeout.decorator';
 import { CurrentUser } from 'src/core/vo/decorators/current-user.decorator';
 
 @ApiTags('Gerenciamento de Mídia')
@@ -81,6 +85,7 @@ export class MediaController {
     type: ExceptionResponse,
   })
   @Post(MediaPaths.SAVE_TEMP)
+  @RequestTimeout(UPLOAD_REQUEST_TIMEOUT_MS)
   @UseInterceptors(FileInterceptor('file', multerSingleFileConfig))
   public async saveTemp(
     @UploadedFile() file: Express.Multer.File,
@@ -142,15 +147,13 @@ export class MediaController {
     type: ExceptionResponse,
   })
   @Post(MediaPaths.SAVE_TEMP_MULTIPLE)
+  @RequestTimeout(UPLOAD_REQUEST_TIMEOUT_MS)
   @UseInterceptors(FilesInterceptor('files', 20, multerMultipleFilesConfig))
   public async saveTempMultiple(
     @UploadedFiles() files: Express.Multer.File[],
     @CurrentUser('id') userId: string,
   ): Promise<MediaDto[]> {
-    const mediaPromises = files.map((file) =>
-      this.mediaService.createMedia(file, userId),
-    );
-    return await Promise.all(mediaPromises);
+    return await this.mediaService.createManyMedia(files, userId);
   }
 
   @ApiOperation({
