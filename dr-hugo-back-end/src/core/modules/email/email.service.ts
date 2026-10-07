@@ -11,27 +11,36 @@ export class EmailService {
 
   public async sendEmail(emailSend: EmailSend): Promise<void> {
     const reference: EmailReference = emailSend.reference;
-    
+    const startedAt = Date.now();
+
+    this.logger.log(
+      `[COMM] channel=email status=started recipient=${emailSend.to} template=${reference.templateName} subject="${reference.subject}"`,
+    );
+
     try {
-      this.logger.log(`Enviando email para ${emailSend.to} com template '${reference.templateName}'`);
-      
       const result = await this.mailerService.sendMail({
         to: emailSend.to,
         subject: reference.subject,
         template: `./${reference.templateName}`,
         context: Object.fromEntries(emailSend.templateModel),
       });
-      
+
+      const duration = Date.now() - startedAt;
+
       this.logger.log(
-        `Email enviado com sucesso para ${emailSend.to}. MessageId: ${result.messageId}`,
+        `[COMM] channel=email status=success recipient=${emailSend.to} template=${reference.templateName} messageId=${result.messageId ?? 'n/a'} duration=${duration}ms`,
       );
-      
+
       if (result.response) {
-        this.logger.debug(`Resposta SMTP: ${result.response}`);
+        this.logger.debug(
+          `[COMM] channel=email smtp_response="${result.response}" recipient=${emailSend.to}`,
+        );
       }
     } catch (error) {
+      const duration = Date.now() - startedAt;
+
       this.logger.error(
-        `Erro ao enviar email para ${emailSend.to} com template '${reference.templateName}'`,
+        `[COMM] channel=email status=failed recipient=${emailSend.to} template=${reference.templateName} duration=${duration}ms error="${(error as Error)?.message}"`,
         error,
       );
       throw error;

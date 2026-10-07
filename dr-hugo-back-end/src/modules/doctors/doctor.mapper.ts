@@ -4,6 +4,7 @@ import { DoctorDto } from './dtos/doctor.dto';
 import { Doctor } from './entities/doctor.entity';
 import { CreateDoctorDto } from './dtos/create-doctor.dto';
 import { UserDto } from '../users/dtos/user.dto';
+import { UserMapper } from '../users/user.mapper';
 import {
   BrazilianState,
   DoctorRegistrationType,
@@ -25,6 +26,10 @@ import { DoctorRegistrationDto } from './aggregates/registration/dtos/doctor-reg
 
 @Injectable()
 export class DoctorMapper extends BaseMapper<Doctor, DoctorDto> {
+  public constructor(private readonly userMapper: UserMapper) {
+    super();
+  }
+
   public toDto(entity: Doctor): DoctorDto {
     const dto = new DoctorDto();
 
@@ -34,16 +39,18 @@ export class DoctorMapper extends BaseMapper<Doctor, DoctorDto> {
 
     dto.birthDate = entity.birthDate;
     dto.isGeneralist = entity.isGeneralist;
+    dto.gender = entity.gender;
 
     if (entity.user) {
-      dto.name = entity.user.name;
-      dto.email = entity.user.email;
-      dto.taxId = entity.user.taxId;
-      dto.phone = entity.user.phone;
-      dto.countryCode = entity.user.countryCode;
-      dto.countryIdd = entity.user.countryIdd;
-      dto.role = entity.user.role;
-      dto.acceptedTerms = entity.user.acceptedTerms;
+      const userDto = this.userMapper.toDto(entity.user);
+      dto.name = userDto.name;
+      dto.email = userDto.email;
+      dto.taxId = userDto.taxId;
+      dto.phone = userDto.phone;
+      dto.countryCode = userDto.countryCode;
+      dto.countryIdd = userDto.countryIdd;
+      dto.role = userDto.role;
+      dto.acceptedTerms = userDto.acceptedTerms;
     }
 
     if (entity.registration) {
@@ -64,6 +71,7 @@ export class DoctorMapper extends BaseMapper<Doctor, DoctorDto> {
         specDto.id = spec.id;
         specDto.name = spec.name;
         specDto.rqe = spec.rqe;
+        specDto.isActive = spec.isActive;
         return specDto;
       });
     }
@@ -80,6 +88,7 @@ export class DoctorMapper extends BaseMapper<Doctor, DoctorDto> {
 
     entity.birthDate = dto.birthDate;
     entity.isGeneralist = dto.isGeneralist;
+    entity.gender = dto.gender;
 
     entity.user = new User();
 
@@ -101,6 +110,7 @@ export class DoctorMapper extends BaseMapper<Doctor, DoctorDto> {
     const entity = new Doctor();
 
     entity.birthDate = dto.birthDate;
+    entity.gender = dto.gender;
 
     const user = new UserDto();
     user.email = dto.email;
@@ -173,6 +183,7 @@ export class DoctorMapper extends BaseMapper<Doctor, DoctorDto> {
       DoctorSpecializationType,
       specialtyDto.name,
     );
+    specialty.isActive = specialtyDto.isActive ?? true;
     return specialty;
   }
 }

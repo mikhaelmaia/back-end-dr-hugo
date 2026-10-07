@@ -23,10 +23,10 @@ export class FingerprintService {
     sessionId: string | null;
   }): Fingerprint {
     const entity = new Fingerprint();
-    entity.fingerprint = this.cryptoService.encrypt(
+    entity.fingerprint = this.cryptoService.hashForSearch(
       JSON.stringify(data.fingerprint),
     );
-    entity.ip = data.ip;
+    entity.ip = this.cryptoService.encrypt(data.ip);
     entity.userAgent = data.userAgent;
     entity.sessionId = data.sessionId;
     entity.version = data.fingerprint.version ?? 'unknown';

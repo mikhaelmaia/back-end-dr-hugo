@@ -13,6 +13,13 @@ export default () => ({
       process.env.DV_WEB_EMAIL_CHANGE_CONFIRMATION_PATH,
     profileChangeConfirmationPath:
       process.env.DV_WEB_PROFILE_CHANGE_CONFIRMATION_PATH,
+    permissionRequestPath: process.env.DV_WEB_PERMISSION_REQUEST_PATH,
+    phoneChangeConfirmationPath:
+      process.env.DV_WEB_PHONE_CHANGE_CONFIRMATION_PATH,
+    grantedDoctorPath: process.env.DV_WEB_GRANTED_DOCTOR_PATH,
+    grantedInstitutionPath: process.env.DV_WEB_GRANTED_INSTITUTION_PATH,
+    grantedPatientPath: process.env.DV_WEB_GRANTED_PATIENT_PATH,
+    documentFormPath: process.env.DV_WEB_DOCUMENT_FORM_PATH,
   },
   database: {
     host: process.env.DATABASE_HOST,
@@ -58,5 +65,17 @@ export default () => ({
   viaCep: {
     apiUrl: process.env.VIA_CEP_API_URL,
     apiTimeout: Number.parseInt(process.env.VIA_CEP_API_TIMEOUT, 10) || 3000,
+  },
+  cnes: {
+    apiUrl: process.env.CNES_API_URL,
+    apiTimeout: Number.parseInt(process.env.CNES_API_TIMEOUT, 10) || 30000,
+    establishmentPath: process.env.CNES_ESTABLISHMENT_PATH,
+  },
+  zApi: {
+    apiUrl: process.env.ZAPI_API_URL,
+    instanceId: process.env.ZAPI_INSTANCE_ID,
+    token: process.env.ZAPI_TOKEN,
+    clientToken: process.env.ZAPI_CLIENT_TOKEN,
+    apiTimeout: Number.parseInt(process.env.ZAPI_API_TIMEOUT, 10) || 5000,
   },
 });

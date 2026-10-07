@@ -20,6 +20,7 @@ import { IsNotEmptyString } from 'src/core/vo/validators/is-not-empty-string.val
 import { IsValidTaxId } from 'src/core/vo/validators/is-valid-tax-id.validator';
 import { DoctorSpecializationDto } from '../aggregates/specialization/dtos/doctor-specialization.dto';
 import { IsUniqueComposite } from 'src/core/vo/validators/is-unique-composite.validator';
+import { IsUnique } from 'src/core/vo/validators/is-unique.validator';
 
 export class DoctorRegistrationValidationDto {
   @IsNotEmpty({ message: provideIsNotEmptyValidationMessage('CPF') })
@@ -31,6 +32,7 @@ export class DoctorRegistrationValidationDto {
       tableName: 'dv_user',
       column: 'taxId',
       additionalField: { column: 'role', value: 'DOCTOR' },
+      useHash: true,
     },
     {
       message: 'Já existe médico com este CPF cadastrado',
@@ -50,6 +52,9 @@ export class DoctorRegistrationValidationDto {
   @IsString({ message: provideIsStringValidationMessage('CRM') })
   @IsNotEmptyString({ message: 'CRM é obrigatório' })
   @Length(1, 20, { message: provideLengthValidationMessage('CRM') })
+  @IsUnique('dv_doctor_registration', 'crm', {
+    message: 'Já existe médico com este CRM cadastrado',
+  })
   @ApiProperty({
     description: 'Número do CRM do médico',
     example: '123456',

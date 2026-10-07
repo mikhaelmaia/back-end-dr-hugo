@@ -6,11 +6,10 @@ export class Fingerprint extends BaseEntity {
   @Column({
     name: 'fingerprint_hash',
     type: 'text',
-    unique: true,
   })
   public fingerprint: string;
 
-  @Column({ name: 'ip_address', type: 'varchar', length: 45 })
+  @Column({ name: 'ip_address', type: 'text' })
   public ip: string;
 
   @Column({ name: 'user_agent', type: 'text' })

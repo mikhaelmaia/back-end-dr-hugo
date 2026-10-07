@@ -47,6 +47,7 @@ export class CreateInstitutionDto {
       tableName: 'dv_user',
       column: 'email',
       additionalField: { column: 'role', value: 'INSTITUTION' },
+      useHash: true,
     },
     {
       message: 'Já existe instituição com este e-mail cadastrado',
@@ -99,6 +100,7 @@ export class CreateInstitutionDto {
       tableName: 'dv_user',
       column: 'taxId',
       additionalField: { column: 'role', value: 'INSTITUTION' },
+      useHash: true,
     },
     {
       message: 'Já existe instituição com este CNPJ cadastrado',
@@ -125,6 +127,7 @@ export class CreateInstitutionDto {
       tableName: 'dv_user',
       column: 'phone',
       additionalField: { column: 'role', value: 'INSTITUTION' },
+      useHash: true,
     },
     {
       message: 'Já existe instituição com este telefone/celular cadastrado',

@@ -12,6 +12,8 @@ import { HealthModule } from './health/health.module';
 import { AddressModule } from './address/address.module';
 import { ResolutionKeyModule } from './resolution-key/resolution-key.module';
 import { QrCodeModule } from './qr-code/qr-code.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { WhatsAppModule } from './whatsapp/whatsapp.module';
 
 @Module({
   imports: [
@@ -25,9 +27,11 @@ import { QrCodeModule } from './qr-code/qr-code.module';
     ExternalModule,
     HealthModule,
     MediaModule,
+    NotificationsModule,
     QrCodeModule,
     ResolutionKeyModule,
     TokenModule,
+    WhatsAppModule,
   ],
   exports: [
     AddressModule,
@@ -40,9 +44,11 @@ import { QrCodeModule } from './qr-code/qr-code.module';
     ExternalModule,
     HealthModule,
     MediaModule,
+    NotificationsModule,
     QrCodeModule,
     ResolutionKeyModule,
     TokenModule,
+    WhatsAppModule,
   ],
 })
 export class CoreModule {}

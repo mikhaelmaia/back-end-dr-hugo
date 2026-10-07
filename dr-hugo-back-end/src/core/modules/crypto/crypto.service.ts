@@ -57,6 +57,10 @@ export class CryptoService {
     }
   }
 
+  public hashForSearch(value: string): string {
+    return crypto.createHmac('sha256', this.key).update(value).digest('hex');
+  }
+
   private loadKey(): Buffer {
     const value = this.config.get<string>('CRYPTO_KEY');
 

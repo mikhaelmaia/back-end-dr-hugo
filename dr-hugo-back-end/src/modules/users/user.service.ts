@@ -4,6 +4,7 @@ import { User } from './entities/user.entity';
 import { UserDto } from './dtos/user.dto';
 import { UserRepository } from './user.repository';
 import { UserMapper } from './user.mapper';
+import { CryptoService } from 'src/core/modules/crypto/crypto.service';
 import {
   acceptFalseThrows,
   compare,
@@ -18,6 +19,8 @@ import { TokenType, UserRole } from 'src/core/vo/consts/enums';
 import { MediaService } from 'src/core/modules/media/media.service';
 import { MinioBuckets } from 'src/core/modules/media/minio/minio.buckets';
 import { MediaDto } from 'src/core/modules/media/dtos/media.dto';
+import { MediaStreamResult } from 'src/core/vo/types/types';
+import * as crypto from 'node:crypto';
 
 @Injectable()
 export class UserService extends BaseService<
@@ -35,6 +38,7 @@ export class UserService extends BaseService<
     private readonly emailHelper: EmailHelper,
     private readonly tokenService: TokenService,
     private readonly mediaService: MediaService,
+    private readonly cryptoService: CryptoService,
   ) {
     super(userRepository, userMapper);
   }
@@ -59,6 +63,15 @@ export class UserService extends BaseService<
       .orElse(null);
   }
 
+  public async findByApiKey(rawApiKey: string): Promise<UserDto | null> {
+    const apiKeyHash = this.cryptoService.hashForSearch(rawApiKey);
+    return Optional.ofNullable(
+      await this.repository.findByApiKeyHash(apiKeyHash),
+    )
+      .map((user: User) => this.mapper.toDto(user))
+      .orElse(null);
+  }
+
   public async validateUserEmail(userId: string): Promise<void> {
     await this.repository.activateUser(userId);
   }
@@ -67,15 +80,21 @@ export class UserService extends BaseService<
     userId: string,
     file: Express.Multer.File | null,
   ): Promise<MediaDto> {
+    this.mediaService.validateUploadedFile(file);
+
     const currentUserProfilePictureId =
       await this.repository.findUserProfilePictureId(userId);
 
     if (currentUserProfilePictureId) {
-      await this.mediaService.deleteById(currentUserProfilePictureId);
+      await this.mediaService.deleteByIdAndOwnerId(
+        currentUserProfilePictureId,
+        userId,
+      );
     }
 
     const mediaDto = await this.mediaService.createMedia(
       file,
+      userId,
       MinioBuckets.USERS,
     );
     await this.repository.updateProfilePicture(userId, mediaDto.id);
@@ -97,27 +116,32 @@ export class UserService extends BaseService<
     await this.repository.save(user);
   }
 
-  public async findUserProfilePicture(
+  public async getProfilePictureStream(
     userId: string,
-  ): Promise<MediaDto | null> {
+  ): Promise<MediaStreamResult | null> {
     const profilePictureId =
       await this.repository.findUserProfilePictureId(userId);
-    return this.mediaService.findById(profilePictureId);
+
+    return profilePictureId
+      ? await this.mediaService.getStream(profilePictureId, userId)
+      : null;
   }
 
   protected override async beforeCreate(entity: User): Promise<void> {
     entity.inactivate();
     await this.handleUserPassword(entity);
+    this.handleApiKey(entity);
   }
 
   protected override async postCreate(entity: User): Promise<void> {
+    const decryptedEmail = this.cryptoService.decrypt(entity.email);
     const token = await this.tokenService.generateToken(
-      `${entity.email}:${entity.role}`,
+      `${decryptedEmail}:${entity.role}`,
       TokenType.EMAIL_CONFIRMATION,
     );
     await this.emailHelper.sendUserRegisteredEmail(
       entity.name,
-      entity.email,
+      decryptedEmail,
       entity.role,
       token.token,
     );
@@ -131,8 +155,18 @@ export class UserService extends BaseService<
     entityReceived: Partial<UserDto>,
     entityFound: User,
   ): User {
-    entityFound.email = entityReceived.email || entityFound.email;
-    entityFound.phone = entityReceived.phone || entityFound.phone;
+    if (entityReceived.email) {
+      entityFound.email = this.cryptoService.encrypt(entityReceived.email);
+      entityFound.emailHash = this.cryptoService.hashForSearch(
+        entityReceived.email,
+      );
+    }
+    if (entityReceived.phone) {
+      entityFound.phone = this.cryptoService.encrypt(entityReceived.phone);
+      entityFound.phoneHash = this.cryptoService.hashForSearch(
+        entityReceived.phone,
+      );
+    }
     return entityFound;
   }
 
@@ -150,5 +184,11 @@ export class UserService extends BaseService<
     if (!user.password || (await compare(user.password, saved.password)))
       user.updatePassword(saved.password);
     else user.updatePassword(await encrypt(user.password));
+  }
+
+  private handleApiKey(user: User): void {
+    const rawApiKey = crypto.randomBytes(32).toString('hex');
+    user.apiKey = this.cryptoService.encrypt(rawApiKey);
+    user.apiKeyHash = this.cryptoService.hashForSearch(rawApiKey);
   }
 }

@@ -7,6 +7,6 @@ export const formatToTitleCase = (input: string): string => {
     .join(' ');
 };
 
-export const isValidId = (id: string): boolean => {
+export const isInvalidId = (id: string): boolean => {
   return !id || id.trim() === '';
 };

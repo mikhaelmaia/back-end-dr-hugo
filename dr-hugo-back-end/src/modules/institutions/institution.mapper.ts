@@ -12,6 +12,7 @@ import {
 import {
   InstitutionValidatedDto,
   InstitutionValidationData,
+  HealthInstitutionData,
 } from './dtos/institution-validated.dto';
 import { InstitutionCompany } from './aggregates/company/entities/company.entity';
 import { InstitutionCompanyRepresentative } from './aggregates/representative/entities/representative.entity';
@@ -22,22 +23,50 @@ import {
   findEnumValueByKeyOrValue,
 } from 'src/core/utils/enum.utils';
 import { CreateInstitutionCompanyRepresentativeDto } from './aggregates/representative/dtos/create-representative.dto';
+import { CompanyDto } from './aggregates/company/dtos/company.dto';
+import { RepresentativeDto } from './aggregates/representative/dtos/representative.dto';
+import { HealthInstitution } from './aggregates/health/entities/health-institution.entity';
+import { stringToLocalDate } from 'src/core/utils/date-time.utils';
+import { UserMapper } from '../users/user.mapper';
+import { CryptoService } from 'src/core/modules/crypto/crypto.service';
 
 @Injectable()
 export class InstitutionMapper extends BaseMapper<Institution, InstitutionDto> {
+  public constructor(
+    private readonly userMapper: UserMapper,
+    private readonly cryptoService: CryptoService,
+  ) {
+    super();
+  }
+
   public toDto(entity: Institution): InstitutionDto {
     const dto = new InstitutionDto();
 
     dto.id = entity.id;
     dto.cnes = entity.cnes;
     dto.medicalInstitutionType = entity.medicalInstitutionType;
-    dto.name = entity.user?.name || null;
-    dto.taxId = entity.user?.taxId || null;
-    dto.role = entity.user?.role || null;
-    dto.email = entity.user?.email || null;
-    dto.countryCode = entity.user?.countryCode || null;
-    dto.countryIdd = entity.user?.countryIdd || null;
-    dto.phone = entity.user?.phone || null;
+    dto.otherMedicalInstitutionType = entity.otherMedicalInstitutionType;
+
+    if (entity.user) {
+      const userDto = this.userMapper.toDto(entity.user);
+      dto.name = userDto.name;
+      dto.taxId = userDto.taxId;
+      dto.role = userDto.role;
+      dto.email = userDto.email;
+      dto.countryCode = userDto.countryCode;
+      dto.countryIdd = userDto.countryIdd;
+      dto.phone = userDto.phone;
+      dto.acceptedTerms = userDto.acceptedTerms;
+      dto.profilePictureId = entity.user.profilePicture?.id || null;
+    }
+
+    if (entity.address) {
+      dto.address = this.mapAddressEntityToDto(entity.address);
+    }
+
+    if (entity.company) {
+      dto.company = this.mapCompanyEntityToDto(entity.company);
+    }
 
     return dto;
   }
@@ -118,12 +147,14 @@ export class InstitutionMapper extends BaseMapper<Institution, InstitutionDto> {
   ): Address {
     const address = new Address();
 
-    address.zipCode = validationData.zipCode;
-    address.street = validationData.street;
-    address.number = validationData.number;
-    address.complement = validationData.complement;
-    address.neighborhood = validationData.neighborhood;
-    address.city = validationData.city;
+    address.zipCode = this.cryptoService.encrypt(validationData.zipCode);
+    address.street = this.cryptoService.encrypt(validationData.street);
+    address.number = this.cryptoService.encrypt(validationData.number);
+    address.complement = validationData.complement
+      ? this.cryptoService.encrypt(validationData.complement)
+      : null;
+    address.neighborhood = this.cryptoService.encrypt(validationData.neighborhood);
+    address.city = this.cryptoService.encrypt(validationData.city);
     address.state = findEnumByKeyValue(BrazilianState, validationData.state);
 
     return address;
@@ -132,12 +163,14 @@ export class InstitutionMapper extends BaseMapper<Institution, InstitutionDto> {
   public mapAddressDtoToEntity(addressDto: AddressDto): Address {
     const address = new Address();
 
-    address.zipCode = addressDto.zipCode;
-    address.street = addressDto.street;
-    address.number = addressDto.number;
-    address.complement = addressDto.complement;
-    address.neighborhood = addressDto.neighborhood;
-    address.city = addressDto.city;
+    address.zipCode = this.cryptoService.encrypt(addressDto.zipCode);
+    address.street = this.cryptoService.encrypt(addressDto.street);
+    address.number = this.cryptoService.encrypt(addressDto.number);
+    address.complement = addressDto.complement
+      ? this.cryptoService.encrypt(addressDto.complement)
+      : null;
+    address.neighborhood = this.cryptoService.encrypt(addressDto.neighborhood);
+    address.city = this.cryptoService.encrypt(addressDto.city);
     address.state = addressDto.state;
     address.country = addressDto.country;
 
@@ -149,11 +182,92 @@ export class InstitutionMapper extends BaseMapper<Institution, InstitutionDto> {
   ): InstitutionCompanyRepresentative {
     const representative = new InstitutionCompanyRepresentative();
 
-    representative.name = representativeDto.name;
-    representative.taxId = representativeDto.taxId;
+    representative.name = this.cryptoService.encrypt(representativeDto.name);
+    representative.taxId = this.cryptoService.encrypt(representativeDto.taxId);
     representative.crm = representativeDto.crm;
     representative.state = representativeDto.state;
 
     return representative;
+  }
+
+  public mapAddressEntityToDto(entity: Address): AddressDto {
+    const dto = new AddressDto();
+
+    dto.id = entity.id;
+    dto.street = entity.street ? this.cryptoService.decrypt(entity.street) : entity.street;
+    dto.number = entity.number ? this.cryptoService.decrypt(entity.number) : entity.number;
+    dto.complement = entity.complement ? this.cryptoService.decrypt(entity.complement) : entity.complement;
+    dto.neighborhood = entity.neighborhood ? this.cryptoService.decrypt(entity.neighborhood) : entity.neighborhood;
+    dto.city = entity.city ? this.cryptoService.decrypt(entity.city) : entity.city;
+    dto.state = entity.state;
+    dto.zipCode = entity.zipCode ? this.cryptoService.decrypt(entity.zipCode) : entity.zipCode;
+    dto.country = entity.country;
+
+    return dto;
+  }
+
+  public mapCompanyEntityToDto(entity: InstitutionCompany): CompanyDto {
+    const dto = new CompanyDto();
+
+    dto.id = entity.id;
+    dto.name = entity.name;
+    dto.type = entity.type;
+    dto.fantasyName = entity.fantasyName;
+    dto.size = entity.size;
+    dto.mainActivities = entity.mainActivities;
+    dto.secondaryActivities = entity.secondaryActivities;
+    dto.legalNature = entity.legalNature;
+    dto.legalRepresentativeName = entity.legalRepresentativeName;
+    dto.legalRepresentativeQualification =
+      entity.legalRepresentativeQualification;
+
+    if (entity.representative) {
+      dto.representative = this.mapRepresentativeEntityToDto(
+        entity.representative,
+      );
+    }
+
+    return dto;
+  }
+
+  public mapRepresentativeEntityToDto(
+    entity: InstitutionCompanyRepresentative,
+  ): RepresentativeDto {
+    const dto = new RepresentativeDto();
+
+    dto.id = entity.id;
+    dto.name = entity.name ? this.cryptoService.decrypt(entity.name) : entity.name;
+    dto.taxId = entity.taxId ? this.cryptoService.decrypt(entity.taxId) : entity.taxId;
+    dto.crm = entity.crm;
+    dto.state = entity.state;
+
+    return dto;
+  }
+
+  public mapHealthDataToEntity(
+    healthData: HealthInstitutionData,
+  ): HealthInstitution {
+    const entity = new HealthInstitution();
+
+    entity.organizationNature = healthData.organizationNature;
+    entity.legalNatureDescription = healthData.legalNatureDescription;
+    entity.disablingReasonCode = healthData.disablingReasonCode;
+    entity.hasSurgicalCenter = healthData.hasSurgicalCenter;
+    entity.hasObstetricCenter = healthData.hasObstetricCenter;
+    entity.hasNeonatalCenter = healthData.hasNeonatalCenter;
+    entity.hasHospitalCare = healthData.hasHospitalCare;
+    entity.hasSupportService = healthData.hasSupportService;
+    entity.hasOutpatientCare = healthData.hasOutpatientCare;
+    entity.teachingActivityCode = healthData.teachingActivityCode;
+    entity.unitOrganizationNatureCode = healthData.unitOrganizationNatureCode;
+    entity.unitHierarchyLevelCode = healthData.unitHierarchyLevelCode;
+    entity.unitAdministrativeSphereCode =
+      healthData.unitAdministrativeSphereCode;
+
+    if (healthData.lastUpdateDate) {
+      entity.lastUpdateDate = stringToLocalDate(healthData.lastUpdateDate);
+    }
+
+    return entity;
   }
 }

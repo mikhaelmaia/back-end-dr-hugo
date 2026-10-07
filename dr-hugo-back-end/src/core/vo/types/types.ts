@@ -1,3 +1,4 @@
+import Stream from 'node:stream';
 import { UserRole } from '../consts/enums';
 
 export interface ApplicationResponse<T> {
@@ -41,4 +42,10 @@ export type JwtPayload = {
   sub: string;
   email: string;
   role: UserRole;
+};
+
+export type MediaStreamResult = {
+  stream: Stream.Readable;
+  contentType: string;
+  filename: string;
 };

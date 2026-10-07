@@ -69,12 +69,44 @@ export const stringToLocalDateTime = (dateString: string): Date | null => {
  * @returns Date object com horário zerado ou null se inválida
  */
 export const stringToLocalDate = (dateString: string): Date | null => {
-  const date = stringToLocalDateTime(dateString);
-  if (!date) return null;
+  if (!dateString) return null;
 
-  // Zera o horário para ter apenas a data
-  date.setHours(0, 0, 0, 0);
-  return date;
+  try {
+    // ISO string with T or Z: extract date parts from the string (ignore time/timezone portion)
+    if (dateString.includes('T') || dateString.includes('Z')) {
+      const isoMatch = dateString.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (isoMatch) {
+        const year = Number(isoMatch[1]);
+        const month = Number(isoMatch[2]);
+        const day = Number(isoMatch[3]);
+        return new Date(Date.UTC(year, month - 1, day));
+      }
+    }
+
+    // Format DD/MM/YYYY
+    if (dateString.includes('/')) {
+      const parts = dateString.split('/');
+      const day = Number(parts[0]);
+      const month = Number(parts[1]);
+      const year = Number(parts[2]);
+      if (!day || !month || !year) return null;
+      return new Date(Date.UTC(year, month - 1, day));
+    }
+
+    // Format YYYY-MM-DD
+    if (dateString.includes('-')) {
+      const parts = dateString.split('-');
+      const year = Number(parts[0]);
+      const month = Number(parts[1]);
+      const day = Number(parts[2]);
+      if (!year || !month || !day) return null;
+      return new Date(Date.UTC(year, month - 1, day));
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
 };
 
 /**
@@ -261,4 +293,28 @@ export const formatToBrazilianTimezone = (
   };
 
   return date.toLocaleString('pt-BR', { ...defaultOptions, ...options });
+};
+
+/**
+ * Converte string YYYY-MM para MM/YYYY
+ * @param monthYear String no formato YYYY-MM
+ * @returns String no formato MM/YYYY
+ */
+export const formatMonthYearToBrazilian = (monthYear: string): string => {
+  const [year, month] = monthYear.split('-');
+  return `${month}/${year}`;
+};
+
+/**
+ * Converte Date ou string YYYY-MM-DD para DD/MM/YYYY
+ * @param date Date object ou string no formato YYYY-MM-DD
+ * @returns String no formato DD/MM/YYYY
+ */
+export const dateToBrazilianString = (date: Date | string): string => {
+  if (date instanceof Date) {
+    return localDateTimeToBrazilianString(date, false) ?? '';
+  }
+  // Date string no formato YYYY-MM-DD
+  const [year, month, day] = String(date).split('-');
+  return `${day}/${month}/${year}`;
 };

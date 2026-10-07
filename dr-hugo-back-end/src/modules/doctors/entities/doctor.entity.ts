@@ -3,6 +3,7 @@ import { BaseEntity } from 'src/core/base/base.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import { DoctorRegistration } from '../aggregates/registration/entities/doctor-registration.entity';
 import { DoctorSpecialization } from '../aggregates/specialization/entities/doctor-specialization.entity';
+import { Gender } from 'src/core/vo/consts/enums';
 
 @Entity({ name: 'dv_doctor' })
 export class Doctor extends BaseEntity {
@@ -20,6 +21,9 @@ export class Doctor extends BaseEntity {
   @Column({ name: 'is_generalist', type: 'boolean', nullable: false, default: false })
   public isGeneralist: boolean;
 
-  @Column({ name: 'birth_date', type: 'date', nullable: false })
+  @Column({ name: 'birth_date', type: 'date', nullable: false, utc: true })
   public birthDate: Date;
+
+  @Column({ name: 'gender', type: 'varchar', length: 10, nullable: false })
+  public gender: Gender;
 }

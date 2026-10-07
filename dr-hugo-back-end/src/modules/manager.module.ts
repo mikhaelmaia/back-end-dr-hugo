@@ -6,6 +6,11 @@ import { InstitutionModule } from './institutions/institution.module';
 import { MedicalRecordModule } from './medical-records/medical-record.module';
 import { UserChangeRequestModule } from './users/aggregates/change-request/user-change-request.module';
 import { PatientAccessCodeModule } from './patients/aggregates/access-code/patient-access-code.module';
+import { PatientDocumentModule } from './patients/aggregates/documents/patient-document.module';
+import { PatientPermissionGrantModule } from './patients/aggregates/permission-grant/patient-permission-grant.module';
+import { DoctorGrantModule } from './patients/aggregates/doctor-grant/doctor-grant.module';
+import { InstitutionGrantModule } from './patients/aggregates/institution-grant/institution-grant.module';
+import { InsightsModule } from './insights/insights.module';
 
 @Module({
   imports: [
@@ -16,6 +21,11 @@ import { PatientAccessCodeModule } from './patients/aggregates/access-code/patie
     MedicalRecordModule,
     UserChangeRequestModule,
     PatientAccessCodeModule,
+    PatientDocumentModule,
+    PatientPermissionGrantModule,
+    DoctorGrantModule,
+    InstitutionGrantModule,
+    InsightsModule,
   ],
   exports: [
     UserModule,
@@ -25,6 +35,11 @@ import { PatientAccessCodeModule } from './patients/aggregates/access-code/patie
     MedicalRecordModule,
     UserChangeRequestModule,
     PatientAccessCodeModule,
+    PatientDocumentModule,
+    PatientPermissionGrantModule,
+    DoctorGrantModule,
+    InstitutionGrantModule,
+    InsightsModule,
   ],
 })
 export class ManagerModule {}

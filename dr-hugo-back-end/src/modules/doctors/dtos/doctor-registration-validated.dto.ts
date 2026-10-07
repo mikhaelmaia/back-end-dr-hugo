@@ -86,15 +86,16 @@ export class DoctorRegistrationValidatedDto {
 
     @ApiProperty({
         description: 'Dados do registro médico validados',
-        type: DoctorRegistrationData
+        type: DoctorRegistrationData,
+        nullable: true
     })
-    public data: DoctorRegistrationData;
+    public data: DoctorRegistrationData | null;
 
     @ApiProperty({
-        description: 'Mensagem informativa sobre o resultado da validação',
-        example: 'Registro médico validado com sucesso',
-        type: String
+        description: 'Mensagens informativas sobre o resultado da validação',
+        example: ['Registro médico validado com sucesso'],
+        type: [String]
     })
-    public message: string;
+    public messages: string[];
 
 }

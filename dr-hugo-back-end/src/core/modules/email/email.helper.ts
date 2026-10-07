@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { EmailQueueService } from './email-queue.service';
+import { EmailService } from './email.service';
 import { EmailReference } from './consts/email-reference';
 import { EmailSend } from './dtos/email-send.dto';
 import { ConfigService } from '@nestjs/config';
@@ -10,7 +10,7 @@ import { ResolutionKeyService } from '../resolution-key/resolution-key.service';
 @Injectable()
 export class EmailHelper {
   constructor(
-    private readonly emailQueueService: EmailQueueService,
+    private readonly emailService: EmailService,
     private readonly configService: ConfigService,
     private readonly resolutionKeyService: ResolutionKeyService,
   ) {}
@@ -26,7 +26,7 @@ export class EmailHelper {
       token,
       role,
     });
-    this.emailQueueService.enqueueEmail(
+    await this.emailService.sendEmail(
       EmailSend.builder()
         .to(email)
         .reference(EmailReference.PASSWORD_RESET_REQUEST)
@@ -41,8 +41,11 @@ export class EmailHelper {
     );
   }
 
-  public sendPasswordResetEmail(name: string, email: string): void {
-    this.emailQueueService.enqueueEmail(
+  public async sendPasswordResetEmail(
+    name: string,
+    email: string,
+  ): Promise<void> {
+    await this.emailService.sendEmail(
       EmailSend.builder()
         .to(email)
         .reference(EmailReference.PASSWORD_RESET)
@@ -63,7 +66,7 @@ export class EmailHelper {
       token,
       role: userRole,
     });
-    this.emailQueueService.enqueueEmail(
+    await this.emailService.sendEmail(
       EmailSend.builder()
         .to(email)
         .reference(EmailReference.USER_REGISTERED)
@@ -94,7 +97,7 @@ export class EmailHelper {
       token,
       role,
     });
-    this.emailQueueService.enqueueEmail(
+    await this.emailService.sendEmail(
       EmailSend.builder()
         .to(email)
         .reference(EmailReference.EMAIL_CONFIRMATION)
@@ -109,12 +112,12 @@ export class EmailHelper {
     );
   }
 
-  public sendEmailConfirmedEmail(
+  public async sendEmailConfirmedEmail(
     name: string,
     email: string,
     userRole: UserRole,
-  ): void {
-    this.emailQueueService.enqueueEmail(
+  ): Promise<void> {
+    await this.emailService.sendEmail(
       EmailSend.builder()
         .to(email)
         .reference(EmailReference.EMAIL_CONFIRMED)
@@ -148,7 +151,7 @@ export class EmailHelper {
       requestId,
       type: 'email',
     });
-    this.emailQueueService.enqueueEmail(
+    await this.emailService.sendEmail(
       EmailSend.builder()
         .to(newEmail)
         .reference(EmailReference.EMAIL_CHANGE_CONFIRMATION)
@@ -168,7 +171,7 @@ export class EmailHelper {
     oldEmail: string,
     newEmail: string,
   ): Promise<void> {
-    this.emailQueueService.enqueueEmail(
+    await this.emailService.sendEmail(
       EmailSend.builder()
         .to(oldEmail)
         .reference(EmailReference.EMAIL_CHANGED_WARNING)
@@ -185,7 +188,7 @@ export class EmailHelper {
     oldEmail: string,
     newEmail: string,
   ): Promise<void> {
-    this.emailQueueService.enqueueEmail(
+    await this.emailService.sendEmail(
       EmailSend.builder()
         .to(newEmail)
         .reference(EmailReference.EMAIL_CHANGED_CONFIRMATION)

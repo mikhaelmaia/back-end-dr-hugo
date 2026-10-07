@@ -1,42 +1,31 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsUUID, Length, Matches } from 'class-validator';
+import { IsString, IsNotEmpty, Length } from 'class-validator';
 import {
   provideIsStringValidationMessage,
   provideIsNotEmptyValidationMessage,
 } from 'src/core/vo/consts/validation-messages';
-import { IsNotEmptyString } from 'src/core/vo/validators/is-not-empty-string.validator';
 
 /**
  * DTO para confirmação de solicitação de alteração de dados do usuário
- * Usado para confirmar alterações pendentes através de token validado
+ * O parâmetro t é a chave de resolução enviada por e-mail no link de confirmação.
  */
 export class ConfirmUserChangeRequestDto {
-  @ApiProperty({
-    description: 'ID da solicitação de alteração a ser confirmada',
-    example: '550e8400-e29b-41d4-a716-446655440000',
-    type: String,
-    format: 'uuid',
+  @IsString({
+    message: provideIsStringValidationMessage('Chave de confirmação'),
   })
-  @IsString({ message: provideIsStringValidationMessage('ID da Solicitação') })
   @IsNotEmpty({
-    message: provideIsNotEmptyValidationMessage('ID da Solicitação'),
+    message: provideIsNotEmptyValidationMessage('Chave de confirmação'),
   })
-  @IsUUID(4, { message: 'ID da solicitação deve ser um UUID válido' })
-  public id: string;
-
+  @Length(64, 64, {
+    message: 'Chave de confirmação deve ter exatamente 64 caracteres',
+  })
   @ApiProperty({
-    description: 'Hash de validação obtido após validação do token',
-    example: 'abc123def456ghi789jkl012mno345pqr678stu901vwx234yz567890abcdef12',
-    type: String,
+    description:
+      'Chave de resolução enviada por e-mail (parâmetro t do link de confirmação)',
+    example: 'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456',
     minLength: 64,
     maxLength: 64,
-    pattern: '^[a-f0-9]{64}$',
+    type: String,
   })
-  @IsNotEmpty({
-    message: provideIsNotEmptyValidationMessage('Identificação do Token'),
-  })
-  @IsString({
-    message: provideIsStringValidationMessage('Identificação do Token'),
-  })
-  public hash: string;
+  public t: string;
 }

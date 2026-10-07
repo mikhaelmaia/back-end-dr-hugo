@@ -7,12 +7,14 @@ import { PatientMedicalRecordRepository } from './medical-record.repository';
 import { PatientMedicalRecordMapper } from './medical-record.mapper';
 import { PatientsModule } from '../patients/patients.module';
 import { AuditModule } from 'src/core/modules/audit/audit.module';
+import { CryptoModule } from 'src/core/modules/crypto/crypto.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([PatientMedicalRecord]),
     PatientsModule,
     AuditModule,
+    CryptoModule,
   ],
   controllers: [PatientMedicalRecordController],
   providers: [

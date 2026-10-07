@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Get,
+  Patch,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -18,14 +19,20 @@ import { Institution } from './entities/institution.entity';
 import { InstitutionDto } from './dtos/institution.dto';
 import { CreateInstitutionDto } from './dtos/create-institution.dto';
 import { InstitutionValidationDto } from './dtos/institution-validation.dto';
-import { InstitutionValidatedDto } from './dtos/institution-validated.dto';
+import {
+  InstitutionValidatedDto,
+  CnesValidatedDto,
+} from './dtos/institution-validated.dto';
+import { CnesValidationDto } from './dtos/cnes-validation.dto';
 import { InstitutionService } from './institution.service';
 import { InstitutionPaths } from 'src/core/vo/consts/paths';
 import { ExceptionResponse } from 'src/core/config/exceptions/exception-response';
 import { Public } from 'src/core/vo/decorators/public.decorator';
 import { Auditable } from 'src/core/vo/decorators/auditable.decorator';
-import { AuditEventType } from 'src/core/vo/consts/enums';
+import { AuditEventType, UserRole } from 'src/core/vo/consts/enums';
 import { CurrentUser } from 'src/core/vo/decorators/current-user.decorator';
+import { Roles } from 'src/core/vo/decorators/roles.decorator';
+import { AddressDto } from 'src/core/modules/address/dtos/address.dto';
 
 @ApiTags('Gerenciamento de Instituições')
 @ApiBearerAuth()
@@ -37,6 +44,55 @@ export class InstitutionController extends BaseController<
 > {
   public constructor(institutionService: InstitutionService) {
     super(institutionService);
+  }
+
+  @ApiOperation({
+    summary: 'Validar CNES da instituição',
+    description:
+      'Consulta e valida os dados da instituição no CNES (Cadastro Nacional de Estabelecimentos de Saúde). Este endpoint deve ser usado antes do cadastro da instituição para garantir a veracidade dos dados de saúde.',
+  })
+  @ApiBody({
+    description: 'Código CNES da instituição para validação',
+    type: CnesValidationDto,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Validação CNES realizada com sucesso',
+    type: CnesValidatedDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Dados inválidos ou malformados',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Código CNES não encontrado',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 422,
+    description: 'Dados não atendem aos critérios de validação',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 429,
+    description: 'Limite de consultas excedido. Tente novamente mais tarde.',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 500,
+    description:
+      'Erro interno do servidor ou falha na comunicação com API do CNES',
+    type: ExceptionResponse,
+  })
+  @Public()
+  @Post(InstitutionPaths.CNES_LOOKUP)
+  @HttpCode(HttpStatus.OK)
+  public async lookupCnes(
+    @Body() dto: CnesValidationDto,
+  ): Promise<CnesValidatedDto> {
+    return this.service.lookupCnes(dto);
   }
 
   @ApiOperation({
@@ -169,11 +225,130 @@ export class InstitutionController extends BaseController<
     description: 'Erro interno do servidor',
     type: ExceptionResponse,
   })
+  @Roles(UserRole.INSTITUTION)
   @Get(InstitutionPaths.CURRENT)
   @HttpCode(HttpStatus.OK)
   public async findCurrent(
     @CurrentUser('id') userId: string,
   ): Promise<InstitutionDto> {
     return this.service.findInstitutionByUserId(userId);
+  }
+
+  @ApiOperation({
+    summary: 'Atualizar endereço da instituição atual',
+    description:
+      'Atualiza o endereço da instituição logada utilizando uma operação atômica. Requer autenticação.',
+  })
+  @ApiBody({
+    description: 'Novos dados do endereço da instituição',
+    type: AddressDto,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Endereço da instituição atualizado com sucesso',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Dados de endereço inválidos ou malformados',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Não autenticado',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Instituição não encontrada para o usuário logado',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 422,
+    description: 'Dados do endereço não atendem aos critérios de validação',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Erro interno do servidor',
+    type: ExceptionResponse,
+  })
+  @Auditable({
+    eventType: AuditEventType.UPDATE,
+    entityName: 'Institution',
+    mode: 'success',
+    entityIdExtractor: ({ result }) => result?.id ?? null,
+    dataExtractor: ({ body }) => ({
+      request: {
+        address: body,
+      },
+    }),
+  })
+  @Patch(InstitutionPaths.UPDATE_ADDRESS)
+  @HttpCode(HttpStatus.OK)
+  public async updateCurrentAddress(
+    @CurrentUser('id') userId: string,
+    @Body() addressDto: AddressDto,
+  ): Promise<void> {
+    await this.service.updateCurrentUserAddress(userId, addressDto);
+  }
+
+  @ApiOperation({
+    summary: 'Atualizar dados cadastrais da instituição',
+    description:
+      'Atualiza os dados da empresa e endereço da instituição consultando a Receita Federal. Requer autenticação de usuário do tipo Instituição.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Dados da instituição atualizados com sucesso',
+    type: InstitutionDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Erro ao consultar dados na Receita Federal',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Não autenticado',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Acesso negado - apenas instituições podem usar este endpoint',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Instituição não encontrada',
+    type: ExceptionResponse,
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Erro interno do servidor',
+    type: ExceptionResponse,
+  })
+  @Auditable({
+    eventType: AuditEventType.UPDATE,
+    entityName: 'Institution',
+    mode: 'success',
+    entityIdExtractor: ({ result }) => result?.id ?? null,
+    dataExtractor: ({ result }) => ({
+      result: {
+        id: result?.id,
+        updatedAt: new Date(),
+        refreshedData: {
+          company: result?.company,
+          address: result?.address,
+        },
+      },
+    }),
+  })
+  @Roles(UserRole.INSTITUTION)
+  @Post(InstitutionPaths.REFRESH_DATA)
+  @HttpCode(HttpStatus.OK)
+  public async refreshCurrentInstitutionData(
+    @CurrentUser('id') userId: string,
+  ): Promise<InstitutionDto> {
+    return this.service.refreshCurrentInstitutionData(userId);
   }
 }

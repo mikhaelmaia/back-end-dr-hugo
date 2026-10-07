@@ -15,6 +15,16 @@ export class MediaRepository extends BaseRepository<Media> {
     this.alias = 'media';
   }
 
+  public async findByIdAndOwnerId(
+    id: string,
+    ownerUserId: string,
+  ): Promise<Media | null> {
+    return this.createBaseQuery()
+      .where('media.id = :id', { id })
+      .andWhere('media.ownerUserId = :ownerUserId', { ownerUserId })
+      .getOne();
+  }
+
   public async findTempMediasOlderThan(date: Date): Promise<Media[]> {
     return this.repository.find({
       where: {
@@ -22,5 +32,29 @@ export class MediaRepository extends BaseRepository<Media> {
         createdAt: LessThanOrEqual(date),
       },
     });
+  }
+
+  public async existsByIdAndOwnerId(
+    id: string,
+    ownerUserId: string,
+  ): Promise<boolean> {
+    const count = await this.createBaseQuery()
+      .where('media.id = :id', { id })
+      .andWhere('media.ownerUserId = :ownerUserId', { ownerUserId })
+      .getCount();
+
+    return count > 0;
+  }
+
+  public async existsByIdsAndOwnerId(
+    mediaIds: string[],
+    ownerUserId: string,
+  ): Promise<boolean> {
+    const count = await this.createBaseQuery()
+      .where('media.id IN (:...mediaIds)', { mediaIds })
+      .andWhere('media.ownerUserId = :ownerUserId', { ownerUserId })
+      .getCount();
+
+    return count === mediaIds.length;
   }
 }

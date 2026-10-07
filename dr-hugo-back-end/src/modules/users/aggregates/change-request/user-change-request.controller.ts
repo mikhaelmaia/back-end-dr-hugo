@@ -12,6 +12,9 @@ import { UserChangeRequestService } from './user-change-request.service';
 import { ConfirmUserChangeRequestDto } from './dtos/confirm-user-change-request.dto';
 import { ExceptionResponse } from 'src/core/config/exceptions/exception-response';
 import { UserChangeRequestPaths } from 'src/core/vo/consts/paths';
+import { Public } from 'src/core/vo/decorators/public.decorator';
+import { Auditable } from 'src/core/vo/decorators/auditable.decorator';
+import { AuditEventType } from 'src/core/vo/consts/enums';
 
 @ApiTags('Gerenciamento de Alteração de Dados')
 @ApiBearerAuth()
@@ -89,6 +92,17 @@ export class UserChangeRequestController {
     description: 'Erro interno do servidor',
     type: ExceptionResponse,
   })
+  @Auditable({
+    eventType: AuditEventType.CREATE,
+    entityName: 'UserChangeRequest',
+    mode: 'success',
+    dataExtractor: ({ body }) => ({
+      request: {
+        hasNewEmail: !!body.newEmail,
+        hasNewPhone: !!body.newPhone,
+      },
+    }),
+  })
   public async requestChange(
     @CurrentUser('id') userId: string,
     @Body() dto: RequestUserChangeDto,
@@ -109,10 +123,10 @@ export class UserChangeRequestController {
     examples: {
       confirmChange: {
         summary: 'Confirmação de alteração',
-        description: 'Exemplo de confirmação usando hash de token validado',
+        description:
+          'Exemplo de confirmação usando a chave de resolução do link enviado por e-mail',
         value: {
-          id: '550e8400-e29b-41d4-a716-446655440000',
-          hash: 'abc123def456ghi789jkl012mno345pqr678stu901vwx234yz567890abcdef12',
+          t: 'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456',
         },
       },
     },
@@ -150,9 +164,8 @@ export class UserChangeRequestController {
     type: ExceptionResponse,
   })
   public async confirmChange(
-    @CurrentUser('id') userId: string,
     @Body() dto: ConfirmUserChangeRequestDto,
   ): Promise<void> {
-    await this.service.confirmChange(dto, userId);
+    await this.service.confirmChange(dto);
   }
 }

@@ -4,9 +4,17 @@ import { DomainService } from './domain.service';
 import { TermsModule } from './terms/terms.module';
 import { CountriesModule } from './countries/countries.module';
 import { EnumsModule } from './enums/enums.module';
+import { MedicalDocumentModule } from './medical-document/medical-document.module';
+import { TuusCategoryModule } from './tuus-category/tuus-category.module';
 
 @Module({
-  imports: [TermsModule, CountriesModule, EnumsModule],
+  imports: [
+    TermsModule,
+    CountriesModule,
+    EnumsModule,
+    MedicalDocumentModule,
+    TuusCategoryModule,
+  ],
   controllers: [DomainController],
   providers: [DomainService],
   exports: [DomainService],

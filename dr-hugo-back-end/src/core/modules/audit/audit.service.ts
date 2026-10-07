@@ -36,7 +36,7 @@ export class AuditService extends BaseService<
     audit.eventType = auditDto.eventType;
     audit.entityName = auditDto.entityName;
     audit.entityId = auditDto.entityId;
-    audit.data = auditDto.data;
+    audit.data = this.mapper.encryptData(auditDto.data);
     audit.author = {
       id: fingerprintData.author?.id || null,
     } as any;
@@ -49,7 +49,6 @@ export class AuditService extends BaseService<
         sessionId: fingerprintData.sessionId || null,
       });
       audit.fingerprint = fingerprint;
-      this.mapper.handleAuditFingerprintEncryption(audit);
     }
 
     const savedAudit = await this.repository.save(audit);

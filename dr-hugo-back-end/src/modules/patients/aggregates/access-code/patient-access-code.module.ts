@@ -7,12 +7,14 @@ import { PatientAccessCodeService } from './patient-access-code.service';
 import { PatientAccessCodeRepository } from './patient-access-code.repository';
 import { PatientAccessCodeMapper } from './patient-access-code.mapper';
 import { PatientsModule } from '../../patients.module';
+import { ResolutionKeyModule } from 'src/core/modules/resolution-key/resolution-key.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([PatientAccessCode]),
     QrCodeModule,
     PatientsModule,
+    ResolutionKeyModule,
   ],
   controllers: [PatientAccessCodeController],
   providers: [

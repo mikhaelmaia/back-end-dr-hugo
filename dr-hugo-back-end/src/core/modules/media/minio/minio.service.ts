@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { Client } from 'minio';
 import { ConfigService } from '@nestjs/config';
 import { getAllMinioBuckets } from './minio.buckets';
@@ -18,9 +18,11 @@ export class MinioService {
 
     this.client = new Client({
       endPoint,
+      port,
       useSSL,
       accessKey: this.configService.get<string>('MINIO_ACCESS_KEY'),
       secretKey: this.configService.get<string>('MINIO_SECRET_KEY'),
+      pathStyle: true,
     });
 
     this.logger.log(
@@ -29,24 +31,41 @@ export class MinioService {
   }
 
   public async getClient(): Promise<Client> {
-    await this.ensureInitialized();
+    try {
+      await this.ensureInitialized();
+    } catch {
+      throw this.storageUnavailable();
+    }
     return this.client;
+  }
+
+  public storageUnavailable(): HttpException {
+    return new HttpException(
+      'Armazenamento de arquivos indisponível. Tente novamente em instantes.',
+      HttpStatus.FAILED_DEPENDENCY,
+    );
   }
 
   public getObjectUrl(bucket: string, objectName: string): string {
     const endpoint = this.configService.get<string>('MINIO_ENDPOINT');
+    const port = Number(this.configService.get<number>('MINIO_PORT'));
     const useSSL = this.configService.get<string>('MINIO_USE_SSL') === 'true';
 
     const protocol = useSSL ? 'https' : 'http';
+    const defaultPort = useSSL ? 443 : 80;
+    const urlPort = port !== defaultPort ? `:${port}` : '';
 
-    return `${protocol}://${endpoint}/${bucket}/${objectName}`;
+    return `${protocol}://${endpoint}${urlPort}/${bucket}/${objectName}`;
   }
 
   private async ensureInitialized(): Promise<void> {
     if (this.initialized) return;
 
     if (!this.initializing) {
-      this.initializing = this.initialize();
+      this.initializing = this.initialize().catch((error) => {
+        this.initializing = undefined;
+        throw error;
+      });
     }
 
     await this.initializing;

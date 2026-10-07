@@ -9,10 +9,10 @@ export class InstitutionCompanyRepresentative extends BaseEntity {
     @OneToOne(() => InstitutionCompany, company => company.representative)
     public company: InstitutionCompany;
 
-    @Column({ name: 'name', length: 255, nullable: false })
+    @Column({ name: 'name', type: 'text', nullable: false })
     public name: string;
 
-    @Column({ name: 'tax_id', length: 14, nullable: false })
+    @Column({ name: 'tax_id', type: 'text', nullable: false })
     public taxId: string;
 
     @Column({ name: 'crm', length: 20, nullable: false })

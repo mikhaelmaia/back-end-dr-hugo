@@ -1,0 +1,339 @@
+﻿import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { IsNull, Repository } from 'typeorm';
+import { BaseRepository } from 'src/core/base/base.repository';
+import { PatientDoctorGrant } from '../permission-grant/entities/patient-doctor-grant.entity';
+import type { PaginationParams } from 'src/core/vo/types/types';
+
+@Injectable()
+export class DoctorGrantRepository extends BaseRepository<PatientDoctorGrant> {
+  protected override alias = 'grant';
+
+  constructor(
+    @InjectRepository(PatientDoctorGrant)
+    repository: Repository<PatientDoctorGrant>,
+  ) {
+    super(repository);
+  }
+
+  public async toggleLikedByPatient(
+    grantId: string,
+    patientId: string,
+  ): Promise<boolean> {
+    const result = await this.repository
+      .createQueryBuilder()
+      .update(PatientDoctorGrant)
+      .set({ likedByPatient: () => 'NOT liked_by_patient' })
+      .where('id = :grantId', { grantId })
+      .andWhere('patient_id = :patientId', { patientId })
+      .andWhere('revoked_at IS NULL')
+      .execute();
+
+    return result.affected > 0;
+  }
+
+  public async toggleLikedByDoctor(
+    grantId: string,
+    doctorId: string,
+  ): Promise<boolean> {
+    const result = await this.repository
+      .createQueryBuilder()
+      .update(PatientDoctorGrant)
+      .set({ likedByDoctor: () => 'NOT liked_by_doctor' })
+      .where('id = :grantId', { grantId })
+      .andWhere('doctor_id = :doctorId', { doctorId })
+      .andWhere('revoked_at IS NULL')
+      .execute();
+
+    return result.affected > 0;
+  }
+
+  public async toggleDocumentId(
+    grantId: string,
+    patientId: string,
+    documentId: string,
+  ): Promise<boolean> {
+    const grant = await this.repository.findOne({
+      where: { id: grantId, patient: { id: patientId }, revokedAt: IsNull() },
+      select: { id: true, documentsIds: true },
+    });
+
+    if (!grant) return false;
+
+    const current = grant.documentsIds ?? [];
+    const updated = current.includes(documentId)
+      ? current.filter((id) => id !== documentId)
+      : [...current, documentId];
+
+    const result = await this.repository.update(
+      { id: grantId },
+      { documentsIds: updated },
+    );
+
+    return result.affected > 0;
+  }
+
+  public async toggleAllDocumentsAccess(
+    grantId: string,
+    patientId: string,
+  ): Promise<boolean> {
+    const result = await this.repository
+      .createQueryBuilder()
+      .update(PatientDoctorGrant)
+      .set({
+        allowAccessToAllDocuments: () => 'NOT allow_access_to_all_documents',
+        allowAccessToAllDocumentsAt: () =>
+          "CASE WHEN allow_access_to_all_documents = false THEN NOW() ELSE NULL END",
+      })
+      .where('id = :grantId', { grantId })
+      .andWhere('patient_id = :patientId', { patientId })
+      .andWhere('revoked_at IS NULL')
+      .execute();
+
+    return result.affected > 0;
+  }
+
+  public async togglePersistent(
+    grantId: string,
+    patientId: string,
+  ): Promise<{ affected: boolean; persistent: boolean; allowAccessToAllDocuments: boolean; allowAccessToAllDocumentsAt: Date | null }> {
+    const grant = await this.repository.findOne({
+      where: { id: grantId, patient: { id: patientId }, revokedAt: IsNull() },
+      select: { id: true, persistent: true, allowAccessToAllDocuments: true, allowAccessToAllDocumentsAt: true },
+    });
+
+    if (!grant) return { affected: false, persistent: false, allowAccessToAllDocuments: false, allowAccessToAllDocumentsAt: null };
+
+    const newPersistent = !grant.persistent;
+
+    await this.repository.update({ id: grantId }, { persistent: newPersistent });
+
+    return {
+      affected: true,
+      persistent: newPersistent,
+      allowAccessToAllDocuments: grant.allowAccessToAllDocuments,
+      allowAccessToAllDocumentsAt: grant.allowAccessToAllDocumentsAt ?? null,
+    };
+  }
+
+  public async findGrantsToExpireAllDocumentsAccess(): Promise<
+    { id: string; patientId: string; documentsIds: string[] | null }[]
+  > {
+    const grants = await this.repository.find({
+      where: {
+        allowAccessToAllDocuments: true,
+        persistent: false,
+        revokedAt: IsNull(),
+        deletedAt: IsNull(),
+      },
+      relations: ['patient'],
+      select: {
+        id: true,
+        documentsIds: true,
+        allowAccessToAllDocumentsAt: true,
+        patient: { id: true },
+      },
+    });
+
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    return grants
+      .filter((g) => g.allowAccessToAllDocumentsAt && g.allowAccessToAllDocumentsAt <= cutoff)
+      .map((g) => ({
+        id: g.id,
+        patientId: g.patient.id,
+        documentsIds: g.documentsIds ?? null,
+      }));
+  }
+
+  public async snapshotAndDisableAllDocumentsAccess(
+    grantId: string,
+    documentsIds: string[],
+  ): Promise<void> {
+    await this.repository.update(
+      { id: grantId },
+      {
+        documentsIds,
+        allowAccessToAllDocuments: false,
+        allowAccessToAllDocumentsAt: null,
+      },
+    );
+  }
+
+  public async findGrantDetailsById(
+    grantId: string,
+    doctorId: string,
+  ): Promise<{
+    id: string;
+    patientId: string;
+    documentsIds: string[] | null;
+    persistent: boolean;
+    allowAccessToAllDocuments: boolean;
+    createdAt: Date;
+  } | null> {
+    const grant = await this.repository.findOne({
+      where: {
+        id: grantId,
+        doctor: { id: doctorId },
+        revokedAt: IsNull(),
+        deletedAt: IsNull(),
+      },
+      relations: ['patient'],
+      select: {
+        id: true,
+        documentsIds: true,
+        persistent: true,
+        allowAccessToAllDocuments: true,
+        createdAt: true,
+        patient: { id: true },
+      },
+    });
+
+    if (!grant) return null;
+
+    return {
+      id: grant.id,
+      patientId: grant.patient.id,
+      documentsIds: grant.documentsIds ?? null,
+      persistent: grant.persistent,
+      allowAccessToAllDocuments: grant.allowAccessToAllDocuments,
+      createdAt: grant.createdAt,
+    };
+  }
+
+  public async findGrantDetailsByIdForPatient(
+    grantId: string,
+    patientId: string,
+  ): Promise<{
+    id: string;
+    patientId: string;
+    documentsIds: string[] | null;
+    persistent: boolean;
+    allowAccessToAllDocuments: boolean;
+    createdAt: Date;
+  } | null> {
+    const grant = await this.repository.findOne({
+      where: {
+        id: grantId,
+        patient: { id: patientId },
+        revokedAt: IsNull(),
+        deletedAt: IsNull(),
+      },
+      relations: ['patient'],
+      select: {
+        id: true,
+        documentsIds: true,
+        persistent: true,
+        allowAccessToAllDocuments: true,
+        createdAt: true,
+        patient: { id: true },
+      },
+    });
+
+    if (!grant) return null;
+
+    return {
+      id: grant.id,
+      patientId: grant.patient.id,
+      documentsIds: grant.documentsIds ?? null,
+      persistent: grant.persistent,
+      allowAccessToAllDocuments: grant.allowAccessToAllDocuments,
+      createdAt: grant.createdAt,
+    };
+  }
+
+  public async updateDocumentsIds(
+    grantId: string,
+    documentsIds: string[],
+  ): Promise<void> {
+    await this.repository.update({ id: grantId }, { documentsIds });
+  }
+
+  // ── Patient-facing: see which doctors have access ─────────────────────────
+
+  public async findGrantedDoctorsPaginated(
+    patientId: string,
+    params: PaginationParams<PatientDoctorGrant>,
+  ): Promise<{ items: PatientDoctorGrant[]; totalItems: number }> {
+    const page = params.page ?? 1;
+    const limit = params.limit ?? 10;
+    const filter = params.filter as any;
+    const sortOrder = params.sortOrder ?? 'DESC';
+    const sortBy = params.sortBy as string;
+
+    const qb = this.createBaseQuery()
+      .innerJoin('grant.patient', 'patient')
+      .innerJoinAndSelect('grant.doctor', 'doctor')
+      .innerJoinAndSelect('doctor.user', 'user')
+      .leftJoinAndSelect('doctor.specializations', 'specialization')
+      .andWhere('patient.id = :patientId', { patientId })
+      .andWhere('grant.revokedAt IS NULL');
+
+    if (filter?.name?.ilike) {
+      qb.andWhere('user.name ILIKE :name', { name: filter.name.ilike });
+    }
+
+    if (filter?.specialty) {
+      qb.andWhere(
+        'specialization.name = :specialty AND specialization.isActive = true',
+        { specialty: filter.specialty },
+      );
+    }
+
+    if (filter?.gender) {
+      qb.andWhere('doctor.gender = :gender', { gender: filter.gender });
+    }
+
+    if (filter?.liked === true || filter?.liked === 'true') {
+      qb.andWhere('grant.likedByPatient = true');
+    } else if (filter?.liked === false || filter?.liked === 'false') {
+      qb.andWhere('grant.likedByPatient = false');
+    }
+
+    if (sortBy === 'name') {
+      qb.orderBy('user.name', sortOrder).addOrderBy('grant.createdAt', 'DESC');
+    } else {
+      qb.orderBy('grant.likedByPatient', 'DESC').addOrderBy('grant.createdAt', 'DESC');
+    }
+
+    qb.take(limit).skip((page - 1) * limit);
+
+    const [items, totalItems] = await qb.getManyAndCount();
+    return { items, totalItems };
+  }
+
+  public async findGrantedDoctorByGrantId(
+    grantId: string,
+    patientId: string,
+  ): Promise<PatientDoctorGrant | null> {
+    return this.repository.findOne({
+      where: {
+        id: grantId,
+        patient: { id: patientId },
+        revokedAt: IsNull(),
+        deletedAt: IsNull(),
+      },
+      relations: ['doctor', 'doctor.user', 'doctor.specializations'],
+    });
+  }
+
+  public async findDoctorProfilePictureIdByGrantId(
+    grantId: string,
+    patientId: string,
+  ): Promise<string | null | undefined> {
+    const result = await this.createBaseQuery()
+      .innerJoin('grant.patient', 'patient')
+      .innerJoin('grant.doctor', 'doctor')
+      .innerJoin('doctor.user', 'user')
+      .leftJoin('user.profilePicture', 'profilePicture')
+      .select('grant.id', 'grantId')
+      .addSelect('profilePicture.id', 'profilePictureId')
+      .andWhere('grant.id = :grantId', { grantId })
+      .andWhere('patient.id = :patientId', { patientId })
+      .andWhere('grant.revokedAt IS NULL')
+      .getRawOne<{ grantId: string; profilePictureId: string | null }>();
+
+    if (!result) return undefined;
+    return result.profilePictureId ?? null;
+  }
+}

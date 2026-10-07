@@ -8,8 +8,9 @@ import {
   ValidateIf,
   IsArray,
   IsDate,
+  IsEnum,
 } from 'class-validator';
-import { Expose, Exclude, Type } from 'class-transformer';
+import { Expose, Exclude, Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { BaseEntityDto } from 'src/core/base/base.entity.dto';
 import { Patient } from '../entities/patient.entity';
@@ -21,12 +22,13 @@ import {
   provideIsValidTaxIdValidationMessage,
   provideLengthValidationMessage,
   provideMaxLengthValidationMessage,
+  provideIsEnumValidationMessage,
 } from 'src/core/vo/consts/validation-messages';
 import { IsNotBlacklisted } from 'src/core/vo/validators/is-not-blacklisted.validator';
 import { IsOnlyLetters } from 'src/core/vo/validators/is-only-letters.validator';
 import { IsStrongPassword } from 'src/core/vo/validators/is-strong-password.validator';
 import { ContainsRequiredTerms } from 'src/core/vo/validators/contains-required-terms.validator';
-import { TermsType, UserRole } from 'src/core/vo/consts/enums';
+import { TermsType, UserRole, Gender } from 'src/core/vo/consts/enums';
 import { ExistsIn } from 'src/core/vo/validators/exists-in.validator';
 import { IsNotEmptyString } from 'src/core/vo/validators/is-not-empty-string.validator';
 import { IsUniqueComposite } from 'src/core/vo/validators/is-unique-composite.validator';
@@ -35,6 +37,7 @@ import { ToLocalDate } from 'src/core/vo/transformers/to-local-date.transformer'
 import { IsNotFutureDate } from 'src/core/vo/validators/is-not-future-date.validator';
 import { IsWithinValidAge } from 'src/core/vo/validators/is-within-valid-age.validator';
 import { User } from 'src/modules/users/entities/user.entity';
+import { findEnumValueByKeyOrValue } from 'src/core/utils/enum.utils';
 
 export class PatientDto extends BaseEntityDto<Patient> {
   @IsNotEmpty({
@@ -74,6 +77,7 @@ export class PatientDto extends BaseEntityDto<Patient> {
       tableName: 'dv_user',
       column: 'email',
       additionalField: { column: 'role', value: 'PATIENT' },
+      useHash: true,
     },
     {
       message: 'Já existe paciente com este e-mail cadastrado',
@@ -126,6 +130,7 @@ export class PatientDto extends BaseEntityDto<Patient> {
       tableName: 'dv_user',
       column: 'taxId',
       additionalField: { column: 'role', value: 'PATIENT' },
+      useHash: true,
     },
     {
       message: 'Já existe paciente com este CPF cadastrado',
@@ -152,6 +157,7 @@ export class PatientDto extends BaseEntityDto<Patient> {
       tableName: 'dv_user',
       column: 'phone',
       additionalField: { column: 'role', value: 'PATIENT' },
+      useHash: true,
     },
     {
       message: 'Já existe paciente com este telefone/celular cadastrado',
@@ -258,4 +264,19 @@ export class PatientDto extends BaseEntityDto<Patient> {
     },
   })
   public acceptedTerms: string[];
+
+  @IsNotEmpty({
+    message: provideIsNotEmptyValidationMessage('Gênero'),
+  })
+  @Transform(({ value }) => findEnumValueByKeyOrValue(Gender, value))
+  @IsEnum(Gender, {
+    message: (args) => provideIsEnumValidationMessage(args, Gender),
+  })
+  @ApiProperty({
+    description: 'Gênero do paciente',
+    example: 'MALE',
+    enum: Gender,
+    enumName: 'Gender',
+  })
+  public gender: Gender;
 }
