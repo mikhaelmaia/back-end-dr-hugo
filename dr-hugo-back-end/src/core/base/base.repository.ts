@@ -10,12 +10,22 @@ import { BaseEntity } from './base.entity';
 import { FilterParams, Page, PaginationParams } from '../vo/types/types';
 import { Logger } from '@nestjs/common';
 import { isInvalidId } from '../utils/format.utils';
+import { getCurrentTransactionManager } from './transaction-context';
 
 export abstract class BaseRepository<TEntity extends BaseEntity> {
   protected alias = 'entity';
   protected readonly logger = new Logger(this.constructor.name);
 
-  protected constructor(protected readonly repository: Repository<TEntity>) {}
+  protected constructor(
+    private readonly defaultRepository: Repository<TEntity>,
+  ) {}
+
+  protected get repository(): Repository<TEntity> {
+    const manager = getCurrentTransactionManager();
+    return manager
+      ? manager.getRepository(this.defaultRepository.target)
+      : this.defaultRepository;
+  }
 
   public insert(data: QueryDeepPartialEntity<TEntity>): Promise<InsertResult> {
     return this.repository.insert(data);

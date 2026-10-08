@@ -11,6 +11,7 @@ Como o código do back-end está organizado, quais convenções seguir ao escrev
 - [Variações de estilo observadas](#variações-de-estilo-observadas)
 - [Núcleo e configurações primordiais](#núcleo-e-configurações-primordiais)
 - [Segurança e controle de acesso](#segurança-e-controle-de-acesso)
+- [Transações](#transações)
 - [Banco e migrations: pontos de atenção](#banco-e-migrations-pontos-de-atenção)
 - [Checklist para criar um módulo novo](#checklist-para-criar-um-módulo-novo)
 
@@ -175,6 +176,14 @@ Há, porém, **divergências de formatação** dentro da mesma base:
 - **Tokens de uso único** (confirmação de e-mail, recuperação de senha, troca de e-mail/telefone): tabela `dv_token` (código de 6 dígitos + hash). Links de e-mail carregam uma **chave de resolução** (64 hex, Redis, uso único, 24 h), que o front troca pelos dados via `POST /resolution-keys/resolve`.
 - **Resposta de recuperação/confirmação:** vários fluxos retornam sucesso mesmo quando o usuário não existe, para não revelar a existência de contas.
 - **Nunca** commite `.env` nem copie segredos de produção para a máquina local ([EXECUCAO_LOCAL.md](EXECUCAO_LOCAL.md#valores-de-produção-a-partir-do-coolify)).
+
+## Transações
+
+Fluxos que gravam em mais de uma tabela/serviço devem rodar em uma transação só, com `runInTransaction(dataSource, async () => { ... })` ([transaction-context.ts](../dr-hugo-back-end/src/core/base/transaction-context.ts)). Dentro do callback, todo `BaseRepository` (inclusive o de outros serviços chamados) usa automaticamente a mesma transação, sem passar `EntityManager`. Uma exceção desfaz tudo. É o que os cadastros de paciente, médico e instituição usam.
+
+- Não dispare tarefas sem `await` que usem repository dentro do callback: elas herdam a transação e podem rodar depois do commit.
+- Efeitos externos (e-mail, WhatsApp, Redis) não são desfeitos pelo rollback.
+- Para checar cadastros órfãos antigos (usuário sem perfil): `SELECT u.id, u.role, u.created_at FROM dv_user u LEFT JOIN dv_doctor d ON d.user_id=u.id LEFT JOIN dv_patient p ON p.user_id=u.id LEFT JOIN dv_institution i ON i.user_id=u.id WHERE u.role <> 'ADMIN' AND d.id IS NULL AND p.id IS NULL AND i.id IS NULL;`
 
 ## Banco e migrations: pontos de atenção
 

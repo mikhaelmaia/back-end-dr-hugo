@@ -18,6 +18,8 @@ import { InstitutionValidationDto } from './dtos/institution-validation.dto';
 import { isNullOrEmpty } from 'src/core/utils/string.utils';
 import { AddressDto } from 'src/core/modules/address/dtos/address.dto';
 import { whenNullThrows, acceptFalseThrows } from 'src/core/utils/functions';
+import { DataSource } from 'typeorm';
+import { runInTransaction } from 'src/core/base/transaction-context';
 import { UserService } from '../users/user.service';
 import { Optional } from 'src/core/utils/optional';
 import { CnesValidationDto } from './dtos/cnes-validation.dto';
@@ -42,6 +44,7 @@ export class InstitutionService extends BaseService<
     mapper: InstitutionMapper,
     private readonly institutionAdapter: InstitutionAdapter,
     private readonly userService: UserService,
+    private readonly dataSource: DataSource,
   ) {
     super(repository, mapper);
   }
@@ -76,16 +79,18 @@ export class InstitutionService extends BaseService<
 
     const user = this.buildUser(dto, cnesValidation, institutionValidation);
 
-    const savedUser = await this.userService.create(user);
+    return runInTransaction(this.dataSource, async () => {
+      const savedUser = await this.userService.create(user);
 
-    institution.user = {
-      id: savedUser.id,
-      isValid: cnesValidation.valid && (institutionValidation?.valid ?? true),
-    } as any;
+      institution.user = {
+        id: savedUser.id,
+        isValid: cnesValidation.valid && (institutionValidation?.valid ?? true),
+      } as any;
 
-    const savedInstitution = await this.repository.save(institution);
+      const savedInstitution = await this.repository.save(institution);
 
-    return this.mapper.toDto(savedInstitution);
+      return this.mapper.toDto(savedInstitution);
+    });
   }
 
   private async validateCnes(cnes: string): Promise<CnesValidatedDto> {

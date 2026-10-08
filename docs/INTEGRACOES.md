@@ -172,7 +172,7 @@ Para o WebSocket, use qualquer cliente Socket.IO conectando em `http://localhost
 
 ## Pontos de atenção operacionais
 
-- **Idempotência / transações:** o cadastro cria o usuário **antes** do perfil (paciente/médico/instituição) sem transação envolvendo os dois, e agora o e-mail de boas-vindas é enviado dentro dessa sequência; falha de SMTP ou do perfil pode deixar um usuário sem perfil. Já `refresh-data` do médico usa transação.
+- **Transações no cadastro:** `POST /patients`, `/doctors` e `/institutions` gravam usuário, token de confirmação, perfil e o envio do e-mail de boas-vindas dentro de **uma única transação** (`runInTransaction`, ver [PADRAO_DE_PROJETO.md](PADRAO_DE_PROJETO.md#transações)). Se qualquer etapa falhar (SMTP, CRM duplicado, banco), nada é mantido e o usuário pode repetir o cadastro. Limitação: o e-mail é enviado antes do commit, então, se o commit falhar depois do envio, a pessoa pode receber um e-mail de um cadastro que não existe. O `refresh-data` do médico já usava transação própria.
 - **Dependência de cache:** `POST /doctors` e `POST /institutions` dependem da consulta prévia (1 h). Se o Redis reiniciar, o usuário precisa repetir a consulta; links de e-mail e QR em circulação também deixam de funcionar.
 - **Parâmetros obrigatórios:** `CFM_API_URL`+`CFM_API_KEY`; `CNES_API_URL`+`CNES_ESTABLISHMENT_PATH`; `RECEITAWS_API_URL`+`RECEITAWS_COMPANY_DATA_PATH`; `VIA_CEP_API_URL`; `SMTP_*`; `ZAPI_*`; `DV_WEB_*`. Faltando, o app sobe e a funcionalidade falha ([EXECUCAO_LOCAL.md](EXECUCAO_LOCAL.md#referência-das-variáveis)).
 - **Mudança de domínio do front:** atualize `DV_WEB_BASE_URL` **e** a lista de origens do CORS em `security.providers.ts` (exige novo deploy). Links já enviados continuam apontando para o domínio antigo.

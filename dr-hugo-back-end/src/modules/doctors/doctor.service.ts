@@ -16,6 +16,7 @@ import { UserService } from '../users/user.service';
 import { whenNullThrows } from 'src/core/utils/functions';
 import { Optional } from 'src/core/utils/optional';
 import { DataSource } from 'typeorm';
+import { runInTransaction } from 'src/core/base/transaction-context';
 
 @Injectable()
 export class DoctorService extends BaseService<
@@ -63,16 +64,18 @@ export class DoctorService extends BaseService<
 
     doctor.clearId();
 
-    const savedUser = await this.userService.create(user);
+    return runInTransaction(this.dataSource, async () => {
+      const savedUser = await this.userService.create(user);
 
-    doctor.user = {
-      id: savedUser.id,
-      isValid: lookedUp.valid,
-    } as any;
+      doctor.user = {
+        id: savedUser.id,
+        isValid: lookedUp.valid,
+      } as any;
 
-    const savedDoctor = await this.repository.save(doctor);
+      const savedDoctor = await this.repository.save(doctor);
 
-    return this.mapper.toDto(savedDoctor);
+      return this.mapper.toDto(savedDoctor);
+    });
   }
 
   public async findDoctorIdByUserId(userId: string): Promise<string> {

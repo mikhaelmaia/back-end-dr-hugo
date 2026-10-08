@@ -4,6 +4,8 @@ import { Patient } from './entities/patient.entity';
 import { PatientDto } from './dtos/patient.dto';
 import { PatientsRepository } from './patients.repository';
 import { PatientsMapper } from './patients.mapper';
+import { DataSource } from 'typeorm';
+import { runInTransaction } from 'src/core/base/transaction-context';
 import { UserService } from '../users/user.service';
 import { Optional } from 'src/core/utils/optional';
 
@@ -20,6 +22,7 @@ export class PatientsService extends BaseService<
     patientsRepository: PatientsRepository,
     patientsMapper: PatientsMapper,
     private readonly userService: UserService,
+    private readonly dataSource: DataSource,
   ) {
     super(patientsRepository, patientsMapper);
   }
@@ -29,15 +32,17 @@ export class PatientsService extends BaseService<
 
     pacient.clearId();
 
-    const savedUser = await this.userService.create(user);
+    return runInTransaction(this.dataSource, async () => {
+      const savedUser = await this.userService.create(user);
 
-    pacient.user = {
-      id: savedUser.id,
-    } as any;
+      pacient.user = {
+        id: savedUser.id,
+      } as any;
 
-    const savedPatient = await this.repository.save(pacient);
+      const savedPatient = await this.repository.save(pacient);
 
-    return this.mapper.toDtoWithUser(savedPatient, savedUser);
+      return this.mapper.toDtoWithUser(savedPatient, savedUser);
+    });
   }
 
   public async findPatientIdByUserId(userId: string): Promise<string> {

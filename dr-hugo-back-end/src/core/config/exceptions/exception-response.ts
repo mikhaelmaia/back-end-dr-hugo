@@ -1,8 +1,20 @@
 import { HttpException, HttpStatus } from "@nestjs/common";
+import { QueryFailedError } from "typeorm";
 import { ApiProperty } from '@nestjs/swagger';
 import { HttpArgumentsHost } from "@nestjs/common/interfaces";
 import { getDescriptionFromStatusCode } from "src/core/utils/http.utils";
 import { ErrorDefinition } from "src/core/vo/consts/errors";
+
+const UNIQUE_VIOLATION_CODE = '23505';
+const DEFAULT_UNIQUE_VIOLATION_MESSAGE =
+  'Já existe um registro com os dados informados';
+const UNIQUE_CONSTRAINT_MESSAGES: Record<string, string> = {
+  UQ_dv_user_email_hash_role: 'Já existe usuário com este e-mail cadastrado',
+  UQ_dv_user_tax_id_hash_role:
+    'Já existe usuário com este CPF/CNPJ cadastrado',
+  UQ_dv_user_phone_hash_role: 'Já existe usuário com este telefone cadastrado',
+  UQ_dv_doctor_registration_crm: 'Já existe médico com este CRM cadastrado',
+};
 
 export class ExceptionResponse {
   @ApiProperty({
@@ -81,6 +93,10 @@ export class ExceptionResponse {
       return this.fromHttpException(exception, response);
     }
 
+    if (exception instanceof QueryFailedError) {
+      return this.fromQueryFailedError(exception, response);
+    }
+
     return this.fromUnknownException(exception, response);
   }
 
@@ -115,6 +131,30 @@ export class ExceptionResponse {
           : (exceptionResponse as any)?.message ?? exception.message;
     }
 
+    return response;
+  }
+
+  private static fromQueryFailedError(
+    exception: QueryFailedError,
+    response: ExceptionResponse,
+  ): ExceptionResponse {
+    const driverError = exception.driverError as {
+      code?: string;
+      constraint?: string;
+    };
+
+    if (driverError?.code === UNIQUE_VIOLATION_CODE) {
+      response.status = HttpStatus.CONFLICT;
+      response.name = getDescriptionFromStatusCode(response.status);
+      response.message =
+        UNIQUE_CONSTRAINT_MESSAGES[driverError.constraint] ??
+        DEFAULT_UNIQUE_VIOLATION_MESSAGE;
+      return response;
+    }
+
+    response.status = HttpStatus.INTERNAL_SERVER_ERROR;
+    response.name = getDescriptionFromStatusCode(response.status);
+    response.message = 'Erro ao processar requisição';
     return response;
   }
 
